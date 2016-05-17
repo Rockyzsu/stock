@@ -38,4 +38,4 @@ def base_case():
     plt.figure()
     df_11.plot()
 
-base_case()
+#base_case()
