@@ -2,7 +2,7 @@
 #author: Rocky Chen
 import pandas as pd
 import numpy as np
-#import matpl
+import matplotlib.pyplot as plt
 
 def base_case():
 
@@ -27,7 +27,15 @@ def base_case():
 
     print df['B']
     print df[0:2]
-
     print df.loc['20160517':'20160519','A':'C']
+    ts= pd.Series(np.random.randn(1000),index=pd.date_range('1/1/2000',periods=1000))
+    ts=ts.cumsum()
+    print "*"
+    print ts.plot()
+
+    df_11=pd.DataFrame(np.random.randn(1000,4),index=ts.index,columns=['A','B','C','D'])
+    df_11 =df-df_11.cumsum()
+    plt.figure()
+    df_11.plot()
 
 base_case()
