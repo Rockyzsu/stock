@@ -33,10 +33,17 @@ class StockBox:
         #print data
         #ts.get_today_all()
 
+
+    def store_file(self,id):
+        df=ts.get_hist_data(id,'2016-01-04','2016-05-18')
+        filename=id+'.csv'
+        df.to_csv(filename)
+
     def get_info(self,id):
         #获取一些股票的基本信息
         df= ts.get_stock_basics()
         print df.ix['300333']['timeToMarket']
+
 
 
 def realtime(self, id):
@@ -95,7 +102,8 @@ def main():
 
     sb = StockBox()
     #sb.base_function(id)
-    sb.get_info(id)
+    #sb.get_info(id)
+    sb.store_file(id)
 
 # sb.looper(id)
 # sb.realtime(id)
