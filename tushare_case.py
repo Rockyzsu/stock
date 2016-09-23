@@ -21,8 +21,8 @@ class StockBox:
         df = ts.get_stock_basics()
         data = df.ix[id]['timeToMarket']
         print data
-        ts.get_today_all()
-
+        all_data=ts.get_today_all()
+        print all_data.ix[id]['name']
     def realtime(self, id):
         # all_stock=ts.get_today_all()
         # print all_stock
@@ -102,7 +102,7 @@ def main():
     # sb.looper(id)
     id='300333'
     #sb.realtime(id)
-    # stockBox.base_function("300333")
+    sb.base_function("300333")
     # pandas_test=Pandas_test()
     # pandas_test.test_function()
     # sb.longhuban('2016-04-05')
@@ -111,7 +111,7 @@ def main():
     #sb.get_stock_chengfeng()
     #sb.date_store()
     #sb.profit_test()
-    sb.daily_longhu()
+    #sb.daily_longhu()
 
 
 class Pandas_test:

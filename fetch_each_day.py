@@ -3,7 +3,7 @@ __author__ = 'Rocky'
 import tushare as ts
 import pandas as pd
 import time,datetime,os,xlrd,xlwt
-class Candle_Stick():
+class Fetch_each_day():
 
     def __init__(self):
         #self.baseinfo=ts.get_stock_basics()
@@ -56,7 +56,6 @@ class Candle_Stick():
         else:
             top_high=pd.read_excel(topfile,sheetname='heat100')
 
-
     def getHistory(self,id):
         data=ts.get_hist_data(id)
         print data
@@ -73,13 +72,8 @@ class Candle_Stick():
         else:
             print "File existed"
 
-
-    def my_choice(self,id):
-        print self.df_today_all['code']
-
-
 if __name__=="__main__":
-    obj=Candle_Stick()
+    obj=Fetch_each_day()
 
     #obj.getHistory('300333')
     #obj.isFileExist('candle.xls')

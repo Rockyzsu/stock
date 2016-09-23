@@ -1,5 +1,8 @@
 # -*-coding=utf-8-*-
 __author__ = 'Rocky'
+'''
+记录每天的盈亏情况
+'''
 import pandas as pd
 import os
 import tushare as ts
@@ -20,15 +23,16 @@ def getCodeFromExcel(filename):
 
     return code,quantity
 
-def calc(code,quantity):
+def calc(code):
     settlement =  df[df['code']==code]['settlement'].values
 
     percentage =  df[df['code']==code]['changepercent'].values
+    trade =  df[df['code']==code]['trade'].values
     #print percentage
     #settlement=df[df['code'==code]]['settlement'].values
     #percentage=df[df['code'==code].index]['changepercent'].values
     #返回四舍五入的结果
-    return round(settlement[0]*percentage[0]*quantity*0.01,1)
+    return settlement,percentage,trade
 
 
 def today_win_lost():
@@ -41,19 +45,39 @@ def today_win_lost():
     print "Quantity"
     print quantity
     result=[]
+    percentage_list=[]
+    trade_list=[]
     for i in range(len(code)):
-        result.append(calc(code[i],quantity[i]))
+        settlement,percentage,trade=calc(code[i])
+        profit=round(settlement[0]*percentage[0]*quantity[i]*0.01,1)
+        result.append(profit)
+        percentage_list.append(percentage[0])
+        trade_list.append(trade[0])
 
-    return result
+    return result,code,percentage_list,trade_list
 
 def join_dataframel():
 
-    result=today_win_lost()
-    s=pd.DataFrame({u'当天贡献':result})
+    result,code,percentage_list,trade_list=today_win_lost()
+    s1=pd.DataFrame({u'当天贡献':result})
+    s2=pd.DataFrame({u'当天涨幅':percentage_list})
+    #s3=pd.DataFrame({u'当天价钱':trade_list})
     #print s
     df=pd.read_excel(filename)
-    new_df=df.join(s,how='right')
-    return new_df
+    del df[u'交易市场']
+    del df[u'股东帐户']
+    del df[u'盈亏比(%)']
+    del df[u'在途数量']
+    #del df[u'']
+    #del df[u'']
+    df[u'证券代码']=code
+    df[u'市价']=trade_list
+    #可以这样直接替换某一列的值
+    df=df.join(s2,how='right')
+    df=df.join(s1,how='right')
+
+    #df=df.join(s3,how='right')
+    return df
 
 def save_to_excel():
     df=join_dataframel()
