@@ -24,15 +24,15 @@ class SqliteDb():
         self.conn.execute(create_tb)
         self.conn.commit()
 
-    def store_break_high(self,price_high_data):
+    def store_break(self,price_data):
 
-        #data 是创新高的个股信息  dataframe
+        #data 是创新高(低)的个股信息  dataframe
         #print today
         #create_tb = 'CREATE TABLE STOCK (date TEXT,id text PRIMARY KEY, p_change REAL,turnover REAL);'
 
         #conn.commit()
         #print "(%s,%s,%f,%f)" %(price_high_data[0], price_high_data[1], price_high_data[2], price_high_data[3])
-        insert_data_cmd = "INSERT INTO %s(date,id,name,p_change,turnover) VALUES(\"%s\",\"%s\",\"%s\",%f,%f);" %(self.dbtable,price_high_data[0], price_high_data[1], price_high_data[2], price_high_data[3],price_high_data[4])
+        insert_data_cmd = "INSERT INTO %s(date,id,name,p_change,turnover) VALUES(\"%s\",\"%s\",\"%s\",%f,%f);" %(self.dbtable,price_data[0], price_data[1], price_data[2], price_data[3],price_data[4])
         self.conn.execute(insert_data_cmd)
         #self.conn.execute('INSERT INTO STOCK(date,id,name,p_change,turnover) VALUES(?,?,?,?,?)',(price_high_data[0], price_high_data[1], price_high_data[2], price_high_data[3],price_high_data[4]))
         self.conn.commit()
