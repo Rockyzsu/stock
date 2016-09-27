@@ -57,23 +57,26 @@ def today_win_lost():
     return result,code,percentage_list,trade_list
 
 def join_dataframel():
+    current_profile=today+u'当天贡献'
 
     result,code,percentage_list,trade_list=today_win_lost()
-    s1=pd.DataFrame({u'当天贡献':result})
-    s2=pd.DataFrame({u'当天涨幅':percentage_list})
+    s1=pd.DataFrame({current_profile:result})
+    #s2=pd.DataFrame({u'当天涨幅':percentage_list})
     #s3=pd.DataFrame({u'当天价钱':trade_list})
     #print s
     df=pd.read_excel(filename)
-    del df[u'交易市场']
-    del df[u'股东帐户']
-    del df[u'盈亏比(%)']
-    del df[u'在途数量']
+    #del df[u'交易市场']
+    #del df[u'股东帐户']
+    #del df[u'盈亏比(%)']
+    #del df[u'在途数量']
+    del df[u'当天贡献']
     #del df[u'']
     #del df[u'']
     df[u'证券代码']=code
     df[u'市价']=trade_list
+    df[u'当天涨幅']=percentage_list
     #可以这样直接替换某一列的值
-    df=df.join(s2,how='right')
+    #df=df.join(s2,how='right')
     df=df.join(s1,how='right')
 
     #df=df.join(s3,how='right')
@@ -81,12 +84,13 @@ def join_dataframel():
 
 def save_to_excel():
     df=join_dataframel()
-    save_name=os.path.join(path,today+"_win_lost_.xls")
+    save_name=os.path.join(path,"each_day_profile.xls")
+    #这样会不会把原来的覆盖掉？
     df.to_excel(save_name)
 
 if __name__ == "__main__":
     path=os.path.join(os.getcwd(),'data')
-    filename=os.path.join(path,'ownstock.xls')
+    filename=os.path.join(path,'each_day_profile.xls')
     now=datetime.datetime.now()
     today=now.strftime('%Y-%m-%d')
     df=ts.get_today_all()
