@@ -1,7 +1,7 @@
 # -*-coding=utf-8-*-
 __author__ = 'Rocky'
 '''
-记录每天的盈亏情况
+记录每天的盈亏情况 完成度100%
 '''
 import pandas as pd
 import os

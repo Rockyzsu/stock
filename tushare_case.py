@@ -1,4 +1,6 @@
 # -*-coding=utf-8-*-
+#练习tushare
+
 import tushare as ts
 import sys
 import numpy as np
