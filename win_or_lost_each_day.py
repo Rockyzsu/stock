@@ -56,7 +56,7 @@ def today_win_lost():
 
     return result,code,percentage_list,trade_list
 
-def join_dataframel():
+def join_dataframe():
     current_profile=today+u'当天贡献'
 
     result,code,percentage_list,trade_list=today_win_lost()
@@ -69,10 +69,12 @@ def join_dataframel():
     #del df[u'股东帐户']
     #del df[u'盈亏比(%)']
     #del df[u'在途数量']
-    del df[u'当天贡献']
+    #del df[u'当天贡献']
     #del df[u'']
     #del df[u'']
+    print code
     df[u'证券代码']=code
+    #print code
     df[u'市价']=trade_list
     df[u'当天涨幅']=percentage_list
     #可以这样直接替换某一列的值
@@ -83,7 +85,7 @@ def join_dataframel():
     return df
 
 def save_to_excel():
-    df=join_dataframel()
+    df=join_dataframe()
     save_name=os.path.join(path,"each_day_profile.xls")
     #这样会不会把原来的覆盖掉？
     df.to_excel(save_name)
@@ -91,7 +93,8 @@ def save_to_excel():
 if __name__ == "__main__":
     path=os.path.join(os.getcwd(),'data')
     filename=os.path.join(path,'each_day_profile.xls')
+    #df_filename=os.path.join(path,'each_day_profile.xls')
     now=datetime.datetime.now()
     today=now.strftime('%Y-%m-%d')
-    df=ts.get_today_all()
+    df=pd.read_excel()
     save_to_excel()

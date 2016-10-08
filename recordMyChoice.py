@@ -21,7 +21,7 @@ class Prediction_rate():
     def stock_pool(self,stock_list):
 
 
-    def record(self,stockID):
+    def first_record(self,stockID):
         #stockID_list=['000673']
 
         wb=xlrd.open_workbook(self.filename)
