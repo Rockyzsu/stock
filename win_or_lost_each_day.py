@@ -25,7 +25,7 @@ def getCodeFromExcel(filename):
 
 def calc(code):
     settlement =  df[df['code']==code]['settlement'].values
-
+    print df['code']
     percentage =  df[df['code']==code]['changepercent'].values
     trade =  df[df['code']==code]['trade'].values
     #print percentage
@@ -85,16 +85,20 @@ def join_dataframe():
     return df
 
 def save_to_excel():
-    df=join_dataframe()
+    new_df=join_dataframe()
     save_name=os.path.join(path,"each_day_profile.xls")
     #这样会不会把原来的覆盖掉？
-    df.to_excel(save_name)
+    new_df.to_excel(save_name)
 
 if __name__ == "__main__":
     path=os.path.join(os.getcwd(),'data')
     filename=os.path.join(path,'each_day_profile.xls')
+    org_filename=os.path.join(path,'2016-09-30_all_.xls')
     #df_filename=os.path.join(path,'each_day_profile.xls')
     now=datetime.datetime.now()
     today=now.strftime('%Y-%m-%d')
-    df=pd.read_excel()
+
+    #df=pd.read_excel(org_filename)
+    df=ts.get_today_all()
+    #为何用pd read的会不一致？
     save_to_excel()
