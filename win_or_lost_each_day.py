@@ -25,7 +25,7 @@ def getCodeFromExcel(filename):
 
 def calc(code):
     settlement =  df[df['code']==code]['settlement'].values
-    print df['code']
+
     percentage =  df[df['code']==code]['changepercent'].values
     trade =  df[df['code']==code]['trade'].values
     #print percentage
