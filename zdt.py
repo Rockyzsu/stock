@@ -43,7 +43,7 @@ class GetZDT():
         data=self.fetchData()
         print data
         f=open('20161201.txt','w')
-        f.write(data)
+        f.write(str(data))
         f.close()
 
 if __name__=='__main__':
