@@ -42,6 +42,9 @@ class GetZDT():
     def storeData(self):
         data=self.fetchData()
         print data
+        f=open('20161201.txt','w')
+        f.write(data)
+        f.close()
 
 if __name__=='__main__':
     obj=GetZDT()
