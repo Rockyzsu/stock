@@ -54,6 +54,10 @@ class GetZDT():
         #f.write(str(data))
         f.close()
 
+    #2016-12-27 to do this
+    def save_excel(self,data):
+
+
 if __name__=='__main__':
 
     #today=time.strftime("%Y-%m-%d")
