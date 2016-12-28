@@ -2,7 +2,7 @@
 __author__ = 'Rocky'
 #每天的涨跌停
 #url=http://stock.jrj.com.cn/tzzs/zdtwdj/zdforce.shtml
-import urllib2,re,time
+import urllib2,re,time,xlrd,xlwt
 class GetZDT():
     def __init__(self):
         self.user_agent = "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)"
@@ -43,19 +43,47 @@ class GetZDT():
     def storeData(self):
         filename=self.today+".txt"
         data=self.fetchData()
+        '''
         f=open(filename,'w')
         for i in data:
             for j in i:
                 print j
+                print type(j)
                 f.write(str(j)+'; ')
 
             f.write('\n')
+        '''
         #f=open('20161201.txt','w')
         #f.write(str(data))
-        f.close()
+        #f.close()
+        self.save_excel(self.today,data)
 
     #2016-12-27 to do this
-    def save_excel(self,data):
+    def save_excel(self,date,data):
+        #data is list type
+        w=xlwt.Workbook()
+        excel_filenme=date+".xls"
+        sheet=open_workbook(excel_filenme)
+        #table=wb.sheets()[0]
+        xf=0
+        ctype=1
+        rows=len(data)
+        point_x=0
+        point_y=0
+        print "Rows:%d" %rows
+        for row in data:
+            rows=len(data)
+            cols=len(row)
+            point_y=0
+            for col in row:
+                #print col
+                #table.put_cell(row,col,)
+
+                print "[%d,%d]" %(point_x,point_y)
+                point_y=point_y+1
+
+            point_x=point_x+1
+
 
 
 if __name__=='__main__':
