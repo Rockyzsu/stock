@@ -1,4 +1,4 @@
-# -*-coding=utf-8-*-
+#-*- coding=utf-8 -*-
 __author__ = 'Rocky'
 #每天的涨跌停
 #url=http://stock.jrj.com.cn/tzzs/zdtwdj/zdforce.shtml
@@ -61,14 +61,15 @@ class GetZDT():
     #2016-12-27 to do this
     def save_excel(self,date,data):
         #data is list type
-        w=xlwt.Workbook()
+        w=xlwt.Workbook(encoding='gbk')
+        ws=w.add_sheet(date)
         excel_filenme=date+".xls"
-        sheet=open_workbook(excel_filenme)
+        #sheet=open_workbook(excel_filenme)
         #table=wb.sheets()[0]
         xf=0
         ctype=1
         rows=len(data)
-        point_x=0
+        point_x=1
         point_y=0
         print "Rows:%d" %rows
         for row in data:
@@ -78,13 +79,14 @@ class GetZDT():
             for col in row:
                 #print col
                 #table.put_cell(row,col,)
-
+                print col
+                ws.write(point_x,point_y,col)
                 print "[%d,%d]" %(point_x,point_y)
                 point_y=point_y+1
 
             point_x=point_x+1
 
-
+        w.save(excel_filenme)
 
 if __name__=='__main__':
 
