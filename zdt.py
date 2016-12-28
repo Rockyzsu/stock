@@ -63,7 +63,7 @@ class GetZDT():
         #data is list type
         w=xlwt.Workbook(encoding='gbk')
         ws=w.add_sheet(date)
-        excel_filenme=date+".xls"
+        excel_filename=date+".xls"
         #sheet=open_workbook(excel_filenme)
         #table=wb.sheets()[0]
         xf=0
@@ -98,7 +98,7 @@ class GetZDT():
 
             point_x=point_x+1
 
-        w.save(excel_filenme)
+        w.save(excel_filename)
 
 if __name__=='__main__':
 
