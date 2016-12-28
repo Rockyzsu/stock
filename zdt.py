@@ -71,6 +71,18 @@ class GetZDT():
         rows=len(data)
         point_x=1
         point_y=0
+        ws.write(0,0,u'代码')
+        ws.write(0,1,u'名称')
+        ws.write(0,2,u'最新价格')
+        ws.write(0,3,u'涨跌幅')
+        ws.write(0,4,u'封成比')
+        ws.write(0,5,u'封流比')
+        ws.write(0,6,u'封单金额')
+        ws.write(0,7,u'第一次涨停时间')
+        ws.write(0,8,u'最后一次涨停时间')
+        ws.write(0,9,u'打开次数')
+        ws.write(0,10,u'振幅')
+        ws.write(0,11,u'涨停强度')
         print "Rows:%d" %rows
         for row in data:
             rows=len(data)
