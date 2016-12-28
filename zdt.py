@@ -3,6 +3,7 @@ __author__ = 'Rocky'
 #每天的涨跌停
 #url=http://stock.jrj.com.cn/tzzs/zdtwdj/zdforce.shtml
 import urllib2,re,time,xlrd,xlwt
+import pandas as pd
 class GetZDT():
     def __init__(self):
         self.user_agent = "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)"
@@ -56,7 +57,10 @@ class GetZDT():
         #f=open('20161201.txt','w')
         #f.write(str(data))
         #f.close()
-        self.save_excel(self.today,data)
+
+        #self.save_excel(self.today,data)
+
+        self.save_to_dataframe(data)
 
     #2016-12-27 to do this
     def save_excel(self,date,data):
@@ -100,6 +104,10 @@ class GetZDT():
 
         w.save(excel_filename)
 
+    def save_to_dataframe(self,data):
+        df=pd.DataFrame(data)
+        print df
+
 if __name__=='__main__':
 
     #today=time.strftime("%Y-%m-%d")
@@ -107,4 +115,5 @@ if __name__=='__main__':
     #print type(today)
     obj=GetZDT()
     obj.storeData()
+
 
