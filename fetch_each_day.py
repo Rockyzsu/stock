@@ -1,5 +1,6 @@
 # -*-coding=utf-8-*-
 __author__ = 'Rocky'
+#get top 50 turnover ratio stocks
 import tushare as ts
 import pandas as pd
 import time,datetime,os,xlrd,xlwt
