@@ -126,8 +126,9 @@ class GetZDT():
         #print type(name)
         #temp=df[1]
         #print temp
-        filename=self.path.join(self.today+"DF.xls")
-        df.to_excel(filename,encoding='gbk')
+        filename=os.path.join(self.path,self.today+"DF.xls")
+        #filename=self.path.join()
+        df.to_excel(filename,encoding='gbk')s
         #print name
         #df.to_csv("rocky.csv",encoding='utf-8')
         #print type(temp)
