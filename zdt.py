@@ -2,14 +2,16 @@
 __author__ = 'Rocky'
 #每天的涨跌停
 #url=http://stock.jrj.com.cn/tzzs/zdtwdj/zdforce.shtml
-import urllib2,re,time,xlrd,xlwt
+import urllib2,re,time,xlrd,xlwt,sys,os
 import pandas as pd
+reload(sys)
+sys.setdefaultencoding('gbk')
 class GetZDT():
     def __init__(self):
         self.user_agent = "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)"
-        #self.today=time.strftime("%Y%m%d")
-        self.today="20161228"
-
+        self.today=time.strftime("%Y%m%d")
+        #self.today="20161228"
+        self.path=os.path.join(os.getcwd(),'data')
         print self.today
         #self.url='http://stock.jrj.com.cn/tzzs/zdtwdj/zdforce.shtml'
         #self.url='http://home.flashdata2.jrj.com.cn/limitStatistic/ztForce/20161201.js'
@@ -107,15 +109,33 @@ class GetZDT():
         w.save(excel_filename)
 
     def save_to_dataframe(self,data):
-        df=pd.DataFrame(data)
-        print df
-        df.to_excel("test.xls")
-
+        l=len(data)
+        for i in range(l):
+            data[i][1]= data[i][1].decode('gbk')
+            #data[1+1*11]=data[1+i*11]
+        indexx=[u'代码',u'名称',u'最新价格',u'涨跌幅',u'封成比', u'封流比',u'封单金额',u'第一次涨停时间',u'最后一次涨停时间',u'打开次数',u'振幅',u'涨停强度']
+        df=pd.DataFrame(data,columns=indexx)
+        print type(df)
+        #name=df[1]
+        #print name
+        '''
+        for i in range(len(name)):
+            name[i]=name[i].encode('utf-8')
+        '''
+        #print name
+        #print type(name)
+        #temp=df[1]
+        #print temp
+        filename=self.path.join(self.today+"DF.xls")
+        df.to_excel(filename,encoding='gbk')
+        #print name
+        #df.to_csv("rocky.csv",encoding='utf-8')
+        #print type(temp)
 if __name__=='__main__':
-
     #today=time.strftime("%Y-%m-%d")
     #print today
     #print type(today)
+
     obj=GetZDT()
     obj.storeData()
 
