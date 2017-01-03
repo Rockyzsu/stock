@@ -4,16 +4,22 @@ __author__ = 'Rocky'
 import tushare as ts
 import pandas as pd
 import time,datetime,os,xlrd,xlwt
+from sqlalchemy import create_engine
+import read_config
 class Fetch_each_day():
 
     def __init__(self):
         #self.baseinfo=ts.get_stock_basics()
 
+        self.getDate()
+
+
+    def excel_operation(self):
         self.path=os.path.join(os.getcwd(),'data')
         if not os.path.exists(self.path):
             os.mkdir(self.path)
 
-        self.getDate()
+
         self.GetAllTodayData()
         self.sortTurnOver()
 
@@ -41,6 +47,7 @@ class Fetch_each_day():
             #print n2
             print self.df_today_all
             self.df_today_all.to_excel(filename,sheet_name='All')
+
         else:
             self.df_today_all=pd.read_excel(filename,sheet_name='All')
             print "File existed"
@@ -73,9 +80,20 @@ class Fetch_each_day():
         else:
             print "File existed"
 
+    def save_sql(self):
+        data=read_config.getUserData()
+        sql_pwd=data['mysql_password']
+        self.engine=create_engine('mysql://root:%s@localhost/daily_data?charset=utf8' %sql_pwd)
+
+        self.df_today_all=ts.get_today_all()
+        self.df_today_all.to_sql(self.today,self.engine)
+
+
+
+
 if __name__=="__main__":
     obj=Fetch_each_day()
-
+    obj.save_sql()
     #obj.getHistory('300333')
     #obj.isFileExist('candle.xls')
     #obj.my_choice('300333')
