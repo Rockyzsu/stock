@@ -3,3 +3,6 @@
 .DS_Store
 /data
 data.cfg
+/.idea
+.idea/misc.xml
+.idea/stock.iml
