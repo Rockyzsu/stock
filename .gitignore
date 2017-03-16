@@ -3,3 +3,7 @@
 /data
 data.cfg
 /.idea
+*.xml
+*.txt
+*.csv
+*.html
