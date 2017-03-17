@@ -47,6 +47,8 @@ class Strategy():
             time.sleep(10)
 
     def getStock(self):
+        session=requests.session()
+
         url='https://xueqiu.com/snowmart/push/stocks.json?product_id=19&page=3&count=5'
         #url='https://xueqiu.com/strategy/'
         self.headers['Referer']='https://xueqiu.com/strategy/19'
@@ -54,12 +56,13 @@ class Strategy():
 
         self.headers['X-Requested-With']='XMLHttpRequest'
         self.headers['DNT']='1'
-        self.headers['Cookie']='s=7e18j5feh8; xq_a_token=720138cf03fb8f84ecc90aab8d619a00dda68f65; xq_r_token=0471237c52a208e16ce2d756fe46219b8066604d; Hm_lpvt_1db88642e346389874251b5a1eded6e3=1489555354; __utma=1.842959324.1489555354.1489555354.1489555354.1; __utmc=1; __utmz=1.1489555354.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); u=301489555354143; Hm_lvt_1db88642e346389874251b5a1eded6e3=1489555354; aliyungf_tc=AQAAAHCnVki7tAwAAzISy6/ldZVhH55k'
+        #self.headers['Cookie']='s=7e18j5feh8; xq_a_token=720138cf03fb8f84ecc90aab8d619a00dda68f65; xq_r_token=0471237c52a208e16ce2d756fe46219b8066604d; Hm_lpvt_1db88642e346389874251b5a1eded6e3=1489555354; __utma=1.842959324.1489555354.1489555354.1489555354.1; __utmc=1; __utmz=1.1489555354.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); u=301489555354143; Hm_lvt_1db88642e346389874251b5a1eded6e3=1489555354; aliyungf_tc=AQAAAHCnVki7tAwAAzISy6/ldZVhH55k'
         #need cookies
         data={'product_id':19,'page':3,'count':5}
+        s=session.get('http://xueqiu.com',headers=self.headers)
 
         print self.headers
-        resp=requests.get(url,headers=self.headers,params=data).text
+        resp=session.get(url,headers=self.headers,params=data).text
         print resp
 
 
