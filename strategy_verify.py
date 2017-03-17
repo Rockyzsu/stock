@@ -46,8 +46,8 @@ class Strategy():
                         print it
             time.sleep(10)
 
-    def getStock(self):
-        url='https://xueqiu.com/snowmart/push/stocks.json?product_id=19&page=3&count=5'
+    def getStock(self,strategy,page):
+        url='https://xueqiu.com/snowmart/push/stocks.json?product_id=%s&page=%s&count=5' %(str(strategy),str(page))
         #url='https://xueqiu.com/strategy/'
         self.headers['Referer']='https://xueqiu.com/strategy/19'
 
@@ -56,12 +56,26 @@ class Strategy():
         self.headers['DNT']='1'
         self.headers['Cookie']='s=7e18j5feh8; xq_a_token=720138cf03fb8f84ecc90aab8d619a00dda68f65; xq_r_token=0471237c52a208e16ce2d756fe46219b8066604d; Hm_lpvt_1db88642e346389874251b5a1eded6e3=1489555354; __utma=1.842959324.1489555354.1489555354.1489555354.1; __utmc=1; __utmz=1.1489555354.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); u=301489555354143; Hm_lvt_1db88642e346389874251b5a1eded6e3=1489555354; aliyungf_tc=AQAAAHCnVki7tAwAAzISy6/ldZVhH55k'
         #need cookies
-        data={'product_id':19,'page':3,'count':5}
+        data={'product_id':strategy,'page':page,'count':5}
 
-        print self.headers
-        resp=requests.get(url,headers=self.headers,params=data).text
-        print resp
+        #print self.headers
+        resp=requests.get(url,headers=self.headers,params=data)
+        return resp.json()
 
+    def dataFilter(self,strategy,page):
+        json_data=self.getStock(strategy,page)
+        items=json_data['items']
+        for item in items:
+            print item['name'],
+            print item['trigger_price'],
+            print item['trigger_time'],
+            print item['desc']
+
+
+
+    def loops(self):
+        for i in range(1,5):
+            self.dataFilter(19,i)
 
 '''
 Remote Address:118.178.213.44:443
@@ -103,4 +117,5 @@ count:5
 if __name__=='__main__':
     obj=Strategy()
     #obj.getData(1)
-    obj.getStock()
+    #obj.getStock()
+    obj.loops()
