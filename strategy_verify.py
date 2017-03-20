@@ -107,7 +107,8 @@ class Strategy():
             return 0
 
         create_table(strategy)
-        print items
+        #print items
+
         for item in items:
             desc=item['desc'].encode('utf-8')
             current=item['current']
@@ -152,6 +153,13 @@ class Strategy():
 
         df_total.to_excel('stragety.xls')
 
+    def DataDup(self,strategy):
+        dbname='stragety_19_dadan.db'
+        conn=sqlite3.connect(dbname)
+        cmd='delete from STRATEGY where rowid not in (select max(rowid) from STRATEGY group by 代码);'
+        conn.execute(cmd)
+        conn.commit()
+        conn.close()
 
     def loops(self):
 
@@ -162,45 +170,10 @@ class Strategy():
                     if status==0:
                         break
                     time.sleep(5)
-'''
-Remote Address:118.178.213.44:443
-Request URL:https://xueqiu.com/snowmart/push/stocks.json?product_id=19&page=3&count=5
-Request Method:GET
-Status Code:200 OK
-Request Headersview source
-Accept:*/*
-Accept-Encoding:gzip,deflate
-Accept-Language:en-US,en;q=0.8,zh;q=0.6
-Connection:keep-alive
-Cookie:s=7e18j5feh8; xq_a_token=720138cf03fb8f84ecc90aab8d619a00dda68f65; xq_r_token=0471237c52a208e16ce2d756fe46219b8066604d; Hm_lpvt_1db88642e346389874251b5a1eded6e3=1489555354; __utma=1.842959324.1489555354.1489555354.1489555354.1; __utmc=1; __utmz=1.1489555354.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); u=301489555354143; Hm_lvt_1db88642e346389874251b5a1eded6e3=1489555354; aliyungf_tc=AQAAAHCnVki7tAwAAzISy6/ldZVhH55k
-DNT:1
-Host:xueqiu.com
-Referer:https://xueqiu.com/strategy/19
-User-Agent:Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/37.0.2062.120 Chrome/37.0.2062.120 Safari/537.36
-X-Requested-With:XMLHttpRequest
-Query String Parametersview sourceview URL encoded
-product_id:19
-page:3
-count:5
-Response Headersview source
-Cache-Control:private, no-store, no-cache, must-revalidate, max-age=0
-Connection:keep-alive
-Content-Encoding:gzip
-Content-Type:application/json;charset=UTF-8
-Date:Thu, 16 Mar 2017 07:47:43 GMT
-P3P:"CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT""
-Server:openresty/1.11.2.1
-Strict-Transport-Security:max-age=31536000
-Trace-Id:ce2c5fc01eca5b7f
-Transfer-Encoding:chunked
-Vary:Accept-Encoding
-product_id:19
-page:3
-count:5
-'''
 
 if __name__=='__main__':
     obj=Strategy()
     #obj.getData(1)
     #obj.getStock()
-    obj.loops()
+    #obj.loops()
+    obj.DataDup(0)
