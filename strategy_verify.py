@@ -10,20 +10,18 @@ import sqlite3
 
 
 
-def create_table():
-    conn = sqlite3.connect('dadanxicou.db')
-    #cur=conn.cursor()
+def create_table(strategy):
+    dbname='stragety_%d.db' %strategy
+    conn = sqlite3.connect(dbname)
     try:
         create_tb_cmd='''
-            CREATE TABLE IF NOT EXISTS HOUSE('日期' TEXT,'代码' TEXT,'股票' TEXT,'买入时间' TEXT,'盈亏' TEXT,'买入价格' TEXT,'当前价格' TEXT,'描述' TEXT);
+            CREATE TABLE IF NOT EXISTS STRATEGY('日期' TEXT,'代码' TEXT,'股票' TEXT,'买入时间' TEXT,'盈亏' TEXT,'买入价格' TEXT,'当前价格' TEXT,'描述' TEXT);
             '''
-            #主要就是上面的语句
-            #cur.execute(create_tb_cmd)
-            #cur.commit()
-            #cur.close()
+
         conn.execute(create_tb_cmd)
         conn.commit()
         conn.close()
+        print "create table successful"
     except:
         print "Create table failed"
         return False
@@ -31,25 +29,17 @@ def create_table():
 
 
 
-def insert( date_time,code,name,trigger_time,profit,trigger_price,current,desc):
-    #def insert(self, code):
-    conn = sqlite3.connect('dadanxicou.db')
-    #cur=conn.cursor()
+def insert(strategy,date_time,code,name,trigger_time,profit,trigger_price,current,desc):
+    dbname='stragety_%d.db' %strategy
+    conn = sqlite3.connect(dbname)
     print "open database passed"
         #conn.text_factory = str
-    cmd="INSERT INTO HOUSE ('日期','代码', '股票','买入时间' ,'盈亏' ,'买入价格' ,'当前价格','描述' ) VALUES ('%s','%s','%s','%s','%s','%s','%s','%s');" %(date_time,code,name,trigger_time,profit,trigger_price,current,desc)
-        #works 要么加\"
-        #paul_su="INSERT INTO COMPANY (ID,NAME,AGE,ADDRESS,SALARY) VALUES(5,'%s',32,'CALIFORNIA',2000.00);" %temp2
-        #works 要么加 ’‘
+    cmd="INSERT INTO STRATEGY ('日期','代码', '股票','买入时间' ,'盈亏' ,'买入价格' ,'当前价格','描述' ) VALUES ('%s','%s','%s','%s','%s','%s','%s','%s');" %(date_time,code,name,trigger_time,profit,trigger_price,current,desc)
 
-        #allen="INSERT INTO COMPANY (ID,NAME,AGE,ADDRESS,SALARY) VALUES(2,'ALLEN',72,'CALIFORNIA',20500.00);"
-        #teddy="INSERT INTO COMPANY (ID,NAME,AGE,ADDRESS,SALARY) VALUES(3,'TEDDY',732,'CALIFORNIA',52000.00);"
-        #mark="INSERT INTO COMPANY (ID,NAME,AGE,ADDRESS,SALARY) VALUES(4,'MARK',327,'CALIFORNIA',3000.00);"
-        #sun="INSERT INTO COMPANY (ID,NAME,AGE,ADDRESS,SALARY) VALUES(?,?,?,?,?);"
-        #conn.execute("INSERT INTO COMPANY (ID,NAME,AGE,ADDRESS,SALARY) VALUES(?,?,32,'CALIFORNIA',2000.00)",temp)
     conn.execute(cmd)
     conn.commit()
     conn.close()
+    print "Insert successful"
 
 class Strategy():
     def __init__(self):
@@ -98,19 +88,26 @@ class Strategy():
     def getStock(self,strategy,page):
         url='https://xueqiu.com/snowmart/push/stocks.json?product_id=%s&page=%s&count=5' %(str(strategy),str(page))
         self.headers['Referer']='https://xueqiu.com/strategy/%s' %str(strategy)
-
         self.headers['X-Requested-With']='XMLHttpRequest'
         self.headers['DNT']='1'
         self.headers['Cookie']='s=7e18j5feh8; xq_a_token=720138cf03fb8f84ecc90aab8d619a00dda68f65; xq_r_token=0471237c52a208e16ce2d756fe46219b8066604d; Hm_lpvt_1db88642e346389874251b5a1eded6e3=1489555354; __utma=1.842959324.1489555354.1489555354.1489555354.1; __utmc=1; __utmz=1.1489555354.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); u=301489555354143; Hm_lvt_1db88642e346389874251b5a1eded6e3=1489555354; aliyungf_tc=AQAAAHCnVki7tAwAAzISy6/ldZVhH55k'
         data={'product_id':strategy,'page':page,'count':5}
         resp=requests.get(url,params=data,headers=self.headers)
+
         return resp.json()
 
     def dataStore_SQLite(self,strategy,page):
         json_data=self.getStock(strategy,page)
+        #print json_data
+        if len(json_data)==0:
+
+            return 0
         items=json_data['items']
-        #db=DB_store('dadanxicou.db')
-        create_table()
+        if len(items)==0:
+            return 0
+
+        create_table(strategy)
+        print items
         for item in items:
             desc=item['desc'].encode('utf-8')
             current=item['current']
@@ -118,8 +115,10 @@ class Strategy():
             name=item['name'].encode('utf-8')
             trigger_price=item['trigger_price']
             code=item['symbol'].encode('utf-8')
-            profit=item['change_percent']
+            profit=item['change_percent']*100
+            #print profit
             date_time=item['trigger_time']
+            '''
             print type(desc)
             print type(current)
             print type(trigger_price)
@@ -128,8 +127,8 @@ class Strategy():
             print type(profit)
             print type(date_time)
             print type(name)
-            #db.insert(date_time,name.decode('utf-8'),code,trigger_time,current,trigger_price,profit,desc.decode('utf-8'))
-            insert(date_time,code,name,trigger_time,profit,trigger_price,current,desc)
+            '''
+            insert(strategy,date_time,code,name,trigger_time,profit,trigger_price,current,desc)
 
     def dataFilter(self,strategy,page):
         json_data=self.getStock(strategy,page)
@@ -150,18 +149,19 @@ class Strategy():
             desc: 描述 帖子
 
             '''
-            #print item['name'],
-            #print item['trigger_price'],
-            #print item['trigger_time'],
-            #print item['desc']
-        #print df_total
+
         df_total.to_excel('stragety.xls')
 
 
     def loops(self):
-        for i in range(1,10):
-            #self.dataFilter(19,i)
-            self.dataStore_SQLite(19,i)
+
+        for i in range(1,70):
+                for j in range(20):
+                    print "Strategy %d" %i
+                    status=self.dataStore_SQLite(i,j)
+                    if status==0:
+                        break
+                    time.sleep(5)
 '''
 Remote Address:118.178.213.44:443
 Request URL:https://xueqiu.com/snowmart/push/stocks.json?product_id=19&page=3&count=5
