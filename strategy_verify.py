@@ -6,12 +6,12 @@ from pandas import DataFrame
 import sqlite3
 # -*-coding=utf-8-*-
 __author__ = 'Rocky'
-import sqlite3
+import sqlite3,sys
 
 
 
 def create_table(strategy):
-    dbname='stragety_%d.db' %strategy
+    dbname='qstragety_%d.db' %strategy
     conn = sqlite3.connect(dbname)
     try:
         create_tb_cmd='''
@@ -30,7 +30,7 @@ def create_table(strategy):
 
 
 def insert(strategy,date_time,code,name,trigger_time,profit,trigger_price,current,desc):
-    dbname='stragety_%d.db' %strategy
+    dbname='qstragety_%d.db' %strategy
     conn = sqlite3.connect(dbname)
     print "open database passed"
         #conn.text_factory = str
@@ -93,7 +93,6 @@ class Strategy():
         self.headers['Cookie']='s=7e18j5feh8; xq_a_token=720138cf03fb8f84ecc90aab8d619a00dda68f65; xq_r_token=0471237c52a208e16ce2d756fe46219b8066604d; Hm_lpvt_1db88642e346389874251b5a1eded6e3=1489555354; __utma=1.842959324.1489555354.1489555354.1489555354.1; __utmc=1; __utmz=1.1489555354.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); u=301489555354143; Hm_lvt_1db88642e346389874251b5a1eded6e3=1489555354; aliyungf_tc=AQAAAHCnVki7tAwAAzISy6/ldZVhH55k'
         data={'product_id':strategy,'page':page,'count':5}
         resp=requests.get(url,params=data,headers=self.headers)
-
         return resp.json()
 
     def dataStore_SQLite(self,strategy,page):
@@ -112,13 +111,13 @@ class Strategy():
         for item in items:
             desc=item['desc'].encode('utf-8')
             current=item['current']
-            trigger_time=item['trigger_time']
+            trigger_time=time.ctime(item['trigger_time']*1.0/1000)
             name=item['name'].encode('utf-8')
             trigger_price=item['trigger_price']
             code=item['symbol'].encode('utf-8')
             profit=item['change_percent']*100
             #print profit
-            date_time=item['trigger_time']
+            date_time=time.ctime(item['trigger_time']*1.0/1000)
             '''
             print type(desc)
             print type(current)
@@ -154,26 +153,61 @@ class Strategy():
         df_total.to_excel('stragety.xls')
 
     def DataDup(self,strategy):
-        dbname='stragety_19_dadan.db'
-        conn=sqlite3.connect(dbname)
-        cmd='delete from STRATEGY where rowid not in (select max(rowid) from STRATEGY group by 代码);'
-        conn.execute(cmd)
-        conn.commit()
-        conn.close()
+        dbname='stragety_%d.db' %strategy
+        try:
+            conn=sqlite3.connect(dbname)
+            cmd='delete from STRATEGY where rowid not in (select max(rowid) from STRATEGY group by 代码);'
+            conn.execute(cmd)
+            conn.commit()
+            conn.close()
+        except:
+
+            print "remove failed on ",strategy
 
     def loops(self):
-
         for i in range(1,70):
                 for j in range(20):
                     print "Strategy %d" %i
                     status=self.dataStore_SQLite(i,j)
                     if status==0:
                         break
-                    time.sleep(5)
+                    time.sleep(2)
+
+    def monitor(self,strategy):
+        print "monitor"
+        print "#"*20
+        print '\n'
+        for i in range(10):
+            json_data=self.getStock(strategy,i)
+            items=json_data['items']
+            for item in items:
+                print '\n\n'
+                print u'买入时间 ',time.ctime(item['trigger_time']*1.00/1000)
+                print u'当前价格 ',item['current']
+                print item['name']
+                print u'买入价格 ',item['trigger_price']
+                print u'目前盈亏 ',item['change_percent']
+                print item['desc']
+
+            time.sleep(1)
+
+def main():
+
+    selection=input("Select option :\n1.\tMonitor the stragegy \n2.\tStore to Database\n3.\tRemove duplicate items\n")
+
+    obj=Strategy()
+    if selection==1:
+        strategy=input('Strategy:')
+        obj.monitor(strategy)
+
+    elif selection ==2:
+        obj.loops()
+    elif selection==3:
+        for i in range(1,60):
+            obj.DataDup(i)
+
 
 if __name__=='__main__':
+    #main()
     obj=Strategy()
-    #obj.getData(1)
-    #obj.getStock()
-    #obj.loops()
-    obj.DataDup(0)
+    obj.dataStore_SQLite(19,1)
