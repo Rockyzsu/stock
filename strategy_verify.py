@@ -55,7 +55,7 @@ def insert(strategy,date_time,code,name,trigger_time,profit,trigger_price,curren
         print "Insert successful"
     except:
         print "Insert Failed"
-        
+
 class Strategy():
     def __init__(self):
         self.base_url='https://xueqiu.com/strategy/'
@@ -168,7 +168,14 @@ class Strategy():
         df_total.to_excel('stragety.xls')
 
     def DataDup(self,strategy):
+        work_path=os.path.join(os.getcwd(),'data')
+
+        if os.path.exists(work_path)==False:
+            os.mkdir(work_path)
+
         dbname='stragety_%d.db' %strategy
+        dbname=os.path.join(work_path,dbname)
+
         #dbname='qstragety_19.db'
         try:
             conn=sqlite3.connect(dbname)
