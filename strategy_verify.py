@@ -1,6 +1,6 @@
 # -*-coding=utf-8-*-
 __author__ = 'Rocky'
-import requests,time,re
+import requests,time,re,os
 from lxml import etree
 from pandas import DataFrame
 import sqlite3
@@ -11,7 +11,13 @@ import sqlite3,sys
 
 
 def create_table(strategy):
+    work_path=os.path.join(os.getcwd(),'data')
+
+    if os.path.exists(work_path)==False:
+        os.mkdir(work_path)
+
     dbname='qstragety_%d.db' %strategy
+    dbname=os.path.join(work_path,dbname)
     conn = sqlite3.connect(dbname)
     try:
         create_tb_cmd='''
@@ -30,17 +36,26 @@ def create_table(strategy):
 
 
 def insert(strategy,date_time,code,name,trigger_time,profit,trigger_price,current,desc):
+    work_path=os.path.join(os.getcwd(),'data')
+
+    if os.path.exists(work_path)==False:
+        os.mkdir(work_path)
+
     dbname='qstragety_%d.db' %strategy
-    conn = sqlite3.connect(dbname)
-    print "open database passed"
-        #conn.text_factory = str
-    cmd="INSERT INTO STRATEGY ('日期','代码', '股票','买入时间' ,'盈亏' ,'买入价格' ,'当前价格','描述' ) VALUES ('%s','%s','%s','%s','%s','%s','%s','%s');" %(date_time,code,name,trigger_time,profit,trigger_price,current,desc)
+    dbname=os.path.join(work_path,dbname)
+    try:
+        conn = sqlite3.connect(dbname)
+        print "open database passed"
+            #conn.text_factory = str
+        cmd="INSERT INTO STRATEGY ('日期','代码', '股票','买入时间' ,'盈亏' ,'买入价格' ,'当前价格','描述' ) VALUES ('%s','%s','%s','%s','%s','%s','%s','%s');" %(date_time,code,name,trigger_time,profit,trigger_price,current,desc)
 
-    conn.execute(cmd)
-    conn.commit()
-    conn.close()
-    print "Insert successful"
-
+        conn.execute(cmd)
+        conn.commit()
+        conn.close()
+        print "Insert successful"
+    except:
+        print "Insert Failed"
+        
 class Strategy():
     def __init__(self):
         self.base_url='https://xueqiu.com/strategy/'
@@ -154,14 +169,17 @@ class Strategy():
 
     def DataDup(self,strategy):
         dbname='stragety_%d.db' %strategy
+        #dbname='qstragety_19.db'
         try:
             conn=sqlite3.connect(dbname)
             cmd='delete from STRATEGY where rowid not in (select max(rowid) from STRATEGY group by 代码);'
             conn.execute(cmd)
+            time.sleep(1)
             conn.commit()
+            time.sleep(1)
             conn.close()
+            time.sleep(1)
         except:
-
             print "remove failed on ",strategy
 
     def loops(self):
@@ -208,6 +226,7 @@ def main():
 
 
 if __name__=='__main__':
-    #main()
-    obj=Strategy()
-    obj.dataStore_SQLite(19,1)
+    main()
+    #obj=Strategy()
+    #obj.dataStore_SQLite(19,1)
+    #bj.DataDup(19)
