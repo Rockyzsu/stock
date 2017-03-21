@@ -1,7 +1,7 @@
 # -*-coding=utf-8-*-
 #抓取雪球的收藏文章
 __author__ = 'Rocky'
-import requests,cookielib,read_config,re,json,time
+import requests,cookielib,re,json,time
 from toolkit import Toolkit
 from lxml import etree
 url='https://xueqiu.com/snowman/login'

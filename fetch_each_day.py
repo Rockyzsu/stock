@@ -5,7 +5,7 @@ import tushare as ts
 import pandas as pd
 import time,datetime,os,xlrd,xlwt
 from sqlalchemy import create_engine
-import read_config
+from toolkit import Toolkit
 class Fetch_each_day():
 
     def __init__(self):
@@ -81,7 +81,7 @@ class Fetch_each_day():
             print "File existed"
 
     def save_sql(self):
-        data=read_config.getUserData()
+        data=Toolkit.getUserData()
         sql_pwd=data['mysql_password']
         self.engine=create_engine('mysql://root:%s@localhost/daily_data?charset=utf8' %sql_pwd)
 
