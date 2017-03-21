@@ -1,6 +1,5 @@
 *.pyc
 .DS_Store
-/data
 data.cfg
 /.idea
 *.xml
