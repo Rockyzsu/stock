@@ -19,7 +19,7 @@ def create_table(strategy):
     if os.path.exists(work_path)==False:
         os.mkdir(work_path)
 
-    dbname='qstragety_%d.db' %strategy
+    dbname='stragety_%d.db' %strategy
     dbname=os.path.join(work_path,dbname)
     conn = sqlite3.connect(dbname)
     try:
@@ -44,7 +44,7 @@ def insert(strategy,date_time,code,name,trigger_time,profit,trigger_price,curren
     if os.path.exists(work_path)==False:
         os.mkdir(work_path)
 
-    dbname='qstragety_%d.db' %strategy
+    dbname='stragety_%d.db' %strategy
     dbname=os.path.join(work_path,dbname)
     try:
         conn = sqlite3.connect(dbname)
