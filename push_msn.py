@@ -21,7 +21,7 @@ class MailSend():
 
     def send_txt(self, name,price,percent):
         # 这里发送附件尤其要注意字符编码，当时调试了挺久的，因为收到的文件总是乱码
-        content='%s higher than %.2f, %.2f' %(name,price,percent)
+        content='%s higher than %.2f, %.2f%' %(name,price,percent)
         subject='%s' %name
         self.msg=MIMEText(content,'plain','utf-8')
         self.msg['to'] = self.to_mail
@@ -72,7 +72,7 @@ def meet_price(code,price):
     #percent=df['']
     #print type(real_price)
     if real_price>=price:
-        print '%s price higher than %.2f\n'%(name,price)
+        print '%s price higher than %.2f%\n'%(name,price)
         push_msg(name,price,percent)
 
 def main():
