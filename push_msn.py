@@ -20,7 +20,7 @@ class MailSend():
         # 初始化邮箱设置
 
     def send_txt(self, name,price,percent):
-        content='%s higher than %.2f, %.2f' %(name,price,percent)
+        content='%s higher than %.2f , %.2f' %(name,price,percent)
         content=content+'%'
         print content
         subject='%s' %name
@@ -70,22 +70,27 @@ def meet_price(code,price):
     real_price=float(real_price)
     pre_close=float(df['pre_close'].values[0])
     percent=(real_price-pre_close)/pre_close*100
-    print percent
+    #print percent
     #percent=df['']
     #print type(real_price)
     if real_price>=price:
-        print '%s price higher than %.2f%percent, %.2f' %(name,price,percent),
+        print '%s price higher than %.2f , %.2f' %(name,price,percent),
         print '%'
         push_msg(name,price,percent)
+        return 1
 
 def main():
     #read_stock()
     stock_lists=read_stock()
     while 1:
+        t=0
         for each_stock in stock_lists:
             code=each_stock[0]
             price=float(each_stock[1])
-            meet_price(code,price)
+            t=meet_price(code,price)
+            if t:
+                stock_lists.remove(each_stock)
+
     #meet_price('300333',14.1)
 
 
