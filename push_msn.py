@@ -69,15 +69,22 @@ def meet_price(code,price):
     real_price=float(real_price)
     pre_close=float(df['pre_close'].values[0])
     percent=(real_price-pre_close)/pre_close*100
+    print percent
     #percent=df['']
     #print type(real_price)
     if real_price>=price:
-        print '%s price higher than %.2f%\n'%(name,price)
+        print '%s price higher than %.2f%percent,, %.2f  ' %(name,price,percent)
         push_msg(name,price,percent)
 
 def main():
     #read_stock()
-    meet_price('300333',14.1)
+    stock_lists=read_stock()
+    while 1:
+        for each_stock in stock_lists:
+            code=each_stock[0]
+            price=float(each_stock[1])
+            meet_price(code,price)
+    #meet_price('300333',14.1)
 
 
 if __name__=='__main__':
