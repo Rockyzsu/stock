@@ -133,7 +133,7 @@ class Strategy():
             name=item['name'].encode('utf-8')
             trigger_price=item['trigger_price']
             code=item['symbol'].encode('utf-8')
-            profit=item['change_percent']*100
+            profit=item['change_percent']*100.0
             #print profit
             date_time=time.ctime(item['trigger_time']*1.0/1000)
             '''
@@ -214,7 +214,7 @@ class Strategy():
                 print u'当前价格 ',item['current']
                 print item['name']
                 print u'买入价格 ',item['trigger_price']
-                print u'目前盈亏 ',item['change_percent']
+                print u'目前盈亏 ',float(item['change_percent'])*100.0
                 print item['desc']
 
             time.sleep(1)
