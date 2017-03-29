@@ -19,8 +19,12 @@ class MailSend():
 
         # 初始化邮箱设置
 
-    def send_txt(self, name,price,percent):
-        content='%s higher than %.2f , %.2f' %(name,price,percent)
+    def send_txt(self, name,price,percent,status):
+        if 'up'==status:
+            content='%s > %.2f , %.2f' %(name,price,percent)
+        if 'down'==status:
+             content='%s < %.2f , %.2f' %(name,price,percent)
+
         content=content+'%'
         print content
         subject='%s' %name
@@ -41,16 +45,16 @@ class MailSend():
             print e
             return 0
 
-def push_msg(name,price,percent):
+def push_msg(name,price,percent,status):
     cfg=Toolkit.getUserData('data.cfg')
     from_mail=cfg['from_mail']
     password=cfg['password']
     to_mail=cfg['to_mail']
     obj=MailSend('smtp.qq.com',from_mail,password,to_mail)
-    obj.send_txt(name,price,percent)
+    obj.send_txt(name,price,percent,status)
 
-def read_stock():
-    f=open('stock.txt')
+def read_stock(name):
+    f=open(name)
     stock_list=[]
 
     for s in f.readlines():
@@ -63,7 +67,7 @@ def read_stock():
 
     return stock_list
 
-def meet_price(code,price):
+def meet_price(code,price_up,price_down):
     df=ts.get_realtime_quotes(code)
     real_price= df['price'].values[0]
     name=df['name'].values[0]
@@ -73,23 +77,68 @@ def meet_price(code,price):
     #print percent
     #percent=df['']
     #print type(real_price)
-    if real_price>=price:
-        print '%s price higher than %.2f , %.2f' %(name,price,percent),
+    if real_price>=price_up:
+        print '%s price higher than %.2f , %.2f' %(name,real_price,percent),
         print '%'
-        push_msg(name,price,percent)
+        push_msg(name,real_price,percent,'up')
+        return 1
+    if real_price<=price_down:
+        print '%s price lower than %.2f , %.2f' %(name,real_price,percent),
+        print '%'
+        push_msg(name,real_price,percent,'down')
+        return 1
+
+def meet_percent(code,percent_up,percent_down):
+    df=ts.get_realtime_quotes(code)
+    real_price= df['price'].values[0]
+    name=df['name'].values[0]
+    real_price=float(real_price)
+    pre_close=float(df['pre_close'].values[0])
+    real_percent=(real_price-pre_close)/pre_close*100
+    #print percent
+    #percent=df['']
+    #print type(real_price)
+    if real_percent>=percent_up:
+        print '%s percent higher than %.2f , %.2f' %(name,real_percent,real_price),
+
+        push_msg(name,real_price,real_price,'up')
+        return 1
+    if real_percent<=percent_down:
+        print '%s percent lower than %.2f , %.2f' %(name,real_percent,real_price),
+        print '%'
+        push_msg(name,real_price,real_percent,'down')
+
         return 1
 
 def main():
     #read_stock()
-    stock_lists=read_stock()
-    while 1:
-        t=0
-        for each_stock in stock_lists:
-            code=each_stock[0]
-            price=float(each_stock[1])
-            t=meet_price(code,price)
-            if t:
-                stock_lists.remove(each_stock)
+    choice=input("Input your choice:\n")
+
+    if str(choice)=='1':
+        #using price:
+        stock_lists_price=read_stock('price.txt')
+        while 1:
+            t=0
+            for each_stock in stock_lists_price:
+                code=each_stock[0]
+                price_down=float(each_stock[1])
+                price_up=float(each_stock[2])
+                t=meet_price(code,price_up,price_down)
+                if t:
+                    stock_lists_price.remove(each_stock)
+
+    if str(choice)=='2':
+        #using percent
+        stock_lists_percent=read_stock('percent.txt')
+        while 1:
+            t=0
+            for each_stock in stock_lists_percent:
+                code=each_stock[0]
+                percent_down=float(each_stock[1])
+                percent_up=float(each_stock[2])
+                t=meet_percent(code,percent_up,percent_down)
+                if t:
+                    stock_lists_percent.remove(each_stock)
 
     #meet_price('300333',14.1)
 
