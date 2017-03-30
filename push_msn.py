@@ -1,6 +1,6 @@
 # -*-coding=utf-8-*-
 __author__ = 'Rocky'
-import smtplib
+import smtplib,time
 from email.mime.text import MIMEText
 from email.header import Header
 from toolkit import Toolkit
@@ -68,7 +68,12 @@ def read_stock(name):
     return stock_list
 
 def meet_price(code,price_up,price_down):
-    df=ts.get_realtime_quotes(code)
+    try:
+        df=ts.get_realtime_quotes(code)
+    except Exception,e:
+        print e
+        time.sleep(5)
+        return 0
     real_price= df['price'].values[0]
     name=df['name'].values[0]
     real_price=float(real_price)
@@ -89,7 +94,13 @@ def meet_price(code,price_up,price_down):
         return 1
 
 def meet_percent(code,percent_up,percent_down):
-    df=ts.get_realtime_quotes(code)
+
+    try:
+        df=ts.get_realtime_quotes(code)
+    except Exception, e:
+        print e
+        time.sleep(5)
+        return 0
     real_price= df['price'].values[0]
     name=df['name'].values[0]
     real_price=float(real_price)
