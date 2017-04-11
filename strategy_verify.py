@@ -114,16 +114,17 @@ class Strategy():
         except:
             print u"Cookie 未能加载"
         '''
+
         url='https://xueqiu.com/snowmart/push/stocks.json?product_id=%s&page=%s&count=5' %(str(strategy),str(page))
         self.headers['Referer']='https://xueqiu.com/strategy/%s' %str(strategy)
         self.headers['X-Requested-With']='XMLHttpRequest'
         #self.headers['DNT']='1'
-        self.headers['Cookie']='Hm_lvt_17fe7dbfb7c6403f008d815a35234de4=1484670023; Hm_lvt_63c1867417313f92f41e54d6ef61187d=1484670037; s=6m16o47wct; bid=a8ec0ec01035c8be5606c595aed718d4_j08bls78; webp=0; xq_a_token=ad0b10d2f2b21e685f625008eba3d989043ec772; xqat=ad0b10d2f2b21e685f625008eba3d989043ec772; xq_r_token=ace5bc80b8b2c7c42df5c02b44664e9eb171056e; xq_is_login=1; u=1733473480; xq_token_expire=Tue%20Apr%2011%202017%2001%3A57%3A06%20GMT%2B0800%20(CST); __utma=1.364596906.1485191811.1489920169.1490033240.17; __utmz=1.1489421892.12.2.utmcsr=baidu|utmccn=(organic)|utmcmd=organic; Hm_lvt_1db88642e346389874251b5a1eded6e3=1489245277,1489421892,1489593169,1489854044'
+        #self.headers['Cookie']='Hm_lvt_17fe7dbfb7c6403f008d815a35234de4=1484670023; Hm_lvt_63c1867417313f92f41e54d6ef61187d=1484670037; s=6m16o47wct; bid=a8ec0ec01035c8be5606c595aed718d4_j08bls78; webp=0; xq_a_token=ad0b10d2f2b21e685f625008eba3d989043ec772; xqat=ad0b10d2f2b21e685f625008eba3d989043ec772; xq_r_token=ace5bc80b8b2c7c42df5c02b44664e9eb171056e; xq_is_login=1; u=1733473480; xq_token_expire=Tue%20Apr%2011%202017%2001%3A57%3A06%20GMT%2B0800%20(CST); __utma=1.364596906.1485191811.1489920169.1490033240.17; __utmz=1.1489421892.12.2.utmcsr=baidu|utmccn=(organic)|utmcmd=organic; Hm_lvt_1db88642e346389874251b5a1eded6e3=1489245277,1489421892,1489593169,1489854044'
         data_up={'product_id':strategy,'page':page,'count':5}
         #data_up={'product_id':str(strategy),'page':str(page),'count':'5'}
         s.get('https://xueqiu.com',headers=self.headers)
         #resp=requests.get(url,params=data_up,headers=self.headers)
-        resp=s.get(url,data=data_up,headers=self.headers)
+        resp=s.get(url,params=data_up,headers=self.headers)
         #print resp.json()
         #time.sleep(20)
         return resp.json()
