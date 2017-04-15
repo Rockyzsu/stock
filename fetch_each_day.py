@@ -93,7 +93,8 @@ class Fetch_each_day():
 
 if __name__=="__main__":
     obj=Fetch_each_day()
-    obj.save_sql()
+    #obj.save_sql()
     #obj.getHistory('300333')
     #obj.isFileExist('candle.xls')
     #obj.my_choice('300333')
+    obj.excel_operation()
