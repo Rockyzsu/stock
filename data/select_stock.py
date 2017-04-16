@@ -14,8 +14,12 @@ class select_stocks():
     def cixingu(self):
         df=self.shenzhen()
 
-        #df_x=df[df['timeToMarket']>'20170101']
-        print type( df['timeToMarket'])
+        df_x=df.groupby('timeToMarket')
+        print df_x
+        for name,group in df_x:
+            print name
+            print group
+
 
     def output(self):
         print self.shenzhen()
