@@ -1,7 +1,7 @@
 # -*-coding=utf-8-*-
 __author__ = 'Rocky'
 import tushare as ts
-
+import pandas as pd
 #用来选股用的
 
 class select_stocks():
@@ -14,6 +14,7 @@ class select_stocks():
     def cixingu(self):
         df=self.shenzhen()
 
+<<<<<<< HEAD:data/select_stock.py
         df_x=df.groupby('timeToMarket')
         print df_x
         for name,group in df_x:
@@ -21,7 +22,16 @@ class select_stocks():
             print group
 
 
+=======
+        #df_x=df[df['timeToMarket']>'20170101']
+        #print type( df['timeToMarket'])
+        df_time= df['timeToMarket']
+        new_df=pd.to_datetime(df_time)
+        print new_df
+>>>>>>> origin/master:select_stock.py
     def output(self):
         print self.shenzhen()
+
 obj=select_stocks()
 obj.cixingu()
+#obj.shenzhen()
