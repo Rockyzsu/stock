@@ -3,6 +3,7 @@ __author__ = 'Rocky'
 import tushare as ts
 import pandas as pd
 import os,sys,datetime
+import numpy as np
 reload(sys)
 sys.setdefaultencoding('utf8')
 #用来选股用的
@@ -15,10 +16,12 @@ class select_class():
         #这里编码有问题
         #self.base.to_excel('base.xls',encoding='GBK')
         #self.base.to_excel('111.xls',encoding='utf8')
-        #self.base.to_csv('base.csv')
+        #self.base.to_csv('bases.csv')
 
         #因为网速问题，手动从本地抓取
-        #self.base=pd.read_csv('base.csv')
+        #self.base=pd.read_csv('bases.csv')
+        self.base=pd.read_csv('bases.csv',dtype={'code':np.str})
+        print self.base
 
     def insert_garbe(self):
         print '*'*30
@@ -116,12 +119,16 @@ class select_class():
 
     #计算一个票从最高位到目前 下跌多少
     def drop_down_from_high(self,start,code):
+
             end_day = datetime.date(datetime.date.today().year, datetime.date.today().month, datetime.date.today().day)
             end_day = end_day.strftime("%Y-%m-%d")
-            print end_day
+            #print end_day
+            #print start
             total=ts.get_k_data(code=code,start=start,end=end_day)
+            #print total
             high=total['high'].max()
             high_day=total.loc[total['high']==high]['date'].values[0]
+
             print high
             print high_day
             current=total['close'].values[-1]
@@ -131,12 +138,27 @@ class select_class():
             return percent
 
     def loop_each_cixin(self):
-        df=self.fetch_new_ipo()
+        df=self.fetch_new_ipo(writeable=True)
         all_code=df['code'].values
         print all_code
+        #exit()
+        percents=[]
         for each in all_code:
-            self.drop_down_from_high('2017-01-01',each)
+            print each
+            #print type(each)
+            percent=self.drop_down_from_high('2016-01-01',each)
+            percents.append(percent)
 
+        df['Drop_Down']=percents
+
+        print df
+
+        df.sort_values('Drop_Down',ascending=True,inplace=True)
+        print df
+        df.to_csv('drop_Down_cixin.csv')
+    def debug_case(self):
+        code='300333'
+        self.drop_down_from_high('2017-01-01',code)
 
 if __name__=="__main__":
     currnet=os.getcwd()
@@ -156,6 +178,7 @@ if __name__=="__main__":
     #obj.fetch_new_ipo(writeable=True)
     #obj.drop_down_from_high('2017-01-01','300580')
     obj.loop_each_cixin()
+    #obj.debug_case()
 
 
 
