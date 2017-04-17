@@ -35,6 +35,7 @@ class select_class():
         if writeable:
             count.to_excel('each_area_stock.xls')
 
+<<<<<<< HEAD
     #显示你要的某个省的上市公司
     def get_area(self,area,writeable=False):
         user_area=self.base[self.base['area']==area]
@@ -78,3 +79,26 @@ if __name__=="__main__":
     #obj.showInfo()
     #obj.count_area()
     #obj.get_area('河南')
+=======
+<<<<<<< HEAD:data/select_stock.py
+        df_x=df.groupby('timeToMarket')
+        print df_x
+        for name,group in df_x:
+            print name
+            print group
+
+
+=======
+        #df_x=df[df['timeToMarket']>'20170101']
+        #print type( df['timeToMarket'])
+        df_time= df['timeToMarket']
+        new_df=pd.to_datetime(df_time)
+        print new_df
+>>>>>>> origin/master:select_stock.py
+    def output(self):
+        print self.shenzhen()
+
+obj=select_stocks()
+obj.cixingu()
+#obj.shenzhen()
+>>>>>>> origin/master
