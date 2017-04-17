@@ -2,7 +2,7 @@
 __author__ = 'Rocky'
 import tushare as ts
 import pandas as pd
-import os,sys
+import os,sys,datetime
 reload(sys)
 sys.setdefaultencoding('utf8')
 #用来选股用的
@@ -100,6 +100,29 @@ class select_class():
             name=unicode(i)
             self.get_area(name,writeable=True)
 
+    #找出所有的次新股 默认12个月内
+    def fetch_new_ipo(self,how_long=12,writeable=False):
+            #需要继续转化为日期类型
+            # date=
+            df= self.base.loc[self.base['timeToMarket']>20160101]
+            df.sort_values('timeToMarket',inplace=True,ascending=False)
+            if writeable==True:
+                df.to_csv("New_IPO.csv")
+            return df
+
+    #计算一个票从最高位到目前 下跌多少
+    def drop_down_from_high(self,start,code):
+            end_day = datetime.date(datetime.date.today().year, datetime.date.today().month, datetime.date.today().day)
+            end_day = end_day.strftime("%Y-%m-%d")
+            total=ts.get_k_data(code=code,start=start,end=end_day)
+            high=total['high'].max()
+            print high
+            current=total['close'].values
+            print current
+            #percent=round((current-high)/high*100,2)
+            #rint percent
+            #return percent
+
 
 if __name__=="__main__":
     currnet=os.getcwd()
@@ -115,8 +138,9 @@ if __name__=="__main__":
     #obj.count_area(writeable=True)
     #obj.get_area(u'广东',writeable=True)
     #obj.get_all_location()
-    obj.cixingu('上海')
-
+    #obj.cixingu('上海')
+    #obj.fetch_new_ipo(writeable=True)
+    obj.drop_down_from_high('2017-01-01','300580')
 
 
 
