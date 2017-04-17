@@ -10,11 +10,15 @@ sys.setdefaultencoding('utf8')
 #缺陷： 暂时不能保存为excel
 class select_class():
     def __init__(self):
+        #pass
         self.base=ts.get_stock_basics()
         #这里编码有问题
         #self.base.to_excel('base.xls',encoding='GBK')
         #self.base.to_excel('111.xls',encoding='utf8')
         #self.base.to_csv('base.csv')
+
+        #因为网速问题，手动从本地抓取
+        #self.base=pd.read_csv('base.csv')
 
     def insert_garbe(self):
         print '*'*30
@@ -114,14 +118,24 @@ class select_class():
     def drop_down_from_high(self,start,code):
             end_day = datetime.date(datetime.date.today().year, datetime.date.today().month, datetime.date.today().day)
             end_day = end_day.strftime("%Y-%m-%d")
+            print end_day
             total=ts.get_k_data(code=code,start=start,end=end_day)
             high=total['high'].max()
+            high_day=total.loc[total['high']==high]['date'].values[0]
             print high
-            current=total['close'].values
+            print high_day
+            current=total['close'].values[-1]
             print current
-            #percent=round((current-high)/high*100,2)
-            #rint percent
-            #return percent
+            percent=round((current-high)/high*100,2)
+            print percent
+            return percent
+
+    def loop_each_cixin(self):
+        df=self.fetch_new_ipo()
+        all_code=df['code'].values
+        print all_code
+        for each in all_code:
+            self.drop_down_from_high('2017-01-01',each)
 
 
 if __name__=="__main__":
@@ -140,7 +154,8 @@ if __name__=="__main__":
     #obj.get_all_location()
     #obj.cixingu('上海')
     #obj.fetch_new_ipo(writeable=True)
-    obj.drop_down_from_high('2017-01-01','300580')
+    #obj.drop_down_from_high('2017-01-01','300580')
+    obj.loop_each_cixin()
 
 
 
