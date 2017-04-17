@@ -21,7 +21,7 @@ class select_class():
         #因为网速问题，手动从本地抓取
         #self.base=pd.read_csv('bases.csv')
         self.base=pd.read_csv('bases.csv',dtype={'code':np.str})
-        print self.base
+        #print self.base
 
     def insert_garbe(self):
         print '*'*30
@@ -156,9 +156,29 @@ class select_class():
         df.sort_values('Drop_Down',ascending=True,inplace=True)
         print df
         df.to_csv('drop_Down_cixin.csv')
-    def debug_case(self):
-        code='300333'
-        self.drop_down_from_high('2017-01-01',code)
+
+    def get_macd(self,code):
+        df=ts.get_k_data(code=code,start='2017-03-01')
+        ma5= df['close'][-5:].mean()
+        ma10= df['close'][-10:].mean()
+        if ma5>ma10:
+            print code
+
+    def macd(self):
+        df=self.fetch_new_ipo(writeable=True)
+        all_code=df['code'].values
+        print all_code
+        #exit()
+        percents=[]
+        for each_code in all_code:
+            df_x=ts.get_k_data(code=each_code,start='2017-03-01')
+            if len(df)<11:
+                return
+            ma5= df_x['close'][-5:].mean()
+            ma10= df_x['close'][-10:].mean()
+            if ma5>ma10:
+
+                print "m5>m10: ",each_code," ",df[df['code']==each_code]['name'].values[0], "ma5: ",ma5,' m10: ',ma10
 
 if __name__=="__main__":
     currnet=os.getcwd()
@@ -177,8 +197,10 @@ if __name__=="__main__":
     #obj.cixingu('上海')
     #obj.fetch_new_ipo(writeable=True)
     #obj.drop_down_from_high('2017-01-01','300580')
-    obj.loop_each_cixin()
+    #obj.loop_each_cixin()
     #obj.debug_case()
+    #obj.get_macd()
+    obj.macd()
 
 
 
