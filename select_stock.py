@@ -180,6 +180,7 @@ class select_class():
         print all_code
         result=[]
         for each_code in all_code:
+            print each_code
             df_x=ts.get_k_data(code=each_code,start='2017-03-01')
             #只找最近一个月的，所以no item的是停牌。
             if len(df_x)<11:
