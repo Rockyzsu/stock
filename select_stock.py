@@ -2,7 +2,7 @@
 __author__ = 'Rocky'
 import tushare as ts
 import pandas as pd
-import os,sys,datetime
+import os,sys,datetime,time
 import numpy as np
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -12,16 +12,20 @@ sys.setdefaultencoding('utf8')
 class select_class():
     def __init__(self):
         #pass
-        self.base=ts.get_stock_basics()
+        #self.bases=ts.get_stock_basics()
+
         #这里编码有问题
         #self.base.to_excel('base.xls',encoding='GBK')
         #self.base.to_excel('111.xls',encoding='utf8')
-        #self.base.to_csv('bases.csv')
+        #self.bases.to_csv('bases.csv')
 
         #因为网速问题，手动从本地抓取
         #self.base=pd.read_csv('bases.csv')
         self.base=pd.read_csv('bases.csv',dtype={'code':np.str})
         #print self.base
+        #self.today=datetime.datetime.strftime('%Y-%m-%d')
+        self.today = time.strftime("%Y-%m-%d", time.localtime())
+
 
     def insert_garbe(self):
         print '*'*30
@@ -37,7 +41,6 @@ class select_class():
         print '\n'
         print df.dtypes
         self.insert_garbe()
-
         print df.describe()
 
     #计算每个地区有多少上市公司
@@ -117,6 +120,11 @@ class select_class():
                 df.to_csv("New_IPO.csv")
             return df
 
+    #获取所有股票的代码
+    def get_all_code(self):
+            all_code=self.base['code'].values
+            return all_code
+
     #计算一个票从最高位到目前 下跌多少
     def drop_down_from_high(self,start,code):
 
@@ -164,22 +172,49 @@ class select_class():
         if ma5>ma10:
             print code
 
+    #获取所有的ma5>ma10
     def macd(self):
-        df=self.fetch_new_ipo(writeable=True)
-        all_code=df['code'].values
+        #df=self.fetch_new_ipo(writeable=True)
+        #all_code=df['code'].values
+        all_code=self.get_all_code()
         print all_code
-        #exit()
-        percents=[]
+        result=[]
         for each_code in all_code:
             df_x=ts.get_k_data(code=each_code,start='2017-03-01')
-            if len(df)<11:
-                return
+            #只找最近一个月的，所以no item的是停牌。
+            if len(df_x)<11:
+                #return
+                print "no item"
+                continue
             ma5= df_x['close'][-5:].mean()
             ma10= df_x['close'][-10:].mean()
             if ma5>ma10:
 
-                print "m5>m10: ",each_code," ",df[df['code']==each_code]['name'].values[0], "ma5: ",ma5,' m10: ',ma10
+                #print "m5>m10: ",each_code," ",self.base[self.base['code']==each_code]['name'].values[0], "ma5: ",ma5,' m10: ',ma10
+                temp=[each_code,self.base[self.base['code']==each_code]['name'].values[0]]
+                print temp
+                result.append(temp)
+        print result
+        print "Done"
+        return result
 
+    #写入csv文件
+    def write_to_text(self):
+        print "On write"
+        r=self.macd()
+        filename=self.today+"-macd.csv"
+        f=open(filename,'w')
+        for i in r:
+            f.write(i[0])
+            f.write(',')
+            f.write(i[1])
+            f.write('\n')
+        f.close()
+    #读取自己的csv文件
+    def read_csv(self):
+        filename=self.today+"-macd.csv"
+        df=pd.read_csv(filename)
+        print df
 if __name__=="__main__":
     currnet=os.getcwd()
     folder=os.path.join(currnet,'data')
@@ -200,7 +235,9 @@ if __name__=="__main__":
     #obj.loop_each_cixin()
     #obj.debug_case()
     #obj.get_macd()
-    obj.macd()
+
+    obj.write_to_text()
+    #obj.read_csv()
 
 
 
