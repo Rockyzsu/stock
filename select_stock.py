@@ -1,4 +1,5 @@
 # -*-coding=utf-8-*-
+#适用 tushare 0.7.1
 __author__ = 'Rocky'
 import tushare as ts
 import pandas as pd
@@ -12,19 +13,24 @@ sys.setdefaultencoding('utf8')
 class select_class():
     def __init__(self):
         #pass
-        #self.bases=ts.get_stock_basics()
+        #self.base=ts.get_stock_basics()
+        #print self.base
+       # print self.base.index
 
         #这里编码有问题
-        #self.base.to_excel('base.xls',encoding='GBK')
-        #self.base.to_excel('111.xls',encoding='utf8')
+        #self.bases.to_excel('bases.xls')
+        #self.bases.to_excel('base.xls',encoding='GBK')
+        #self.bases.to_excel('111.xls',encoding='utf8')
         #self.bases.to_csv('bases.csv')
 
         #因为网速问题，手动从本地抓取
-        #self.base=pd.read_csv('bases.csv')
-        self.base=pd.read_csv('bases.csv',dtype={'code':np.str})
+
+        #self.base=pd.read_csv('bases.csv',dtype={'code':np.str})
         #print self.base
         #self.today=datetime.datetime.strftime('%Y-%m-%d')
         self.today = time.strftime("%Y-%m-%d", time.localtime())
+        self.base=pd.read_csv('bases.csv',dtype={'code':np.str})
+        #print self.base
 
 
     def insert_garbe(self):
@@ -123,6 +129,8 @@ class select_class():
     #获取所有股票的代码
     def get_all_code(self):
             all_code=self.base['code'].values
+            #all_code=self.base.index.values
+            #print all_code
             return all_code
 
     #计算一个票从最高位到目前 下跌多少
@@ -181,8 +189,12 @@ class select_class():
         result=[]
         for each_code in all_code:
             print each_code
-            df_x=ts.get_k_data(code=each_code,start='2017-03-01')
+            try:
+                df_x=ts.get_k_data(code=each_code,start='2017-03-01')
             #只找最近一个月的，所以no item的是停牌。
+            except:
+                print "Can't get k_data"
+                continue
             if len(df_x)<11:
                 #return
                 print "no item"
@@ -216,12 +228,18 @@ class select_class():
         filename=self.today+"-macd.csv"
         df=pd.read_csv(filename)
         print df
-if __name__=="__main__":
+
+def main():
+    if ts.__version__!='0.7.4':
+        print "Make sure using tushare 0.7.4"
+        exit()
     currnet=os.getcwd()
     folder=os.path.join(currnet,'data')
     if os.path.exists(folder)==False:
         os.mkdir(folder)
     os.chdir(folder)
+
+
 
     obj=select_class()
     #obj.cixingu('深圳',writeable=True)
@@ -236,9 +254,18 @@ if __name__=="__main__":
     #obj.loop_each_cixin()
     #obj.debug_case()
     #obj.get_macd()
+    #l=obj.get_all_code()
+    #print type(l)
+    #print len(l)
+    #for i in l:
+    #    print i
 
     obj.write_to_text()
     #obj.read_csv()
+
+
+if __name__=="__main__":
+    main()
 
 
 
