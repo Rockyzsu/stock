@@ -31,3 +31,20 @@ class Toolkit():
             account[ctype.strip()]=passwd.strip()
 
         return account
+
+    @staticmethod
+    def read_stock(cfg_file):
+        result=[]
+        try:
+
+            f=open(cfg_file,'r').readlines()
+            for i in f:
+                i=i.strip()
+                if len(i)!=6:
+                    continue
+                result.append(i)
+                #print i
+        except Exception,e:
+            print e
+            return None
+        return result
