@@ -8,6 +8,8 @@ from email.mime.multipart import MIMEMultipart
 from email import Encoders, Utils
 from toolkit import Toolkit
 import tushare as ts
+from pandas import Series
+import matplotlib.pyplot as plt
 #推送股价信息到手机
 class MailSend():
     def __init__(self, smtp_server, from_mail, password, to_mail):
@@ -121,6 +123,27 @@ def meet_percent(code,percent_up,percent_down):
 
         return 1
 
+#推送一般的实盘消息
+def general_info():
+    t_all=ts.get_today_all()
+    result=[]
+    t1=t_all[t_all['changepercent']<=-9.0].count()['changepercent']
+    result.append(t1)
+    for i in range(-9,9,1):
+        temp=t_all[(i*1.00<t_all['changepercent']) & (t_all['changepercent']<=(i+1)*1.00)].count()['changepercent']
+        result.append(temp)
+    t2=t_all[t_all['changepercent']>9.0].count()['changepercent']
+    result.append(t2)
+    return result
+
+def visual():
+    data=general_info()
+    s=Series(data=data,index=[range(-10,10)])
+
+    print s
+    fg=s.plot(kind='bar',table=True)
+    plt.show(fg)
+
 def main():
     #read_stock()
     choice=input("Input your choice:\n")
@@ -151,8 +174,9 @@ def main():
                 if t:
                     stock_lists_percent.remove(each_stock)
 
-    #meet_price('300333',14.1)
 
 
 if __name__=='__main__':
-    main()
+    #main()
+    #general_info()
+    visual()
