@@ -144,7 +144,8 @@ class Strategy():
             code=item['symbol'].encode('utf-8')
             profit=item['change_percent']*100.0
             #print profit
-            date_time=time.ctime(item['trigger_time']*1.0/1000)
+            date_time=str_time
+            #date_time=time.ctime(item['trigger_time']*1.0/1000)
             '''
             print type(desc)
             print type(current)
@@ -218,7 +219,9 @@ class Strategy():
             items=json_data['items']
             for item in items:
                 print '\n\n'
-                print u'买入时间 ',datetime.datetime.fromtimestamp(item['trigger_time']*1.00/1000)
+                d_time=datetime.datetime.fromtimestamp(item['trigger_time']*1.00/1000)
+                str_time=d_time.strftime('%Y-%m-%d %H:%M')
+                print u'买入时间 ',str_time
                 #print u'买入时间 ',time.ctime(item['trigger_time']*1.00/1000)
                 print u'当前价格 ',item['current']
                 print item['name']
