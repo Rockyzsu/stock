@@ -123,6 +123,8 @@ def meet_percent(code,percent_up,percent_down):
 
         return 1
 
+
+
 #推送一般的实盘消息
 def general_info():
     t_all=ts.get_today_all()

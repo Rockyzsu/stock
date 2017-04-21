@@ -9,7 +9,7 @@ from pandas import DataFrame
 import sqlite3
 # -*-coding=utf-8-*-
 __author__ = 'Rocky'
-import sqlite3,sys,cookielib
+import sqlite3,sys,cookielib,datetime
 
 
 
@@ -134,7 +134,11 @@ class Strategy():
         for item in items:
             desc=item['desc'].encode('utf-8')
             current=item['current']
-            trigger_time=time.ctime(item['trigger_time']*1.0/1000)
+            d_time=datetime.datetime.fromtimestamp(item['trigger_time']*1.0/1000)
+            str_time=d_time.strftime('%Y-%m-%d %H:%M')
+
+            #trigger_time=datetime.datetime.fromtimestamp(item['trigger_time']*1.0/1000)
+            trigger_time=str_time
             name=item['name'].encode('utf-8')
             trigger_price=item['trigger_price']
             code=item['symbol'].encode('utf-8')
@@ -214,7 +218,8 @@ class Strategy():
             items=json_data['items']
             for item in items:
                 print '\n\n'
-                print u'买入时间 ',time.ctime(item['trigger_time']*1.00/1000)
+                print u'买入时间 ',datetime.datetime.fromtimestamp(item['trigger_time']*1.00/1000)
+                #print u'买入时间 ',time.ctime(item['trigger_time']*1.00/1000)
                 print u'当前价格 ',item['current']
                 print item['name']
                 print u'买入价格 ',item['trigger_price']
