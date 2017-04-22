@@ -17,7 +17,7 @@ sys.setdefaultencoding('utf8')
 class select_class():
     def __init__(self):
         # pass
-        # self.base=ts.get_stock_basics()
+        self.base=ts.get_stock_basics()
         # print self.base
         # print self.base.index
 
@@ -25,7 +25,7 @@ class select_class():
         # self.bases.to_excel('bases.xls')
         # self.bases.to_excel('base.xls',encoding='GBK')
         # self.bases.to_excel('111.xls',encoding='utf8')
-        # self.bases.to_csv('bases.csv')
+        self.base.to_csv('bases.csv')
 
         # 因为网速问题，手动从本地抓取
 
@@ -35,6 +35,7 @@ class select_class():
         self.today = time.strftime("%Y-%m-%d", time.localtime())
         self.base = pd.read_csv('bases.csv', dtype={'code': np.str})
         self.all_code = self.base['code'].values
+        self.working_count=0
         # all_code=self.base.index.values
         # print self.base
         self.mystocklist = Toolkit.read_stock('mystock.csv')
@@ -316,6 +317,7 @@ class select_class():
         print start_day
         print end_day
         all_break = []
+
         for i in codes:
             try:
                 df = ts.get_hist_data(code=i, start=start_day, end=end_day)
@@ -325,7 +327,7 @@ class select_class():
                 print e
                 continue
             else:
-
+                self.working_count=self.working_count+1
                 current = df['close'][0]
                 ma5 = df['ma5'][0]
                 ma10 = df['ma10'][0]
@@ -349,10 +351,17 @@ class select_class():
         else:
             all_break = self._break_line(self.all_code, k_type)
 
-        print "how many break: " , len(all_break)
-        f=open('break_line_'+k_type+'.csv','w')
-        f.write(''.join(all_break))
+
+        l=len(all_break)
+        beaking_rate=l*1.00/self.working_count*100
+        print "how many break: " ,l
+        print "break Line rate " , beaking_rate
+        f=open(self.today+'break_line_'+k_type+'.csv','w')
+        f.write("Breaking rate: %f\n\n" %beaking_rate)
+        f.write('\n'.join(all_break))
+
         f.close()
+
 
 def main():
     if ts.__version__ != '0.7.5':
