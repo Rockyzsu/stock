@@ -82,7 +82,10 @@ class select_class():
             filename = area + '.csv'
             user_area.to_csv(filename)
         return user_area
-
+    #获取成分股
+    def get_chengfenggu(self):
+        s50=ts.get_sz50s()
+        s50.to_excel('sz50.xls')
     # 显示次新股
     def cixingu(self, area, writeable=False):
         '''
@@ -426,7 +429,7 @@ class select_class():
         for kk in result:
             print kk
             for k in kk:
-                ff.write(i)
+                ff.write(k)
                 ff.write(',')
                 ff.write(self.base[self.base['code']==k]['name'].values[0])
                 ff.write('\n')
@@ -533,10 +536,11 @@ def main():
     # obj.break_line()
     # obj.save_data_excel()
     #obj.break_line(mine=False,k_type='5')
-    obj.multi_thread()
+    #obj.multi_thread()
+    obj.get_chengfenggu()
 
 if __name__ == "__main__":
-    start=datetime.datetime.now()
+    start_time=datetime.datetime.now()
     main()
-    end=datetime.datetime.now()
-    print "time use : " (end-start).seconds
+    end_time=datetime.datetime.now()
+    print "time use : ", (end_time-start_time).seconds
