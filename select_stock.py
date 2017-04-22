@@ -6,6 +6,7 @@ import pandas as pd
 import os, sys, datetime, time
 import numpy as np
 from toolkit import Toolkit
+
 reload(sys)
 sys.setdefaultencoding('utf8')
 
@@ -36,8 +37,17 @@ class select_class():
         self.all_code = self.base['code'].values
         # all_code=self.base.index.values
         # print self.base
-        self.mystocklist=Toolkit.read_stock('mystock.csv')
-        #print self.mystocklist
+        self.mystocklist = Toolkit.read_stock('mystock.csv')
+        # print self.mystocklist
+
+    # 保存为excel 文件 这个时候csv 乱码,excel正常.
+    def save_data_excel(self):
+        df = ts.get_stock_basics()
+
+        df.to_csv(self.today + '.csv', encoding='gbk')
+        df_x = pd.read_csv(self.today + '.csv', encoding='gbk')
+        df_x.to_excel(self.today + '.xls', encoding='gbk')
+        os.remove(self.today + '.csv')
 
     def insert_garbe(self):
         print '*' * 30
@@ -219,7 +229,7 @@ class select_class():
 
     # 获取成交量的ma5 或者10
     def volume_calculate(self):
-        delta_day = 60*7/5
+        delta_day = 60 * 7 / 5
         end_day = datetime.date(datetime.date.today().year, datetime.date.today().month, datetime.date.today().day)
         start_day = end_day - datetime.timedelta(delta_day)
 
@@ -235,7 +245,7 @@ class select_class():
             except:
                 print "Failed to get"
                 continue
-            #print df
+            # print df
             all_mean = df['volume'].mean()
             if len(df) < 11:
                 # print "not long enough"
@@ -243,14 +253,14 @@ class select_class():
             m5_volume_m = df['volume'][-5:].mean()
             m10_volume_m = df['volume'][-10:].mean()
 
-            if m5_volume_m >   m10_volume_m and m5_volume_m > (2.0 * all_mean):
+            if m5_volume_m > m10_volume_m and m5_volume_m > (2.0 * all_mean):
                 print "m5 > m10 and m60 "
                 print each_code,
                 temp = self.base[self.base['code'] == each_code]['name'].values[0]
                 print temp
 
     def turnover_check(self):
-        delta_day = 60*7/5
+        delta_day = 60 * 7 / 5
         end_day = datetime.date(datetime.date.today().year, datetime.date.today().month, datetime.date.today().day)
         start_day = end_day - datetime.timedelta(delta_day)
 
@@ -260,13 +270,13 @@ class select_class():
         print end_day
         for each_code in self.all_code:
             try:
-                df=ts.get_hist_data(code=each_code,start=start_day,end=end_day)
+                df = ts.get_hist_data(code=each_code, start=start_day, end=end_day)
             except:
                 print "Failed to get data"
                 continue
-            mv5=df['v_ma5'][-1]
-            mv20=df['v_ma20'][-1]
-            mv_all=df['volume'].mean()
+            mv5 = df['v_ma5'][-1]
+            mv20 = df['v_ma20'][-1]
+            mv_all = df['volume'].mean()
             print
 
     # 写入csv文件
@@ -287,16 +297,17 @@ class select_class():
         filename = self.today + "-macd.csv"
         df = pd.read_csv(filename)
         print df
-    #持股从高点下跌幅度
+
+    # 持股从高点下跌幅度
     def own_drop_down(self):
         for i in self.mystocklist:
             print i
-            self.drop_down_from_high(code=i,start='2017-01-01')
+            self.drop_down_from_high(code=i, start='2017-01-01')
             print '\n'
 
-    #持股跌破均线
-    def break_line(self):
-        delta_day = 60*7/5
+    # 持股跌破均线
+    def _break_line(self, codes, k_type):
+        delta_day = 60 * 7 / 5
         end_day = datetime.date(datetime.date.today().year, datetime.date.today().month, datetime.date.today().day)
         start_day = end_day - datetime.timedelta(delta_day)
 
@@ -304,19 +315,44 @@ class select_class():
         end_day = end_day.strftime("%Y-%m-%d")
         print start_day
         print end_day
-        for i in self.all_code:
+        all_break = []
+        for i in codes:
             try:
-                df=ts.get_hist_data(code=i,start=start_day,end=end_day)
-            except:
+                df = ts.get_hist_data(code=i, start=start_day, end=end_day)
+                if len(df)==0:
+                    continue
+            except Exception,e:
+                print e
                 continue
             else:
-                current=df['close'][-1]
-                ma5=df['ma5'][-1]
-                ma10=df['ma10'][-1]
-                ma20=df['ma20'][-1]
-                if current < ma20:
-                    print i
-                    print self.base[self.base['code']==i]['name'].values[0]
+
+                current = df['close'][0]
+                ma5 = df['ma5'][0]
+                ma10 = df['ma10'][0]
+                ma20 = df['ma20'][0]
+                ma_dict = {'5': ma5, '10': ma10, '20': ma20}
+                ma_x = ma_dict[k_type]
+                print ma_x
+                if current < ma_x:
+                    print i, " current: ", current
+                    print self.base[self.base['code'] == i]['name'].values[0], " "
+
+                    print "Break MA", k_type, "\n"
+                    all_break.append(i)
+        return all_break
+
+    # 检查自己的持仓或者市场所有破位的
+    def break_line(self, mine=True, k_type='20'):
+
+        if mine == True:
+            all_break = self._break_line(self.mystocklist, k_type)
+        else:
+            all_break = self._break_line(self.all_code, k_type)
+
+        print "how many break: " , len(all_break)
+        f=open('break_line_'+k_type+'.csv','w')
+        f.write(''.join(all_break))
+        f.close()
 
 def main():
     if ts.__version__ != '0.7.5':
@@ -344,9 +380,12 @@ def main():
 
     # obj.write_to_text()
     # obj.read_csv()
-    #obj.own_drop_down()
-    #obj.volume_calculate()
-    obj.break_line()
+    # obj.own_drop_down()
+    # obj.volume_calculate()
+    # obj.break_line()
+    # obj.save_data_excel()
+    obj.break_line(mine=False,k_type='5')
+
 
 if __name__ == "__main__":
     main()
