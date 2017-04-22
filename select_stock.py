@@ -3,21 +3,20 @@
 __author__ = 'Rocky'
 import tushare as ts
 import pandas as pd
-import os, sys, datetime, time
+import os, sys, datetime, time,Queue
 import numpy as np
 from toolkit import Toolkit
-
+from threading import Thread
 reload(sys)
 sys.setdefaultencoding('utf8')
-
+q=Queue.Queue()
 
 # 用来选股用的
 # pd.set_option('max_rows',None)
 # 缺陷： 暂时不能保存为excel
 class select_class():
     def __init__(self):
-        # pass
-        self.base=ts.get_stock_basics()
+        #self.base=ts.get_stock_basics()
         # print self.base
         # print self.base.index
 
@@ -25,7 +24,7 @@ class select_class():
         # self.bases.to_excel('bases.xls')
         # self.bases.to_excel('base.xls',encoding='GBK')
         # self.bases.to_excel('111.xls',encoding='utf8')
-        self.base.to_csv('bases.csv')
+        #self.base.to_csv('bases.csv')
 
         # 因为网速问题，手动从本地抓取
 
@@ -362,7 +361,147 @@ class select_class():
 
         f.close()
 
+    def _break_line_thread(self,codes,k_type):
+        delta_day = 60 * 7 / 5
+        end_day = datetime.date(datetime.date.today().year, datetime.date.today().month, datetime.date.today().day)
+        start_day = end_day - datetime.timedelta(delta_day)
 
+        start_day = start_day.strftime("%Y-%m-%d")
+        end_day = end_day.strftime("%Y-%m-%d")
+        print start_day
+        print end_day
+        all_break = []
+        for i in codes:
+            try:
+                df = ts.get_hist_data(code=i, start=start_day, end=end_day)
+                if len(df)==0:
+                    continue
+            except Exception,e:
+                print e
+                continue
+            else:
+                self.working_count=self.working_count+1
+                current = df['close'][0]
+                ma5 = df['ma5'][0]
+                ma10 = df['ma10'][0]
+                ma20 = df['ma20'][0]
+                ma_dict = {'5': ma5, '10': ma10, '20': ma20}
+                ma_x = ma_dict[k_type]
+                #print ma_x
+                if current > ma_x:
+                    print i, " current: ", current
+                    print self.base[self.base['code'] == i]['name'].values[0], " "
+
+                    print "Break MA", k_type, "\n"
+                    all_break.append(i)
+        q.put(all_break)
+
+    def multi_thread(self):
+        total=len(self.all_code)
+        thread_num=10
+        delta=total/thread_num
+        delta_left=total%thread_num
+        t=[]
+        i=0
+        for i in range(thread_num):
+
+            sub_code=self.all_code[i*delta:(i+1)*delta]
+            t_temp=Thread(target=self._break_line_thread,args=(sub_code,'20'))
+            t.append(t_temp)
+        if delta_left !=0:
+            sub_code=self.all_code[i*delta:i*delta+delta_left]
+            t_temp=Thread(target=self._break_line_thread,args=(sub_code,'20'))
+            t.append(t_temp)
+
+        for i in range(len(t)):
+            t[i].start()
+
+        for j in range(len(t)):
+            t[j].join()
+        result=[]
+        print "working done"
+        while not q.empty():
+            result.append(q.get())
+        ff=open(self.today+'_high_m20.csv','w')
+        for kk in result:
+            print kk
+            for k in kk:
+                ff.write(i)
+                ff.write(',')
+                ff.write(self.base[self.base['code']==k]['name'].values[0])
+                ff.write('\n')
+
+        ff.close()
+
+
+'''
+
+def _break_line_thread(codes,k_type):
+        delta_day = 60 * 7 / 5
+        end_day = datetime.date(datetime.date.today().year, datetime.date.today().month, datetime.date.today().day)
+        start_day = end_day - datetime.timedelta(delta_day)
+
+        start_day = start_day.strftime("%Y-%m-%d")
+        end_day = end_day.strftime("%Y-%m-%d")
+        print start_day
+        print end_day
+        all_break = []
+        for i in codes:
+            try:
+                df = ts.get_hist_data(code=i, start=start_day, end=end_day)
+                if len(df)==0:
+                    continue
+            except Exception,e:
+                print e
+                continue
+            else:
+                working_count=working_count+1
+                current = df['close'][0]
+                ma5 = df['ma5'][0]
+                ma10 = df['ma10'][0]
+                ma20 = df['ma20'][0]
+                ma_dict = {'5': ma5, '10': ma10, '20': ma20}
+                ma_x = ma_dict[k_type]
+                print ma_x
+                if current < ma_x:
+                    print i, " current: ", current
+                    print base[base['code'] == i]['name'].values[0], " "
+
+                    print "Break MA", k_type, "\n"
+                    all_break.append(i)
+        q.put(all_break)
+
+def multi_thread(self):
+        total=len(all_code)
+        thread_num=10
+        delta=total/thread_num
+        delta_left=total%thread_num
+        t=[]
+        i=0
+        for i in range(delta):
+
+            sub_code=all_code[i*delta:(i+1)*delta]
+            t_temp=Thread(target=_break_line_thread,args=(sub_code))
+            t.append(t_temp)
+        if delta_left !=0:
+            sub_code=self.all_code[i*delta:i*delta+delta_left]
+            t_temp=Thread(target=_break_line_thread,args=(sub_code,'20'))
+            t.append(t_temp)
+
+        for i in range(len(t)):
+            t[i].start()
+
+        for j in range(len(t)):
+            t[j].join()
+        result=[]
+        print "working done"
+        while not q.empty():
+            result.append(q.get())
+
+        for k in result:
+            print k
+
+'''
 def main():
     if ts.__version__ != '0.7.5':
         print "Make sure using tushare 0.7.5"
@@ -393,8 +532,11 @@ def main():
     # obj.volume_calculate()
     # obj.break_line()
     # obj.save_data_excel()
-    obj.break_line(mine=False,k_type='5')
-
+    #obj.break_line(mine=False,k_type='5')
+    obj.multi_thread()
 
 if __name__ == "__main__":
+    start=datetime.datetime.now()
     main()
+    end=datetime.datetime.now()
+    print "time use : " (end-start).seconds
