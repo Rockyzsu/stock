@@ -83,9 +83,16 @@ class select_class():
             user_area.to_csv(filename)
         return user_area
     #获取成分股
-    def get_chengfenggu(self):
+    def get_chengfenggu(self,writeable=False):
         s50=ts.get_sz50s()
-        s50.to_excel('sz50.xls')
+        if writeable==True:
+            s50.to_excel('sz50.xls')
+        list_s50=s50['code'].values.tolist()
+        #print type(s50)
+        #print type(list_s50)
+        #返回list类型
+        return list_s50
+
     # 显示次新股
     def cixingu(self, area, writeable=False):
         '''
@@ -123,8 +130,6 @@ class select_class():
         cixin = self.get_area(area).head(20)
         print cixin
 
-    def output(self):
-        print self.shenzhen()
 
     # 获取所有地区的分类个股
     def get_all_location(self):
@@ -144,14 +149,7 @@ class select_class():
             df.to_csv("New_IPO.csv")
         return df
 
-    # 获取所有股票的代码,这个可以废掉
-    '''
-    def get_all_code(self):
-            all_code=self.base['code'].values
-            #all_code=self.base.index.values
-            #print all_code
-            return all_code
-    '''
+
 
     # 计算一个票从最高位到目前 下跌多少 计算跌幅
     def drop_down_from_high(self, start, code):
@@ -346,23 +344,21 @@ class select_class():
         return all_break
 
     # 检查自己的持仓或者市场所有破位的
-    def break_line(self, mine=True, k_type='20'):
+    def break_line(self, code, k_type='20',writeable=False):
 
-        if mine == True:
-            all_break = self._break_line(self.mystocklist, k_type)
-        else:
-            all_break = self._break_line(self.all_code, k_type)
+        all_break = self._break_line(code, k_type)
 
 
         l=len(all_break)
         beaking_rate=l*1.00/self.working_count*100
         print "how many break: " ,l
         print "break Line rate " , beaking_rate
-        f=open(self.today+'break_line_'+k_type+'.csv','w')
-        f.write("Breaking rate: %f\n\n" %beaking_rate)
-        f.write('\n'.join(all_break))
+        if writeable:
+            f=open(self.today+'break_line_'+k_type+'.csv','w')
+            f.write("Breaking rate: %f\n\n" %beaking_rate)
+            f.write('\n'.join(all_break))
 
-        f.close()
+            f.close()
 
     def _break_line_thread(self,codes,k_type):
         delta_day = 60 * 7 / 5
@@ -437,74 +433,15 @@ class select_class():
         ff.close()
 
 
-'''
+    def big_deal(self,codes,vol,check_time):
+        '''
+        for code in codes:
+            df=ts.get_sina_dd(code,vol,check_time)
+            print df
+        '''
+        df=ts.get_sina_dd('603918','2017-04-22')
+        print df
 
-def _break_line_thread(codes,k_type):
-        delta_day = 60 * 7 / 5
-        end_day = datetime.date(datetime.date.today().year, datetime.date.today().month, datetime.date.today().day)
-        start_day = end_day - datetime.timedelta(delta_day)
-
-        start_day = start_day.strftime("%Y-%m-%d")
-        end_day = end_day.strftime("%Y-%m-%d")
-        print start_day
-        print end_day
-        all_break = []
-        for i in codes:
-            try:
-                df = ts.get_hist_data(code=i, start=start_day, end=end_day)
-                if len(df)==0:
-                    continue
-            except Exception,e:
-                print e
-                continue
-            else:
-                working_count=working_count+1
-                current = df['close'][0]
-                ma5 = df['ma5'][0]
-                ma10 = df['ma10'][0]
-                ma20 = df['ma20'][0]
-                ma_dict = {'5': ma5, '10': ma10, '20': ma20}
-                ma_x = ma_dict[k_type]
-                print ma_x
-                if current < ma_x:
-                    print i, " current: ", current
-                    print base[base['code'] == i]['name'].values[0], " "
-
-                    print "Break MA", k_type, "\n"
-                    all_break.append(i)
-        q.put(all_break)
-
-def multi_thread(self):
-        total=len(all_code)
-        thread_num=10
-        delta=total/thread_num
-        delta_left=total%thread_num
-        t=[]
-        i=0
-        for i in range(delta):
-
-            sub_code=all_code[i*delta:(i+1)*delta]
-            t_temp=Thread(target=_break_line_thread,args=(sub_code))
-            t.append(t_temp)
-        if delta_left !=0:
-            sub_code=self.all_code[i*delta:i*delta+delta_left]
-            t_temp=Thread(target=_break_line_thread,args=(sub_code,'20'))
-            t.append(t_temp)
-
-        for i in range(len(t)):
-            t[i].start()
-
-        for j in range(len(t)):
-            t[j].join()
-        result=[]
-        print "working done"
-        while not q.empty():
-            result.append(q.get())
-
-        for k in result:
-            print k
-
-'''
 def main():
     if ts.__version__ != '0.7.5':
         print "Make sure using tushare 0.7.5"
@@ -537,7 +474,9 @@ def main():
     # obj.save_data_excel()
     #obj.break_line(mine=False,k_type='5')
     #obj.multi_thread()
-    obj.get_chengfenggu()
+    #code=obj.get_chengfenggu()
+    #obj.break_line(code)
+    obj.big_deal('603918',400,'2017-04-22')
 
 if __name__ == "__main__":
     start_time=datetime.datetime.now()
