@@ -7,38 +7,24 @@ import os, sys, datetime, time,Queue
 import numpy as np
 from toolkit import Toolkit
 from threading import Thread
-reload(sys)
-sys.setdefaultencoding('utf8')
 q=Queue.Queue()
-
+reload(sys)
+sys.setdefaultencoding('utf-8')
 # 用来选股用的
 # pd.set_option('max_rows',None)
 # 缺陷： 暂时不能保存为excel
 class select_class():
     def __init__(self):
-        #self.base=ts.get_stock_basics()
-        # print self.base
-        # print self.base.index
+        #self.bases=ts.get_stock_basics()
 
-        # 这里编码有问题
-        # self.bases.to_excel('bases.xls')
-        # self.bases.to_excel('base.xls',encoding='GBK')
-        # self.bases.to_excel('111.xls',encoding='utf8')
-        #self.base.to_csv('bases.csv')
+        #self.bases.to_csv('bases.csv')
 
         # 因为网速问题，手动从本地抓取
-
-        # self.base=pd.read_csv('bases.csv',dtype={'code':np.str})
-        # print self.base
-        # self.today=datetime.datetime.strftime('%Y-%m-%d')
         self.today = time.strftime("%Y-%m-%d", time.localtime())
         self.base = pd.read_csv('bases.csv', dtype={'code': np.str})
         self.all_code = self.base['code'].values
         self.working_count=0
-        # all_code=self.base.index.values
-        # print self.base
         self.mystocklist = Toolkit.read_stock('mystock.csv')
-        # print self.mystocklist
 
     # 保存为excel 文件 这个时候csv 乱码,excel正常.
     def save_data_excel(self):
@@ -53,9 +39,7 @@ class select_class():
         print '*' * 30
         print '\n'
 
-    def showInfo(self, df=None):
-        if df == None:
-            df = self.base
+    def showInfo(self, df):
         print '*' * 30
         print '\n'
         print df.info()
@@ -82,53 +66,6 @@ class select_class():
             filename = area + '.csv'
             user_area.to_csv(filename)
         return user_area
-    #获取成分股
-    def get_chengfenggu(self,writeable=False):
-        s50=ts.get_sz50s()
-        if writeable==True:
-            s50.to_excel('sz50.xls')
-        list_s50=s50['code'].values.tolist()
-        #print type(s50)
-        #print type(list_s50)
-        #返回list类型
-        return list_s50
-
-    # 显示次新股
-    def cixingu(self, area, writeable=False):
-        '''
-        df=self.get_area(area)
-        df_x=df.sort_values('timeToMarket',ascending=False)
-        df_xx=df_x[:200]
-        print df_xx
-        if writeable:
-            filename='cixin.csv'
-            df_xx.to_csv(filename)
-        '''
-        # df_x= df.groupby('timeToMarket')
-        # print df_x
-        # df_x=df[df['timeToMarket']>'20170101']
-        # print type( df['timeToMarket'])
-        # df_time= df['timeToMarket']
-
-        # new_df=pd.to_datetime(df_time)
-        # print new_df
-        # df_x= df[['area','timeToMarket']]
-        # rint df_x.count()
-
-        '''
-        df_x=df.groupby('timeToMarket')
-        print df_x
-        for name,group in df_x:
-            print name
-            print group
-        #df_x=df[df['timeToMarket']>'20170101']
-        #print type( df['timeToMarket'])
-        df_time= df['timeToMarket']
-        new_df=pd.to_datetime(df_time)
-        print new_df
-        '''
-        cixin = self.get_area(area).head(20)
-        print cixin
 
 
     # 获取所有地区的分类个股
@@ -139,18 +76,33 @@ class select_class():
             name = unicode(i)
             self.get_area(name, writeable=True)
 
-    # 找出所有的次新股 默认12个月内
-    def fetch_new_ipo(self, how_long=12, writeable=False):
+    # 找出指定日期后的次新股
+    def fetch_new_ipo(self, start_time, writeable=False):
         # 需要继续转化为日期类型
-        # date=
-        df = self.base.loc[self.base['timeToMarket'] > 20160101]
+
+        df = self.base.loc[self.base['timeToMarket'] > start_time]
         df.sort_values('timeToMarket', inplace=True, ascending=False)
         if writeable == True:
             df.to_csv("New_IPO.csv")
+        #sum_a=df['pe'].sum()
+
+        pe_av=df[df['pe']!=0]['pe'].mean()
+        pe_all_av=self.base[self.base['pe']!=0]['pe'].mean()
+        print u"平均市盈率为 " , pe_av
+        print u'A股的平均市盈率为 ',pe_all_av
         return df
 
 
-
+    #获取成分股
+    def get_chengfenggu(self,writeable=False):
+        s50=ts.get_sz50s()
+        if writeable==True:
+            s50.to_excel('sz50.xls')
+        list_s50=s50['code'].values.tolist()
+        #print type(s50)
+        #print type(list_s50)
+        #返回list类型
+        return list_s50
     # 计算一个票从最高位到目前 下跌多少 计算跌幅
     def drop_down_from_high(self, start, code):
 
@@ -172,7 +124,7 @@ class select_class():
         return percent
 
     def loop_each_cixin(self):
-        df = self.fetch_new_ipo(writeable=True)
+        df = self.fetch_new_ipo(20170101,writeable=False)
         all_code = df['code'].values
         print all_code
         # exit()
@@ -180,23 +132,18 @@ class select_class():
         for each in all_code:
             print each
             # print type(each)
-            percent = self.drop_down_from_high('2016-01-01', each)
+            percent = self.drop_down_from_high('2017-01-01', each)
             percents.append(percent)
 
         df['Drop_Down'] = percents
 
-        print df
+        #print df
 
         df.sort_values('Drop_Down', ascending=True, inplace=True)
-        print df
-        df.to_csv('drop_Down_cixin.csv')
+        #print df
+        df.to_csv(self.today+'_drop_Down_cixin.csv')
 
-    def get_macd(self, code):
-        df = ts.get_k_data(code=code, start='2017-03-01')
-        ma5 = df['close'][-5:].mean()
-        ma10 = df['close'][-10:].mean()
-        if ma5 > ma10:
-            print code
+
 
     # 获取所有的ma5>ma10
     def macd(self):
@@ -453,18 +400,17 @@ def main():
     os.chdir(folder)
 
     obj = select_class()
-    # obj.cixingu('深圳',writeable=True)
-    # obj.shenzhen()
-    # obj.showInfo()
+    #留下来的函数都是有用的
     # obj.count_area(writeable=True)
-    # obj.get_area(u'广东',writeable=True)
+    #df=obj.get_area(u'广东',writeable=True)
+    #obj.showInfo(df)
+    #df=obj.get_area(u'深圳',writeable=True)
+    #obj.showInfo(df)
     # obj.get_all_location()
-    # obj.cixingu('上海')
-    # obj.fetch_new_ipo(writeable=True)
+    #obj.fetch_new_ipo(20170101,writeable=False)
+
     # obj.drop_down_from_high('2017-01-01','300580')
-    # obj.loop_each_cixin()
-    # obj.debug_case()
-    # obj.get_macd()
+    #obj.loop_each_cixin()
 
     # obj.write_to_text()
     # obj.read_csv()
@@ -476,7 +422,7 @@ def main():
     #obj.multi_thread()
     #code=obj.get_chengfenggu()
     #obj.break_line(code)
-    obj.big_deal('603918',400,'2017-04-22')
+    #obj.big_deal('603918',400,'2017-04-22')
 
 if __name__ == "__main__":
     start_time=datetime.datetime.now()
