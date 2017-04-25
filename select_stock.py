@@ -189,7 +189,8 @@ class select_class():
         end_day = end_day.strftime("%Y-%m-%d")
         print start_day
         print end_day
-        result=[]
+        result_m5_large=[]
+        result_m5_small=[]
         for each_code in codes:
             # print each_code
             try:
@@ -206,15 +207,19 @@ class select_class():
             all_mean = df['volume'].mean()
             m5_volume_m = df['volume'][-5:].mean()
             m10_volume_m = df['volume'][-10:].mean()
-
+            last_vol=df['volume'][-1].values[0]
             #在这里分几个分支，放量 180天均量的4倍
             if  m5_volume_m > (4.0 * all_mean):
                 print "m5 > m_all_avg "
                 print each_code,
                 temp = self.base[self.base['code'] == each_code]['name'].values[0]
                 print temp
-                result.append(each_code)
-        return result
+                result_m5_large.append(each_code)
+
+            #成交量萎缩
+            if last_vol < (m5_volume_m/3.0):
+                result_m5_small.append(each_code)
+        return result_m5_large,result_m5_large
 
     def turnover_check(self):
         delta_day = 60 * 7 / 5
@@ -250,8 +255,8 @@ class select_class():
         f.close()
 
 
-    def saveList(self, l):
-        f=open(self.today+'v5BigThanAll.csv','w')
+    def saveList(self, l,name):
+        f=open(self.today+name+'.csv','w')
         if len(l) ==0:
             return False
         for i in l:
@@ -435,10 +440,14 @@ def main():
     # obj.drop_down_from_high('2017-01-01','300580')
     #obj.loop_each_cixin()
 
-    df=obj.get_all_code()
+    #df=obj.get_all_code()
     #result=obj.volume_calculate(df)
-    result=['300333','300580']
-    obj.saveList(result)
+    #obj.saveList(result)
+
+    df=obj.get_chengfenggu()
+    large,small=obj.volume_calculate(df)
+    obj.saveList(large,'large')
+    obj.saveList(small,'small')
     # obj.write_to_text()
     # obj.read_csv()
     # obj.own_drop_down()
