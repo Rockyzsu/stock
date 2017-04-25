@@ -199,10 +199,11 @@ class select_class():
                 print "Failed to get"
                 continue
             # print df
-            all_mean = df['volume'].mean()
-            if len(df) < 11:
+
+            if len(df) < 20:
                 # print "not long enough"
                 continue
+            all_mean = df['volume'].mean()
             m5_volume_m = df['volume'][-5:].mean()
             m10_volume_m = df['volume'][-10:].mean()
 
