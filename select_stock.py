@@ -175,9 +175,12 @@ class select_class():
         print "Done"
         return result
 
+    def get_all_code(self):
+        return self.all_code
+
     # 获取成交量的ma5 或者10
-    def volume_calculate(self):
-        delta_day = 60 * 7 / 5
+    def volume_calculate(self,codes):
+        delta_day = 180 * 7 / 5
         end_day = datetime.date(datetime.date.today().year, datetime.date.today().month, datetime.date.today().day)
         start_day = end_day - datetime.timedelta(delta_day)
 
@@ -185,7 +188,8 @@ class select_class():
         end_day = end_day.strftime("%Y-%m-%d")
         print start_day
         print end_day
-        for each_code in self.all_code:
+        result=[]
+        for each_code in codes:
             # print each_code
             try:
                 df = ts.get_k_data(each_code, start=start_day, end=end_day)
@@ -201,11 +205,14 @@ class select_class():
             m5_volume_m = df['volume'][-5:].mean()
             m10_volume_m = df['volume'][-10:].mean()
 
-            if m5_volume_m > m10_volume_m and m5_volume_m > (2.0 * all_mean):
-                print "m5 > m10 and m60 "
+            #在这里分几个分支，放量 180天均量的4倍
+            if  m5_volume_m > (4.0 * all_mean):
+                print "m5 > m_all_avg "
                 print each_code,
                 temp = self.base[self.base['code'] == each_code]['name'].values[0]
                 print temp
+                result.append(each_code)
+        return result
 
     def turnover_check(self):
         delta_day = 60 * 7 / 5
@@ -411,6 +418,9 @@ def main():
 
     # obj.drop_down_from_high('2017-01-01','300580')
     #obj.loop_each_cixin()
+
+    df=obj.get_all_code()
+    result=obj.volume_calculate(df)
 
     # obj.write_to_text()
     # obj.read_csv()
