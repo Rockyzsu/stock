@@ -175,6 +175,7 @@ class select_class():
         print "Done"
         return result
 
+    #返回所有股票的代码
     def get_all_code(self):
         return self.all_code
 
@@ -246,6 +247,20 @@ class select_class():
             f.write(i[1])
             f.write('\n')
         f.close()
+
+
+    def saveList(self, l):
+        f=open(self.today+'v5BigThanAll.csv','w')
+        if len(l) ==0:
+            return False
+        for i in l:
+            f.write(i)
+            f.write(',')
+            name=self.all_code[self.all_code['code']==i]['name'].values[0]
+            f.write(name)
+            f.write('\n')
+        f.close()
+        return True
 
     # 读取自己的csv文件
     def read_csv(self):
@@ -421,7 +436,7 @@ def main():
 
     df=obj.get_all_code()
     result=obj.volume_calculate(df)
-
+    obj.saveList(result)
     # obj.write_to_text()
     # obj.read_csv()
     # obj.own_drop_down()
