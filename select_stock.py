@@ -207,7 +207,7 @@ class select_class():
             all_mean = df['volume'].mean()
             m5_volume_m = df['volume'][-5:].mean()
             m10_volume_m = df['volume'][-10:].mean()
-            last_vol=df['volume'][-1].values[0]
+            last_vol=df['volume'][-1]
             #在这里分几个分支，放量 180天均量的4倍
             if  m5_volume_m > (4.0 * all_mean):
                 print "m5 > m_all_avg "
