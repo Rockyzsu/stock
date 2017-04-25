@@ -195,10 +195,10 @@ class select_class():
             try:
                 df = ts.get_k_data(each_code, start=start_day, end=end_day)
 
-            except:
+            except Exception,e:
                 print "Failed to get"
+                print e
                 continue
-            # print df
 
             if len(df) < 20:
                 # print "not long enough"
@@ -257,7 +257,7 @@ class select_class():
         for i in l:
             f.write(i)
             f.write(',')
-            name=self.all_code[self.all_code['code']==i]['name'].values[0]
+            name= self.base[self.base['code']==i]['name'].values[0]
             f.write(name)
             f.write('\n')
         f.close()
@@ -436,7 +436,8 @@ def main():
     #obj.loop_each_cixin()
 
     df=obj.get_all_code()
-    result=obj.volume_calculate(df)
+    #result=obj.volume_calculate(df)
+    result=['300333','300580']
     obj.saveList(result)
     # obj.write_to_text()
     # obj.read_csv()
