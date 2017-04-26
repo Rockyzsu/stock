@@ -195,7 +195,7 @@ class select_class():
             # print each_code
             try:
                 df = ts.get_k_data(each_code, start=start_day, end=end_day)
-
+                print df
             except Exception,e:
                 print "Failed to get"
                 print e
@@ -204,6 +204,7 @@ class select_class():
             if len(df) < 20:
                 # print "not long enough"
                 continue
+            print each_code
             all_mean = df['volume'].mean()
             m5_volume_m = df['volume'][-5:].mean()
             m10_volume_m = df['volume'][-10:].mean()
