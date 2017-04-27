@@ -11,7 +11,7 @@ q=Queue.Queue()
 reload(sys)
 sys.setdefaultencoding('utf-8')
 # 用来选股用的
-# pd.set_option('max_rows',None)
+pd.set_option('max_rows',None)
 # 缺陷： 暂时不能保存为excel
 class select_class():
     def __init__(self):
@@ -418,6 +418,20 @@ class select_class():
         df=ts.get_sina_dd('603918','2017-04-22')
         print df
 
+    def current_day_ticks(self):
+        sz=self.get_chengfenggu()
+        for each_code in sz:
+        #for each_code in self.mystocklist:
+            df=ts.get_today_ticks(each_code)
+            #print df
+            t= df[df['volume']>10000]
+            if len(t) >0:
+                print '\n'
+                print each_code,
+                print ' ', self.base[self.base['code']==each_code]['name'].values[0]
+                print t
+            print ''
+
 def main():
     if ts.__version__ != '0.7.5':
         print "Make sure using tushare 0.7.5"
@@ -445,10 +459,10 @@ def main():
     #result=obj.volume_calculate(df)
     #obj.saveList(result)
 
-    df=obj.get_chengfenggu()
-    large,small=obj.volume_calculate(df)
-    obj.saveList(large,'large')
-    obj.saveList(small,'small')
+    #df=obj.get_chengfenggu()
+    #large,small=obj.volume_calculate(df)
+    #obj.saveList(large,'large')
+    #obj.saveList(small,'small')
     # obj.write_to_text()
     # obj.read_csv()
     # obj.own_drop_down()
@@ -460,6 +474,8 @@ def main():
     #code=obj.get_chengfenggu()
     #obj.break_line(code)
     #obj.big_deal('603918',400,'2017-04-22')
+    obj.current_day_ticks()
+
 
 if __name__ == "__main__":
     start_time=datetime.datetime.now()
