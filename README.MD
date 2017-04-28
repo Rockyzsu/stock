@@ -8,3 +8,7 @@ zdt.py --记录每天股票市场的涨停热度 完成度100%
 fetch_each_day.py --获取每天换手率前50的热门股
 
 strategy_verify.py -获取雪球的即时交易策略
+
+push_msn.py -短信提醒自己 设定的某个股票价格或者涨幅达到自己 要求
+
+select_stock.py - 选股策略， 根据自己的经验选出来的个股。 

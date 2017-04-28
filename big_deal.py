@@ -16,10 +16,15 @@ class Monitor_Stock():
     def getBigDeal(self, code,vol):
         df = ts.get_today_ticks(code)
         t= df[df['volume']>vol]
+        s=df[df['amount']>100000000]
         print '\n'
-        if t.size!=0:
+        if t.size!=0 or s!=0:
             print self.base[self.base['code']==str(code)]['name'].values[0]
             print t
+        if s!=0:
+            print self.base[self.base['code']==str(code)]['name'].values[0]
+            print s
+
 
     def loops(self):
         for i in self.mystock:
