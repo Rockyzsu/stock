@@ -3,10 +3,11 @@
 __author__ = 'Rocky'
 import tushare as ts
 import pandas as pd
-import os, sys, datetime, time,Queue
+import os, sys, datetime, time,Queue, codecs
 import numpy as np
 from toolkit import Toolkit
 from threading import Thread
+from pandas import Series
 q=Queue.Queue()
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -208,7 +209,7 @@ class select_class():
             all_mean = df['volume'].mean()
             m5_volume_m = df['volume'][-5:].mean()
             m10_volume_m = df['volume'][-10:].mean()
-            last_vol=df['volume'][-1]
+            last_vol=df['volume'][-1]  #这里会不会有问题？？？
             #在这里分几个分支，放量 180天均量的4倍
             if  m5_volume_m > (4.0 * all_mean):
                 print "m5 > m_all_avg "
@@ -432,6 +433,52 @@ class select_class():
                 print t
             print ''
 
+        #计算大盘的相关系，看关系如何
+    def relation(self):
+        sh_index=ts.get_k_data('000001',index=True,start='2012-01-01')
+        sh=sh_index['close'].values
+        print sh
+        vol_close=sh_index.corr()
+        print vol_close
+        '''
+        sz_index=ts.get_k_data('399001',index=True)
+        sz=sz_index['close'].values
+        print sz
+
+        cy_index=ts.get_k_data('399006',index=True)
+        s1=Series(sh)
+        s2=Series(sz)
+        print s1.corr(s2)
+        '''
+    #寻找业绩两年未负的，以防要st
+    def profit(self):
+        df_2016=ts.get_report_data(2016,4)
+
+
+        #第四季度就是年报
+        #df= df.sort_values('profits_yoy',ascending=False)
+        #df.to_excel('profit.xls')
+        df_2015=ts.get_report_data(2015,4)
+        df_2016.to_excel('2016_report.xls')
+        df_2015.to_excel('2015_report.xls')
+        code_2015_lost=df_2015[df_2015['net_profits']<0]['code'].values
+        code_2016_lost=df_2016[df_2016['net_profits']<0]['code'].values
+
+        print code_2015_lost
+        print code_2016_lost
+        two_year_lost=[]
+        #two_year_lost_name=[]
+        for i in code_2015_lost:
+            if i in code_2016_lost:
+                print i,
+                #name=self.base[self.base['code']==i].values[0]
+                two_year_lost.append(i)
+
+        self.saveList(two_year_lost,'st_dangours.csv')
+
+
+        #df_2014=ts.get_report_data(2014,4)
+
 def main():
     if ts.__version__ != '0.7.5':
         print "Make sure using tushare 0.7.5"
@@ -474,7 +521,9 @@ def main():
     #code=obj.get_chengfenggu()
     #obj.break_line(code)
     #obj.big_deal('603918',400,'2017-04-22')
-    obj.current_day_ticks()
+    #obj.current_day_ticks()
+    #obj.relation()
+    obj.profit()
 
 
 if __name__ == "__main__":
