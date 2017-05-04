@@ -16,9 +16,9 @@ pd.set_option('max_rows',None)
 # 缺陷： 暂时不能保存为excel
 class select_class():
     def __init__(self):
-        #self.bases=ts.get_stock_basics()
+        self.bases_save=ts.get_stock_basics()
 
-        #self.bases.to_csv('bases.csv')
+        self.bases_save.to_csv('bases.csv')
 
         # 因为网速问题，手动从本地抓取
         self.today = time.strftime("%Y-%m-%d", time.localtime())
@@ -409,30 +409,6 @@ class select_class():
 
         ff.close()
 
-
-    def big_deal(self,codes,vol,check_time):
-        '''
-        for code in codes:
-            df=ts.get_sina_dd(code,vol,check_time)
-            print df
-        '''
-        df=ts.get_sina_dd('603918','2017-04-22')
-        print df
-
-    def current_day_ticks(self):
-        sz=self.get_chengfenggu()
-        for each_code in sz:
-        #for each_code in self.mystocklist:
-            df=ts.get_today_ticks(each_code)
-            #print df
-            t= df[df['volume']>10000]
-            if len(t) >0:
-                print '\n'
-                print each_code,
-                print ' ', self.base[self.base['code']==each_code]['name'].values[0]
-                print t
-            print ''
-
         #计算大盘的相关系，看关系如何
     def relation(self):
         sh_index=ts.get_k_data('000001',index=True,start='2012-01-01')
@@ -453,7 +429,6 @@ class select_class():
     #寻找业绩两年未负的，以防要st
     def profit(self):
         df_2016=ts.get_report_data(2016,4)
-
 
         #第四季度就是年报
         #df= df.sort_values('profits_yoy',ascending=False)
@@ -517,13 +492,13 @@ def main():
     # obj.break_line()
     # obj.save_data_excel()
     #obj.break_line(mine=False,k_type='5')
-    #obj.multi_thread()
+    obj.multi_thread()
     #code=obj.get_chengfenggu()
     #obj.break_line(code)
     #obj.big_deal('603918',400,'2017-04-22')
     #obj.current_day_ticks()
     #obj.relation()
-    obj.profit()
+    #obj.profit()
 
 
 if __name__ == "__main__":

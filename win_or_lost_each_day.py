@@ -19,6 +19,7 @@ def getCodeFromExcel(filename):
     quantity=[]
     for i in range(len(code_list)):
         code.append(str(code_list[i]).zfill(6))
+        #后面学会了map函数，可以直接搞定
         quantity.append(quantity_list[i])
 
     return code,quantity
@@ -49,6 +50,9 @@ def today_win_lost():
     trade_list=[]
     for i in range(len(code)):
         settlement,percentage,trade=calc(code[i])
+        print "settlement", settlement
+        print "percent", percentage
+        print "trade", trade
         profit=round(settlement[0]*percentage[0]*quantity[i]*0.01,1)
         result.append(profit)
         percentage_list.append(percentage[0])

@@ -18,17 +18,17 @@ class Monitor_Stock():
         t= df[df['volume']>vol]
         s=df[df['amount']>100000000]
         print '\n'
-        if t.size!=0 or s!=0:
+        if t.size!=0:
             print self.base[self.base['code']==str(code)]['name'].values[0]
             print t
-        if s!=0:
+        if s.size!=0:
             print self.base[self.base['code']==str(code)]['name'].values[0]
             print s
 
 
     def loops(self):
         for i in self.mystock:
-            self.getBigDeal(i,400)
+            self.getBigDeal(i,500)
 
 
 
