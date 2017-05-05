@@ -16,23 +16,28 @@ class Delivery_Order():
     #合并一年的交割单
     def years(self):
         df_list=[]
-        k=[str(i) for i in range(1,13)]
+        k=[str(i) for i in range(1,5)]
         print k
-        for i in range(1,13):
-            filename='2016-%s.xls' %str(i).zfill(2)
-            print filename
+        for i in range(1,5):
+            filename='2017-%s.xls' %str(i).zfill(2)
+            #print filename
             t=pd.read_table(filename,encoding='gbk',dtype={u'证券代码':np.str})
+            fee=t[u'手续费'].sum()+t[u'印花税'].sum()+t[u'其他杂费'].sum()
+            print i," fee: "
+            print fee
             df_list.append(t)
+
         df=pd.concat(df_list,keys=k)
-        print df
+        #print df
         #df.to_excel('2016_delivery_order.xls')
         self.caculation(df)
 
     def caculation(self,df):
         fee=df[u'手续费'].sum()+df[u'印花税'].sum()+df[u'其他杂费'].sum()
         print fee
-
-
+    #计算每个月的费用
+    def month(self):
+        pass
 def main():
     obj=Delivery_Order()
     obj.years()
