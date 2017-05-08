@@ -311,33 +311,35 @@ class select_class():
                 ma20 = df['ma20'][0]
                 ma_dict = {'5': ma5, '10': ma10, '20': ma20}
                 ma_x = ma_dict[k_type]
-                print ma_x
+                #print ma_x
                 if current < ma_x:
+                    print u'破位'
                     print i, " current: ", current
                     print self.base[self.base['code'] == i]['name'].values[0], " "
-
+                    print "holding place: " , ma_x
                     print "Break MA", k_type, "\n"
                     all_break.append(i)
         return all_break
 
     # 检查自己的持仓或者市场所有破位的
-    def break_line(self, code, k_type='20',writeable=False):
+    def break_line(self, code, k_type='20',writeable=False,mystock=False):
 
         all_break = self._break_line(code, k_type)
-
-
         l=len(all_break)
         beaking_rate=l*1.00/self.working_count*100
         print "how many break: " ,l
         print "break Line rate " , beaking_rate
+        if mystock==False:
+            name='_all_'
+        else:
+            name='_my__'
         if writeable:
-            f=open(self.today+'break_line_'+k_type+'.csv','w')
+            f=open(self.today+name+'break_line_'+k_type+'.csv','w')
             f.write("Breaking rate: %f\n\n" %beaking_rate)
             f.write('\n'.join(all_break))
-
             f.close()
 
-    def _break_line_thread(self,codes,k_type):
+    def _break_line_thread(self,codes,k_type='5'):
         delta_day = 60 * 7 / 5
         end_day = datetime.date(datetime.date.today().year, datetime.date.today().month, datetime.date.today().day)
         start_day = end_day - datetime.timedelta(delta_day)
@@ -372,7 +374,7 @@ class select_class():
                     all_break.append(i)
         q.put(all_break)
 
-    def multi_thread(self):
+    def multi_thread_break_line(self, ktype='20'):
         total=len(self.all_code)
         thread_num=10
         delta=total/thread_num
@@ -382,11 +384,11 @@ class select_class():
         for i in range(thread_num):
 
             sub_code=self.all_code[i*delta:(i+1)*delta]
-            t_temp=Thread(target=self._break_line_thread,args=(sub_code,'20'))
+            t_temp=Thread(target=self._break_line_thread,args=(sub_code,ktype))
             t.append(t_temp)
         if delta_left !=0:
             sub_code=self.all_code[i*delta:i*delta+delta_left]
-            t_temp=Thread(target=self._break_line_thread,args=(sub_code,'20'))
+            t_temp=Thread(target=self._break_line_thread,args=(sub_code,ktype))
             t.append(t_temp)
 
         for i in range(len(t)):
@@ -398,7 +400,7 @@ class select_class():
         print "working done"
         while not q.empty():
             result.append(q.get())
-        ff=open(self.today+'_high_m20.csv','w')
+        ff=open(self.today+'_high_m%s.csv' %ktype,'w')
         for kk in result:
             print kk
             for k in kk:
@@ -454,6 +456,13 @@ class select_class():
 
         #df_2014=ts.get_report_data(2014,4)
 
+    def mydaily_check(self):
+        self.break_line(self.mystocklist,k_type='5',writeable=True,mystock=True)
+
+    def all_stock(self):
+        self.multi_thread_break_line('20')
+
+
 def main():
     if ts.__version__ != '0.7.5':
         print "Make sure using tushare 0.7.5"
@@ -492,7 +501,7 @@ def main():
     # obj.break_line()
     # obj.save_data_excel()
     #obj.break_line(mine=False,k_type='5')
-    obj.multi_thread()
+    #obj.multi_thread()
     #code=obj.get_chengfenggu()
     #obj.break_line(code)
     #obj.big_deal('603918',400,'2017-04-22')
@@ -500,7 +509,8 @@ def main():
     #obj.relation()
     #obj.profit()
 
-
+    #obj.mydaily_check()
+    obj.all_stock()
 if __name__ == "__main__":
     start_time=datetime.datetime.now()
     main()
