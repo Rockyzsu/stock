@@ -19,16 +19,23 @@ class Monitor_Stock():
         s=df[df['amount']>100000000]
         print '\n'
         if t.size!=0:
+            print "Big volume"
             print self.base[self.base['code']==str(code)]['name'].values[0]
             print t
         if s.size!=0:
+            print "Big amount: "
             print self.base[self.base['code']==str(code)]['name'].values[0]
             print s
+        r=df[df['volume']>vol*10]
+        if r.size!=0:
+            print "Super amount:"
+            print self.base[self.base['code']==str(code)]['name'].values[0]
+            print r
 
 
     def loops(self):
         for i in self.mystock:
-            self.getBigDeal(i,500)
+            self.getBigDeal(i,1000)
 
 
 
@@ -36,8 +43,8 @@ def main():
     if ts.__version__ != '0.7.5':
         print "Make sure using tushare 0.7.5"
         exit()
-    currnet = os.getcwd()
-    folder = os.path.join(currnet, 'data')
+    current = os.getcwd()
+    folder = os.path.join(current, 'data')
     if os.path.exists(folder) == False:
         os.mkdir(folder)
     os.chdir(folder)
