@@ -1,5 +1,9 @@
 # -*-coding=utf-8-*-
 __author__ = 'Rocky'
+'''
+http://30daydo.com
+Contact: weigesysu@qq.com
+'''
 #模拟买入 纯粹纪录。
 import os,sys,chardet
 import pandas,datetime

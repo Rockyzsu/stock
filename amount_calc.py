@@ -1,5 +1,9 @@
 # -*-coding=utf-8-*-
 __author__ = 'Rocky'
+'''
+http://30daydo.com
+Contact: weigesysu@qq.com
+'''
 #计算某个股票的某个时间段的成交量
 import  tushare as ts
 import pandas as pd

@@ -1,4 +1,8 @@
 __author__ = 'rocchen'
+'''
+http://30daydo.com
+Contact: weigesysu@qq.com
+'''
 # working v1.0
 from bs4 import BeautifulSoup
 import urllib2, datetime, time, codecs, cookielib, random, threading

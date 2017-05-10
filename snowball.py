@@ -1,6 +1,10 @@
 # -*-coding=utf-8-*-
 #抓取雪球的收藏文章
 __author__ = 'Rocky'
+'''
+http://30daydo.com
+Contact: weigesysu@qq.com
+'''
 import requests,cookielib,re,json,time
 from toolkit import Toolkit
 from lxml import etree

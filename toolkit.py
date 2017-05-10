@@ -1,6 +1,10 @@
 # -*-coding=utf-8-*-
 #常用的工具集合
 __author__ = 'Rocky'
+'''
+http://30daydo.com
+Contact: weigesysu@qq.com
+'''
 import codecs
 
 class Toolkit():

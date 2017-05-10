@@ -1,6 +1,10 @@
 # -*-coding=utf-8-*-
 __author__ = 'Rocky'
 '''
+http://30daydo.com
+Contact: weigesysu@qq.com
+'''
+'''
 记录每天的盈亏情况 完成度100%
 '''
 import pandas as pd

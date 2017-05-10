@@ -1,6 +1,10 @@
 # -*-coding=utf-8-*-
 __author__ = 'Rocky'
 '''
+http://30daydo.com
+Contact: weigesysu@qq.com
+'''
+'''
 获取雪球的策略 2017-03-21
 '''
 import requests,time,re,os

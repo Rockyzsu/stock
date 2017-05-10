@@ -1,5 +1,9 @@
 # -*-coding=utf-8-*-
 __author__ = 'Rocky'
+'''
+http://30daydo.com
+Contact: weigesysu@qq.com
+'''
 #计算股价涨跌幅
 import tushare as ts
 class calculator_stock():

@@ -1,6 +1,10 @@
 # -*-coding=utf-8-*-
 # 适用 tushare 0.7.5
 __author__ = 'Rocky'
+'''
+http://30daydo.com
+Contact: weigesysu@qq.com
+'''
 import tushare as ts
 import pandas as pd
 import os, sys, datetime, time,Queue, codecs

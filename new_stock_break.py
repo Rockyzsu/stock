@@ -1,10 +1,15 @@
 # -*-coding=utf-8-*-
 __author__ = 'Rocky'
+'''
+http://30daydo.com
+Contact: weigesysu@qq.com
+'''
 #分析新股的开板时机
 import tushare as ts
 import os
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 class New_Stock_Break():
     def __init__(self):
         current = os.getcwd()
@@ -47,6 +52,7 @@ class New_Stock_Break():
         print v_total_break
         rate=v_total_break*100*100.00/all_vol #手和股 注意
         print round(rate,6)
+        return rate
 
 
 
@@ -54,8 +60,13 @@ class New_Stock_Break():
 
     def testcase(self):
         #self.calc_open_day('603096')
+        result=[]
         for i in self.codes:
-            self.calc_open_day(i)
+            result.append(self.calc_open_day(i))
+
+
+        plt.bar(result)
+        plt.show()
 
 
 def main():

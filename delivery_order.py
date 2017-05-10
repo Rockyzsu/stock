@@ -1,5 +1,9 @@
 # -*-coding=utf-8-*-
 __author__ = 'Rocky'
+'''
+http://30daydo.com
+Contact: weigesysu@qq.com
+'''
 #交割单处理
 import os,datetime
 import pandas as pd

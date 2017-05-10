@@ -1,5 +1,9 @@
 #-*- coding=utf-8 -*-
 __author__ = 'Rocky'
+'''
+http://30daydo.com
+Contact: weigesysu@qq.com
+'''
 #每天的涨跌停
 #url=http://stock.jrj.com.cn/tzzs/zdtwdj/zdforce.shtml
 import urllib2,re,time,xlrd,xlwt,sys,os

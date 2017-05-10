@@ -1,6 +1,10 @@
 # -*-coding=utf-8-*-
 #记录每天选股后的收益，用于跟踪每一只自选股
 __author__ = 'Rocky'
+'''
+http://30daydo.com
+Contact: weigesysu@qq.com
+'''
 import datetime,os,xlrd,time
 from xlutils.copy import copy
 import tushare as ts
@@ -19,7 +23,7 @@ class Prediction_rate():
         self.filename=os.path.join(self.path,'recordMyChoice.xls')
 
     def stock_pool(self,stock_list):
-
+        pass
 
     def first_record(self,stockID):
         #stockID_list=['000673']
