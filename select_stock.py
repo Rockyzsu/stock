@@ -467,8 +467,8 @@ def main():
     if ts.__version__ != '0.7.5':
         print "Make sure using tushare 0.7.5"
         exit()
-    currnet = os.getcwd()
-    folder = os.path.join(currnet, 'data')
+    current = os.getcwd()
+    folder = os.path.join(current, 'data')
     if os.path.exists(folder) == False:
         os.mkdir(folder)
     os.chdir(folder)
@@ -510,7 +510,7 @@ def main():
     #obj.profit()
 
     #obj.mydaily_check()
-    obj.all_stock()
+    #obj.all_stock()
 if __name__ == "__main__":
     start_time=datetime.datetime.now()
     main()
