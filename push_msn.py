@@ -1,6 +1,10 @@
 # -*-coding=utf-8-*-
 __author__ = 'Rocky'
-import smtplib, time
+'''
+http://30daydo.com
+Contact: weigesysu@qq.com
+'''
+import smtplib, time,os
 from email.mime.text import MIMEText
 from email.header import Header
 from toolkit import Toolkit
@@ -10,8 +14,7 @@ from toolkit import Toolkit
 import tushare as ts
 from pandas import Series
 import matplotlib.pyplot as plt
-
-
+import numpy as np
 # 推送股价信息到手机
 class MailSend():
     def __init__(self, smtp_server, from_mail, password, to_mail):
@@ -143,6 +146,29 @@ def general_info():
     result.append(t2)
     return result
 
+#开板提示
+def break_ceil(code):
+
+    while 1:
+        time.sleep(2)
+        try:
+            df=ts.get_realtime_quotes(code)
+        except:
+            time.sleep(5)
+            continue
+        v=long(df['b1_v'].values[0])
+        print v
+        #print type(v)
+        if  v<=10000 :
+            print u"小于万手，小心！跑"
+
+            push_msg('break',10,10,'down')
+
+
+
+def monitor_break():
+    all_base=pd.read_csv('bases.csv',dtype={'code':np.str})
+    break_ceil('002868')
 
 def visual():
     data = general_info()
@@ -185,6 +211,12 @@ def main():
 
 
 if __name__ == '__main__':
+    path=os.path.join(os.getcwd(),'data')
+    if os.path.exists(path)==False:
+        os.mkdir(path)
+    os.chdir(path)
+
     # main()
     # general_info()
-    visual()
+    #visual()
+    monitor_break()
