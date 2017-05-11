@@ -12,20 +12,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 class New_Stock_Break():
     def __init__(self):
+        #为了文件整齐，新建一个文件夹data用来专门存放数据
         current = os.getcwd()
         folder = os.path.join(current, 'data')
         if os.path.exists(folder) == False:
             os.mkdir(folder)
         os.chdir(folder)
+        #调用tushare接口，获取A股信息
+        #df0=ts.get_stock_basics()
         df0=pd.read_csv('bases.csv',dtype={'code':np.str})
         self.bases=df0.sort_values('timeToMarket',ascending=False)
 
-        #获取样本， 获取最近一个月的新股情况
-        #print self.bases.dtypes
+        #获取样本， 获取最近一个年的新股情况
 
-        self.cxg=self.bases[(self.bases['timeToMarket']>20160101) & (self.bases['timeToMarket']<20170101)]
+        self.cxg=self.bases[(self.bases['timeToMarket']>20170101) & (self.bases['timeToMarket']<20170401)]
         self.codes= self.cxg['code'].values
-        #print self.codes
 
     def calc_open_by_percent(self,code):
         cont=100000000
@@ -33,10 +34,6 @@ class New_Stock_Break():
         acutal_vol=self.bases[self.bases['code']==code]['outstanding'].values[0]
         all_vol= acutal_vol*cont
         df1=ts.get_k_data(code)
-        #print df1
-        #while 1:
-        #t= df1.ix[1]
-        #print type(t)
         i=1
         while 1:
             s=df1.ix[i]
@@ -112,37 +109,41 @@ class New_Stock_Break():
         print max_v
         print max_line
 
-    def testcase2(self):
+    def getData(self):
                 #self.calc_open_day('603096')
         result=[]
         max_line=[]
         k=[]
         for i in self.codes:
             print i
+            name=self.bases[self.bases['code']==i]['name'].values[0]
             rate,l=self.calc_open_by_percent(i)
             if rate is not None:
                 result.append(rate)
-                max_line.append({i:l})
+                max_line.append([name,l,rate])
                 k.append(l)
-        x=range(len(result))
+
+        #作图用的
+        #x=range(len(result))
         #print x
         #print result
-        plt.bar(x,result)
-        plt.show()
-        sum=0
-        for i in result:
-            sum=sum+i
+        #plt.bar(x,result)
+        #lt.show()
 
-        avg=sum*1.00/len(result)
-        print 'avg: ',avg
-        max_v=max(k)
-        print 'Max date',max_v
-        print 'Line ',max_line
-        print "SUM ",sum
+        f=open('2017-05-cixin.csv','w')
+        for x in max_line:
+            #f.write(';'.join(x))
+            f.write(x[0])
+            f.write('-')
+            f.write(str(x[1]))
+            f.write('-')
+            f.write(str(x[2]))
+            f.write('\n')
 
+        f.close()
 
 def main():
     obj=New_Stock_Break()
-    obj.testcase2()
+    obj.getData()
 
 main()
