@@ -1,5 +1,9 @@
 # -*-coding=utf-8-*-
 __author__ = 'Rocky'
+'''
+http://30daydo.com
+Contact: weigesysu@qq.com
+'''
 import smtplib, time
 from email.mime.text import MIMEText
 from email.header import Header
@@ -143,6 +147,27 @@ def general_info():
     result.append(t2)
     return result
 
+#开板提示
+def break_ceil(code):
+    while 1:
+        time.sleep(2)
+        try:
+            df=ts.get_realtime_quotes(code)
+        except:
+            time.sleep(5)
+            continue
+        v=long(df['b1_v'].values[0])
+        print v
+        #print type(v)
+        if  v<=10000 :
+            print u"小于万手，小心！跑"
+
+            #push_msg('break','break','break','down')
+
+
+
+def monitor_break():
+    break_ceil('002868')
 
 def visual():
     data = general_info()
@@ -187,4 +212,5 @@ def main():
 if __name__ == '__main__':
     # main()
     # general_info()
-    visual()
+    #visual()
+    monitor_break()
