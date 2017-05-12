@@ -4,7 +4,7 @@ __author__ = 'Rocky'
 http://30daydo.com
 Contact: weigesysu@qq.com
 '''
-import smtplib, time,os
+import smtplib, time,os,datetime
 from email.mime.text import MIMEText
 from email.header import Header
 from toolkit import Toolkit
@@ -16,6 +16,7 @@ from pandas import Series
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+
 # 推送股价信息到手机
 class MailSend():
     def __init__(self, smtp_server, from_mail, password, to_mail):
@@ -158,6 +159,7 @@ def break_ceil(code):
             time.sleep(5)
             continue
         v=long(df['b1_v'].values[0])
+        print datetime.datetime.now().strftime("%H:%M:%S")
         print v
         #print type(v)
         if  v<=10000 :
