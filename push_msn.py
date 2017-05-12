@@ -15,6 +15,7 @@ import tushare as ts
 from pandas import Series
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 # 推送股价信息到手机
 class MailSend():
     def __init__(self, smtp_server, from_mail, password, to_mail):
@@ -167,7 +168,7 @@ def break_ceil(code):
 
 
 def monitor_break():
-    all_base=pd.read_csv('bases.csv',dtype={'code':np.str})
+    #all_base=pd.read_csv('bases.csv',dtype={'code':np.str})
     break_ceil('002868')
 
 def visual():
