@@ -5,3 +5,4 @@ data.cfg
 *.xml
 *.html
 /private
+*.log

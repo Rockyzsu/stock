@@ -166,6 +166,7 @@ def break_ceil(code):
             print u"小于万手，小心！跑"
 
             push_msg('break',10,10,'down')
+            #这里可以优化，不必每次都登陆。
 
 
 
