@@ -35,7 +35,7 @@ class break_monitor():
         self.bases = pd.read_csv('bases.csv', dtype={'code': np.str})
         self.stocklist = Toolkit.read_stock('monitor_list.log')
         # 初始化邮箱设置读取需要股票信息
-        #这样子只登陆一次
+        # 这样子只登陆一次
         try:
             self.smtp = smtplib.SMTP_SSL(port=465)
             self.smtp.connect(self.server)
@@ -44,7 +44,7 @@ class break_monitor():
             print e
             return 0
 
-    #格式需要修改
+    # 格式需要修改
     def send_txt(self, name, content):
 
         subject = '%s' % name
@@ -77,7 +77,7 @@ class break_monitor():
             print datetime.datetime.now().strftime("%H:%M:%S")
             print v
             #print type(v)
-            if v <= 10000:
+            if v <= 1000:
                 print u"小于万手，小心！跑"
 
                 self.push_msg('break', 10, 10, 'down')
@@ -87,14 +87,14 @@ class break_monitor():
     def monitor_break(self):
         print "C"
         thread_num = len(self.stocklist)
-        thread_list=[]
-        join_list=[]
+        thread_list = []
+        join_list = []
         for i in range(thread_num):
             print "D"
-            t = threading.Thread(target=self.break_ceil,args=(i,))
+            t = threading.Thread(target=self.break_ceil, args=(i,))
             thread_list.append(t)
-        print "FFFFF"
-        print thread_list
+        #print "FFFFF"
+        #print thread_list
 
         for j in thread_list:
             print "GGGGG"
