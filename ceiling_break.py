@@ -18,31 +18,34 @@ import numpy as np
 import pandas as pd
 import threading
 
-# 推送股价信息到手机
+#监测涨停板开板监测
 class break_monitor():
-    def __init__(self):
-        cfg = Toolkit.getUserData('data.cfg')
-        from_mail = cfg['from_mail']
-        password = cfg['password']
-        to_mail = cfg['to_mail']
-        smtp_server = 'smtp.qq.com'
+    def __init__(self,send=True):
+        self.send=send
+        if self.send==True:
+            cfg = Toolkit.getUserData('data.cfg')
+            from_mail = cfg['from_mail']
+            password = cfg['password']
+            to_mail = cfg['to_mail']
+            smtp_server = 'smtp.qq.com'
 
-        self.server = smtp_server
-        self.username = from_mail.split("@")[0]
-        self.from_mail = from_mail
-        self.password = password
-        self.to_mail = to_mail
+            self.server = smtp_server
+            self.username = from_mail.split("@")[0]
+            self.from_mail = from_mail
+            self.password = password
+            self.to_mail = to_mail
+            # 初始化邮箱设置读取需要股票信息
+            # 这样子只登陆一次
+            try:
+                self.smtp = smtplib.SMTP_SSL(port=465)
+                self.smtp.connect(self.server)
+                self.smtp.login(self.username, self.password)
+            except smtplib.SMTPException, e:
+                print e
+                return 0
         self.bases = pd.read_csv('bases.csv', dtype={'code': np.str})
         self.stocklist = Toolkit.read_stock('monitor_list.log')
-        # 初始化邮箱设置读取需要股票信息
-        # 这样子只登陆一次
-        try:
-            self.smtp = smtplib.SMTP_SSL(port=465)
-            self.smtp.connect(self.server)
-            self.smtp.login(self.username, self.password)
-        except smtplib.SMTPException, e:
-            print e
-            return 0
+
 
     # 格式需要修改
     def send_txt(self, name, content):
@@ -63,7 +66,6 @@ class break_monitor():
 
     #开板提示
     def break_ceil(self, code):
-        print "E"
         print threading.current_thread().name
         while 1:
             #print code
@@ -74,40 +76,35 @@ class break_monitor():
                 time.sleep(5)
                 continue
             v = long(df['b1_v'].values[0])
-            print datetime.datetime.now().strftime("%H:%M:%S")
-            print v
-            #print type(v)
-            if v <= 1000:
-                print u"小于万手，小心！跑"
 
-                self.push_msg('break', 10, 10, 'down')
+            if v <= 1000:
+                print datetime.datetime.now().strftime("%H:%M:%S")
+                print u"小于万手，小心！跑"
+                print self.bases[self.bases['code']==code]['name'].values[0]
+                if self.send==True:
+                    self.push_msg('break', 10, 10, 'down')
                 #这里可以优化，不必每次都登陆。
 
 
-    def monitor_break(self):
-        print "C"
+    def monitor_break(self,send=True):
         thread_num = len(self.stocklist)
         thread_list = []
         join_list = []
         for i in range(thread_num):
-            print "D"
-            t = threading.Thread(target=self.break_ceil, args=(i,))
+            t = threading.Thread(target=self.break_ceil, args=(self.stocklist[i],))
             thread_list.append(t)
-        #print "FFFFF"
-        #print thread_list
 
         for j in thread_list:
-            print "GGGGG"
             j.start()
-            #j.join()
+
+        for k in thread_list:
+            k.join()
 
 
 if __name__ == '__main__':
-    print "A"
     path = os.path.join(os.getcwd(), 'data')
     if os.path.exists(path) == False:
         os.mkdir(path)
     os.chdir(path)
-    obj = break_monitor()
-    print 'B'
+    obj = break_monitor(send=False)
     obj.monitor_break()
