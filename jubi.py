@@ -120,10 +120,12 @@ class Jubi_web():
             if current >= up_price:
                 print "Up to ", up_price
                 print "current price ",current
+                self.send_text(coin,str(current))
                 break
             if current <= down_price:
                 print "Down to ", down_price
                 print "current price ",current
+                self.send_text(coin,str(current))
                 break
 
     def real_time_depth(self, coin):
@@ -178,11 +180,12 @@ class Jubi_web():
 
 
 if __name__ == '__main__':
-    obj = Jubi_web()
+    obj = Jubi_web(send=True)
     # print obj.get_signiture()
     # obj.real_time_ticker('zet')
     # obj.real_time_depth('zet')
     #obj.warming('zet',0.23,0.17)
     #obj.list_all_price()
-    obj.turnover('doge')
+    #obj.turnover('doge')
     #print obj.getOrder('zet')
+    obj.warming('zet',0.24,0.15)
