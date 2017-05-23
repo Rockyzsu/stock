@@ -33,11 +33,11 @@ class amount_calculation():
 
 
 def main():
-    obj=amount_calculation('600908')
+    obj=amount_calculation('300023')
     #s1=obj.calc('09:24:00','10:30:00')
     #s2=obj.calc('10:30:00','11:30:00')
     #s3=obj.calc('13:00:00','14:00:00')
-    s4=obj.calc('14:20:00','15:05:00')
+    s4=obj.calc('09:30:00','09:47:00')
     #print s1+s2+s3+s4
 
 main()
