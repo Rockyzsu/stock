@@ -83,7 +83,7 @@ class break_monitor():
                 print self.bases[self.bases['code']==code]['name'].values[0]
                 if self.send==True:
                     self.push_msg('break', 10, 10, 'down')
-                #这里可以优化，不必每次都登陆。
+                #这里可以优化，不必每次都登陆。s
 
 
     def monitor_break(self,send=True):
