@@ -10,18 +10,18 @@ import hmac,time
 import smtplib
 from email.mime.text import MIMEText
 from email import Utils
-
-import requests
+import threading
+import requests,datetime,itchat
 
 from toolkit import Toolkit
 
 
 class Jubi_web():
-    def __init__(self, send=False):
+    def __init__(self, send=None):
         cfg = Toolkit.getUserData('data.cfg')
         self.public_key = cfg['public_key']
         self.private_key = cfg['private_key']
-
+        self.send=send
         from_mail = cfg['from_mail']
         password = cfg['password']
         to_mail = cfg['to_mail']
@@ -38,7 +38,8 @@ class Jubi_web():
                         'KTC','VRC','XSGS','LSK','PPC','ETC','GAME','LTC','ETH','BTC']
         # 初始化邮箱设置读取需要股票信息
         # 这样子只登陆一次
-        if send == True:
+        if self.send == 'msn':
+
             try:
                 self.smtp = smtplib.SMTP_SSL(port=465)
                 self.smtp.connect(self.server)
@@ -46,6 +47,23 @@ class Jubi_web():
             except smtplib.SMTPException, e:
                 print e
                 return 0
+
+        if send=='wechat':
+            self.w_name=u'wwwei'
+            #self.w_name1=u'wwwei'
+            itchat.auto_login(hotReload=True)
+            account=itchat.get_friends(self.w_name)
+            for i in account:
+                if i[u'PYQuanPin']==self.w_name:
+                    self.toName= i['UserName']
+                    #print self.toName
+
+    def send_wechat(self,name,content):
+        w_content=name+' '+content
+        itchat.send(w_content,toUserName=self.toName)
+        time.sleep(1)
+        itchat.send(w_content,toUserName='filehelper')
+
 
     def send_text(self, name, content):
 
@@ -62,6 +80,39 @@ class Jubi_web():
         except smtplib.SMTPException, e:
             print e
             return 0
+
+    def warming(self, coin, up_price, down_price):
+        url = 'https://www.jubi.com/api/v1/ticker/'
+        while 1:
+            time.sleep(5)
+            try:
+                data = requests.post(url, data={'coin': coin}).json()
+            except:
+                print "time out. Retry"
+                time.sleep(15)
+                continue
+
+            current = float(data['last'])
+            if current >= up_price:
+                print "Up to ", up_price
+                print "current price ",current
+
+                if self.send=='msn':
+                    self.send_text(coin,str(current))
+                if self.send=='wechat':
+                    self.send_wechat(coin,str(current))
+
+                time.sleep(1200)
+            if current <= down_price:
+                print "Down to ", down_price
+                print "current price ",current
+                if self.send=='msn':
+                    self.send_text(coin,str(current))
+                if self.send=='wechat':
+                    self.send_wechat(coin,str(current))
+                time.sleep(1200)
+    #上面的内容尽量不用修改。
+
 
     def getContent(self):
         url = 'https://www.jubi.com/api/v1/trade_list'
@@ -106,27 +157,7 @@ class Jubi_web():
             print e
         return data
 
-    def warming(self, coin, up_price, down_price):
-        url = 'https://www.jubi.com/api/v1/ticker/'
-        while 1:
-            time.sleep(1)
-            try:
-                data = requests.post(url, data={'coin': coin}).json()
-            except:
-                print "time out. Retry"
-                time.sleep(5)
 
-            current = float(data['last'])
-            if current >= up_price:
-                print "Up to ", up_price
-                print "current price ",current
-                self.send_text(coin,str(current))
-                break
-            if current <= down_price:
-                print "Down to ", down_price
-                print "current price ",current
-                self.send_text(coin,str(current))
-                break
 
     def real_time_depth(self, coin):
         url = 'https://www.jubi.com/api/v1/depth/'
@@ -178,14 +209,27 @@ class Jubi_web():
 
         print turn_over
 
+    def multi_thread(self,coin_list,price_list):
+        thread_num=len(coin_list)
+        thread_list=[]
+        for i in range(thread_num):
+            t=threading.Thread(target=self.warming, args=(coin_list[i],price_list[i][0],price_list[i][1]),)
+            thread_list.append(t)
+        for j in thread_list:
+            j.start()
+        for k in thread_list:
+            k.join()
 
 if __name__ == '__main__':
-    obj = Jubi_web(send=True)
+    obj = Jubi_web(send='wechat')
     # print obj.get_signiture()
-    print obj.real_time_ticker('zet')
+    #print obj.real_time_ticker('zet')
     # obj.real_time_depth('zet')
     #obj.warming('zet',0.23,0.17)
     #obj.list_all_price()
     #obj.turnover('doge')
     #print obj.getOrder('zet')
-    obj.warming('zet',0.24,0.15)
+    coin_list=['zet','doge']
+    price_list=[[0.24,0.17],[0.03,0.028]]
+    #obj.warming('zet',0.24,0.16)
+    obj.multi_thread(coin_list,price_list)
