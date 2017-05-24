@@ -180,7 +180,7 @@ class Jubi_web():
 
 
 if __name__ == '__main__':
-    obj = Jubi_web(send=True)
+    obj = Jubi_web(send=False)
     # print obj.get_signiture()
     print obj.real_time_ticker('zet')
     # obj.real_time_depth('zet')
@@ -188,4 +188,4 @@ if __name__ == '__main__':
     #obj.list_all_price()
     #obj.turnover('doge')
     #print obj.getOrder('zet')
-    obj.warming('zet',0.24,0.15)
+    obj.warming('zet',0.24,0.17)
