@@ -47,7 +47,7 @@ class Jubi_web():
                 print e
                 return 0
 
-    def send_txt(self, name, content):
+    def send_text(self, name, content):
 
         subject = '%s' % name
         self.msg = MIMEText(content, 'plain', 'utf-8')
