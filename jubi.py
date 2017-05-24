@@ -47,7 +47,7 @@ class Jubi_web():
                 print e
                 return 0
 
-    def send_txt(self, name, content):
+    def send_text(self, name, content):
 
         subject = '%s' % name
         self.msg = MIMEText(content, 'plain', 'utf-8')
@@ -120,10 +120,12 @@ class Jubi_web():
             if current >= up_price:
                 print "Up to ", up_price
                 print "current price ",current
+                self.send_text(coin,str(current))
                 break
             if current <= down_price:
                 print "Down to ", down_price
                 print "current price ",current
+                self.send_text(coin,str(current))
                 break
 
     def real_time_depth(self, coin):
@@ -178,7 +180,7 @@ class Jubi_web():
 
 
 if __name__ == '__main__':
-    obj = Jubi_web()
+    obj = Jubi_web(send=True)
     # print obj.get_signiture()
     print obj.real_time_ticker('zet')
     # obj.real_time_depth('zet')
@@ -186,3 +188,4 @@ if __name__ == '__main__':
     #obj.list_all_price()
     #obj.turnover('doge')
     #print obj.getOrder('zet')
+    obj.warming('zet',0.24,0.15)
