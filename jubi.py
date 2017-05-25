@@ -87,7 +87,8 @@ class Jubi_web():
             time.sleep(5)
             try:
                 data = requests.post(url, data={'coin': coin}).json()
-            except:
+            except Exception,e:
+                print e
                 print "time out. Retry"
                 time.sleep(15)
                 continue
@@ -233,7 +234,7 @@ if __name__ == '__main__':
     #print obj.getOrder('zet')
 
     coin_list=['zet','doge']
-    price_list=[[0.24,0.17],[0.03,0.028]]
+    price_list=[[0.2,0.13],[0.03,0.024]]
     #obj.warming('zet',0.24,0.16)
     obj.multi_thread(coin_list,price_list)
 
