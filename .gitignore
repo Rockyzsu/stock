@@ -6,3 +6,4 @@ data.cfg
 *.html
 /private
 *.log
+*.pkl
