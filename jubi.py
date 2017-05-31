@@ -50,17 +50,20 @@ class Jubi_web():
 
         if send=='wechat':
             self.w_name=u'wwwei'
-            #self.w_name1=u'wwwei'
+            self.w_name1=u'aiweichuangyi'
             itchat.auto_login(hotReload=True)
             account=itchat.get_friends(self.w_name)
             for i in account:
                 if i[u'PYQuanPin']==self.w_name:
                     self.toName= i['UserName']
                     #print self.toName
+                if i[u'PYQuanPin']==self.w_name1:
+                    self.toName1= i['UserName']
+                    #print self.toName
 
-    def send_wechat(self,name,content):
+    def send_wechat(self,name,content,user):
         w_content=name+' '+content
-        itchat.send(w_content,toUserName=self.toName)
+        itchat.send(w_content,toUserName=user)
         time.sleep(1)
         itchat.send(w_content,toUserName='filehelper')
 
@@ -81,7 +84,7 @@ class Jubi_web():
             print e
             return 0
 
-    def warming(self, coin, up_price, down_price):
+    def warming(self, coin, up_price, down_price,user):
         url = 'https://www.jubi.com/api/v1/ticker/'
         while 1:
             time.sleep(5)
@@ -101,7 +104,7 @@ class Jubi_web():
                 if self.send=='msn':
                     self.send_text(coin,str(current))
                 if self.send=='wechat':
-                    self.send_wechat(coin,str(current))
+                    self.send_wechat(coin,str(current),user)
 
                 time.sleep(1200)
             if current <= down_price:
@@ -110,7 +113,7 @@ class Jubi_web():
                 if self.send=='msn':
                     self.send_text(coin,str(current))
                 if self.send=='wechat':
-                    self.send_wechat(coin,str(current))
+                    self.send_wechat(coin,str(current),user)
                 time.sleep(1200)
     #上面的内容尽量不用修改。
 
@@ -210,11 +213,15 @@ class Jubi_web():
 
         print turn_over
 
-    def multi_thread(self,coin_list,price_list):
+    def multi_thread(self,coin_list,price_list,username):
         thread_num=len(coin_list)
         thread_list=[]
         for i in range(thread_num):
-            t=threading.Thread(target=self.warming, args=(coin_list[i],price_list[i][0],price_list[i][1]),)
+            if username[i]==0:
+                nameID=self.toName
+            if username[i]==1:
+                nameID=self.toName1
+            t=threading.Thread(target=self.warming, args=(coin_list[i],price_list[i][0],price_list[i][1],nameID),)
             thread_list.append(t)
         for j in thread_list:
             j.start()
@@ -233,8 +240,9 @@ if __name__ == '__main__':
     #obj.turnover('doge')
     #print obj.getOrder('zet')
 
-    coin_list=['zet','doge']
-    price_list=[[0.2,0.13],[0.03,0.024]]
+    coin_list=['zet','doge','ppc','doge','zet']
+    price_list=[[0.2,0.13],[0.03,0.024],[21,12.39],[0.03472,0.01984],[0.203,0.116]]
     #obj.warming('zet',0.24,0.16)
-    obj.multi_thread(coin_list,price_list)
+    username=[0,0,1,1,1,1]
+    obj.multi_thread(coin_list,price_list,username)
 
