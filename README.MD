@@ -12,3 +12,5 @@ strategy_verify.py -获取雪球的即时交易策略
 push_msn.py -短信提醒自己 设定的某个股票价格或者涨幅达到自己 要求
 
 select_stock.py - 选股策略， 根据自己的经验选出来的个股。 
+
+jubi.py -获取国内山寨币平台的实时数据
