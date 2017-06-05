@@ -240,9 +240,9 @@ if __name__ == '__main__':
     #obj.turnover('doge')
     #print obj.getOrder('zet')
 
-    coin_list=['zet','doge','ppc','doge','zet']
-    price_list=[[0.2,0.13],[0.03,0.024],[21,12.39],[0.03472,0.01984],[0.203,0.116]]
+    coin_list=['zet','doge']
+    price_list=[[0.2,0.11],[0.03,0.02]]
     #obj.warming('zet',0.24,0.16)
-    username=[0,0,1,1,1,1]
+    username=[0,0]
     obj.multi_thread(coin_list,price_list,username)
 
