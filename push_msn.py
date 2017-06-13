@@ -16,7 +16,7 @@ from pandas import Series
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
+import itchat
 # 推送股价信息到手机
 class MailSend():
     def __init__(self, smtp_server, from_mail, password, to_mail):
@@ -54,6 +54,16 @@ class MailSend():
             print e
             return 0
 
+def push_wechat(name, real_price, real_percent, type):
+    name=u'wwwei'
+    itchat.auto_login(hotReload=True)
+    account=itchat.get_friends(name)
+    for i in account:
+        if i[u'PYQuanPin']==name:
+            toName=i['UserName']
+    content=name+' ' + str(real_price)+' '+ str(real_percent)+' percent '+ type
+    itchat.send(content,toUserName=toName)
+
 
 def push_msg(name, price, percent, status):
     cfg = Toolkit.getUserData('data.cfg')
@@ -79,7 +89,7 @@ def read_stock(name):
     return stock_list
 
 
-def meet_price(code, price_up, price_down):
+def meet_price(code, price_up, price_down,type):
     try:
         df = ts.get_realtime_quotes(code)
     except Exception, e:
@@ -97,16 +107,21 @@ def meet_price(code, price_up, price_down):
     if real_price >= price_up:
         print '%s price higher than %.2f , %.2f' % (name, real_price, percent),
         print '%'
-        push_msg(name, real_price, percent, 'up')
-        return 1
+        if type=='msn':
+            push_msg(name, real_price, percent, 'up')
+            return 1
+        elif type=='wechat':
+            push_wechat(name, real_price, percent, 'up')
     if real_price <= price_down:
         print '%s price lower than %.2f , %.2f' % (name, real_price, percent),
         print '%'
-        push_msg(name, real_price, percent, 'down')
-        return 1
+        if type=='msn':
+            push_msg(name, real_price, percent, 'down')
+            return 1
+        elif type=='wechat':
+            push_wechat(name, real_price, percent, 'down')
 
-
-def meet_percent(code, percent_up, percent_down):
+def meet_percent(code, percent_up, percent_down,type):
     try:
         df = ts.get_realtime_quotes(code)
     except Exception, e:
@@ -123,17 +138,22 @@ def meet_percent(code, percent_up, percent_down):
     # print type(real_price)
     if real_percent >= percent_up:
         print '%s percent higher than %.2f , %.2f' % (name, real_percent, real_price),
-
-        push_msg(name, real_price, real_price, 'up')
-        return 1
+        if type=='msn':
+            push_msg(name, real_price, real_price, 'up')
+            return 1
+        elif type=='wechat':
+            push_wechat(name, real_price, real_percent, 'down')
+            return 1
     if real_percent <= percent_down:
         print '%s percent lower than %.2f , %.2f' % (name, real_percent, real_price),
         print '%'
-        push_msg(name, real_price, real_percent, 'down')
+        if type=='mns':
+            push_msg(name, real_price, real_percent, 'down')
 
-        return 1
-
-
+            return 1
+        elif type=='wechat':
+            push_wechat(name, real_price, real_percent, 'down')
+            return 1
 # 推送一般的实盘消息
 def general_info():
     t_all = ts.get_today_all()
@@ -209,7 +229,7 @@ def main():
                 code = each_stock[0]
                 percent_down = float(each_stock[1])
                 percent_up = float(each_stock[2])
-                t = meet_percent(code, percent_up, percent_down)
+                t = meet_percent(code, percent_up, percent_down,type)
                 if t:
                     stock_lists_percent.remove(each_stock)
 
@@ -220,7 +240,7 @@ if __name__ == '__main__':
         os.mkdir(path)
     os.chdir(path)
 
-    # main()
+    main()
     # general_info()
     #visual()
-    monitor_break()
+    #monitor_break()
