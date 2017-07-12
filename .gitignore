@@ -7,3 +7,5 @@ data.cfg
 /private
 *.log
 *.pkl
+stock_list.txt
+bases.csv
