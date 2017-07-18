@@ -35,6 +35,7 @@ class Filter_Stock():
 
         print fc
 
+
 if __name__=='__main__':
     obj=Filter_Stock()
     #obj.get_ST()
