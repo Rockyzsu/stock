@@ -4,4 +4,6 @@ import tushare as ts
 from toolkit import Toolkit
 class ReachTarget():
     def __init__(self):
-        pass
+        Toolkit.getUserData()
+
+
