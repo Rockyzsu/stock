@@ -4,7 +4,7 @@ __author__ = 'Rocky'
 http://30daydo.com
 Contact: weigesysu@qq.com
 '''
-#交割单处理
+#交割单处理 保存交割单到数据库
 import os,datetime
 import pandas as pd
 import numpy as np
@@ -13,7 +13,7 @@ pd.set_option('display.max_rows',None)
 class Delivery_Order():
     def __init__(self):
         print "Start"
-        path=os.path.join(os.getcwd(),'private')
+        path=os.path.join(os.getcwd(),'data')
         if os.path.exists(path)==False:
             os.mkdir(path)
         os.chdir(path)

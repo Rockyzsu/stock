@@ -19,7 +19,7 @@ class Toolkit():
     @staticmethod
     def save2filecn( filename, content):
         # 保存为文件
-        filename = filename + ".txt"
+        #filename = filename + ".txt"
         f = codecs.open(filename, 'a',encoding='utf-8')
         f.write(content)
         f.close()

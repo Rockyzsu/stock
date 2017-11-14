@@ -12,12 +12,10 @@ class StoreDB():
     def __init__(self):
         self.cons = ts.get_apis()
         self.engine = create_engine('mysql+pymysql://root:123456z@localhost:3306/stock?charset=utf8')
-
         self.all_info = ts.get_stock_basics()
         self.all_codes = self.all_info.index
 
     def start(self):
-
         # print list(self.all_codes)
         # print type(self.all_codes)
         for index in self.all_info.index:
@@ -68,5 +66,5 @@ if __name__ == '__main__':
     #obj = StoreDB()
     #obj.start()
     obj = DeliveryOrder()
-    for i in range(1,10):
+    for i in range(1,9):
         obj.store_data(str(i))

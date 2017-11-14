@@ -9,3 +9,5 @@ data.cfg
 *.pkl
 stock_list.txt
 bases.csv
+*.csv
+*.xls
