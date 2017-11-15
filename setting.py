@@ -1,7 +1,7 @@
 # -*-coding=utf-8-*-
 from toolkit import Toolkit
 from sqlalchemy import create_engine
-
+import redis
 USER = Toolkit.getUserData('data.cfg')['MYSQL_USER']
 PASSWORD = Toolkit.getUserData('data.cfg')['MYSQL_PASSWORD']
 HOST = Toolkit.getUserData('data.cfg')['MYSQL_HOST']

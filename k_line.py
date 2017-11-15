@@ -8,6 +8,11 @@ import os, datetime, math
 import numpy as np
 import logging
 from setting import engine
+import redis
+from threading import Thread
+#global
+conn=ts.get_apis()
+
 #pd.set_option('display.max_rows', None)
 
 class Kline():
@@ -16,11 +21,10 @@ class Kline():
         path = os.path.join(os.getcwd(), 'data')
         self.today_date = datetime.datetime.now().strftime('%Y-%m-%d')
         logging.info(self.today_date)
-        print
         if not os.path.exists(path):
             os.mkdir(path)
         os.chdir(path)
-        self.conn=ts.get_apis()
+        #self.conn=ts.get_apis()
 
     def store_base_data(self, target):
         self.all_info = ts.get_stock_basics()
@@ -48,17 +52,15 @@ class Kline():
     def get_hist_data(self,code,name,start_data):
         try:
             start_data = datetime.datetime.strptime(str(start_data), '%Y%m%d').strftime('%Y-%m-%d')
-            df = ts.bar(code,conn=self.conn,start_date=start_data,adj='qfq')
+            df = ts.bar(code,conn=conn,start_date=start_data,adj='qfq')
             print df
         except Exception,e:
             print e
             return
 
-        #df.insert(0,'code',code)
         df.insert(1,'name',name)
         df = df.reset_index()
         try:
-            #cmd='drop table if exists {};'.format(code)
             df.to_sql(code,engine,if_exists='replace')
         except Exception,e:
             print e
@@ -128,13 +130,98 @@ class Kline():
         df = self.xiayingxian()
         df.to_csv('xiayinxian.csv')
 
+    #把股票代码放入redis
+    def redis_init(self):
+        rds =redis.StrictRedis('localhost',6379,db=0)
+        rds_2 =redis.StrictRedis('localhost',6379,db=1)
+        for i in rds.keys():
+            d=dict({i:rds.get(i)})
+            rds_2.lpush('codes',d)
+
+
+#把股票代码放到redis
+def add_code_redis():
+    rds = redis.StrictRedis('localhost', 6379, db=0)
+    rds_1 = redis.StrictRedis('localhost', 6379, db=1)
+    df = ts.get_stock_basics()
+    df =df.reset_index()
+    for i in range(len(df)):
+        code,name ,timeToMarket= df.loc[i]['code'],df.loc[i]['name'],df.loc[i]['timeToMarket']
+        print str(timeToMarket)
+        d=dict({code:':'.join([name,str(timeToMarket)])})
+        print d
+        #rds.set(code,name)
+        rds_1.lpush('codes',d)
+
+def get_hist_data(code,name,start_data):
+    try:
+        start_data = datetime.datetime.strptime(str(start_data), '%Y%m%d').strftime('%Y-%m-%d')
+        df = ts.bar(code,conn=conn,start_date=start_data,adj='qfq')
+        #print df
+    except Exception,e:
+        print e
+        return
+
+    df.insert(1,'name',name)
+    df = df.reset_index()
+    try:
+        df.to_sql(code,engine,if_exists='replace')
+    except Exception,e:
+        print e
+        return
+
+
+class StockThread(Thread):
+    def __init__(self,loop):
+        Thread.__init__(self)
+        self.rds = redis.StrictRedis('localhost',6379,db=1)
+        self.loop_count=loop
+
+    def run(self):
+        self.loops()
+
+
+    def loops(self):
+        while 1:
+            try:
+                item = self.rds.lpop('codes')
+                print item
+            except Exception,e:
+                print e
+                break
+            d = eval(item[1])
+            k=d.keys()[0]
+            v=d[k]
+            name=v.split(':')[0].strip()
+            start_date=v.split(':')[1].strip()
+            get_hist_data(k,name,start_date)
+
+
+THREAD_NUM=8
+def StoreData():
+    threads=[]
+    for i in range(THREAD_NUM):
+        t = StockThread(i)
+        t.start()
+        threads.append(t)
+
+    for j in range(THREAD_NUM):
+        threads[j].join()
+    print 'done'
+
+
 # 能够正常运行的函数
 def main():
-    obj = Kline()
+
+    #obj = Kline()
     # 存储基本面的数据
     # obj.store_base_data('sql')
     #获取股票的前复权数据, 使用bar函数
-    obj.store_hist_data()
+    #obj.store_hist_data()
 
+    #存放股票的代码和名字
+    add_code_redis()
+    #obj.redis_init()
+    #StoreData()
 if __name__ == '__main__':
     main()
