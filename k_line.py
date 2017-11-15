@@ -12,6 +12,7 @@ import redis
 from threading import Thread
 #global
 conn=ts.get_apis()
+REDIS_HOST='respberrypi'
 
 #pd.set_option('display.max_rows', None)
 
@@ -132,8 +133,8 @@ class Kline():
 
     #把股票代码放入redis
     def redis_init(self):
-        rds =redis.StrictRedis('localhost',6379,db=0)
-        rds_2 =redis.StrictRedis('localhost',6379,db=1)
+        rds =redis.StrictRedis(REDIS_HOST,6379,db=0)
+        rds_2 =redis.StrictRedis(REDIS_HOST,6379,db=1)
         for i in rds.keys():
             d=dict({i:rds.get(i)})
             rds_2.lpush('codes',d)
@@ -141,8 +142,8 @@ class Kline():
 
 #把股票代码放到redis
 def add_code_redis():
-    rds = redis.StrictRedis('localhost', 6379, db=0)
-    rds_1 = redis.StrictRedis('localhost', 6379, db=1)
+    rds = redis.StrictRedis(REDIS_HOST, 6379, db=0)
+    rds_1 = redis.StrictRedis(REDIS_HOST, 6379, db=1)
     df = ts.get_stock_basics()
     df =df.reset_index()
     for i in range(len(df)):
@@ -174,7 +175,7 @@ def get_hist_data(code,name,start_data):
 class StockThread(Thread):
     def __init__(self,loop):
         Thread.__init__(self)
-        self.rds = redis.StrictRedis('localhost',6379,db=1)
+        self.rds = redis.StrictRedis(REDIS_HOST,6379,db=1)
         self.loop_count=loop
 
     def run(self):
