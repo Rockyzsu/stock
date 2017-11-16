@@ -7,7 +7,8 @@ import tushare as ts
 from sqlalchemy import create_engine
 import pandas as pd
 from setting import engine
-
+import MySQLdb
+HOSTNAME='localhost'
 class StoreDB():
     def __init__(self):
         self.cons = ts.get_apis()
@@ -70,12 +71,28 @@ def save_baseinfo():
 
 #删除已存在的股票代码数据库
 def del_db():
-    r=redis.StrictRedis()
+    r=redis.StrictRedis(HOSTNAME,6379,db=0)
+    db = MySQLdb.connect('localhost','root','123456z','stock')
+    cursor =db.cursor()
+    for i in r.keys():
+        #print i
+        cmd='drop table if exists `{}`'.format(i)
+        print cmd
+        try:
+            cursor.execute(cmd)
+        except Exception,e:
+            print e
+
+
+    #print len(r.keys())
 
 if __name__ == '__main__':
     #obj = StoreDB()
     #obj.start()
+    '''
     obj = DeliveryOrder()
     for i in range(1,9):
         obj.store_data(str(i))
+    '''
     #save_baseinfo()
+    del_db()
