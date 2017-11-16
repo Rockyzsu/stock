@@ -6,5 +6,5 @@ USER = Toolkit.getUserData('data.cfg')['MYSQL_USER']
 PASSWORD = Toolkit.getUserData('data.cfg')['MYSQL_PASSWORD']
 HOST = Toolkit.getUserData('data.cfg')['MYSQL_HOST']
 PORT = Toolkit.getUserData('data.cfg')['MYSQL_PORT']
-DB = 'stock'
+DB = 'history'
 engine = create_engine('mysql+pymysql://{}:{}@{}:{}/{}?charset=utf8'.format(USER, PASSWORD, HOST, PORT, DB))

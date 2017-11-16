@@ -10,9 +10,8 @@ import logging
 from setting import engine
 import redis
 from threading import Thread
-#global
 conn=ts.get_apis()
-REDIS_HOST='respberrypi'
+REDIS_HOST='localhost'
 
 #pd.set_option('display.max_rows', None)
 
@@ -146,12 +145,19 @@ def add_code_redis():
     rds_1 = redis.StrictRedis(REDIS_HOST, 6379, db=1)
     df = ts.get_stock_basics()
     df =df.reset_index()
+
+    #清理数据库
+    if rds.dbsize()!=0:
+        rds.flushdb()
+    if rds_1.dbsize() !=0:
+        rds_1.flushdb()
+
     for i in range(len(df)):
         code,name ,timeToMarket= df.loc[i]['code'],df.loc[i]['name'],df.loc[i]['timeToMarket']
         print str(timeToMarket)
         d=dict({code:':'.join([name,str(timeToMarket)])})
         print d
-        #rds.set(code,name)
+        rds.set(code,name)
         rds_1.lpush('codes',d)
 
 def get_hist_data(code,name,start_data):
@@ -190,7 +196,7 @@ class StockThread(Thread):
             except Exception,e:
                 print e
                 break
-            d = eval(item[1])
+            d = eval(item)
             k=d.keys()[0]
             v=d[k]
             name=v.split(':')[0].strip()
@@ -198,7 +204,7 @@ class StockThread(Thread):
             get_hist_data(k,name,start_date)
 
 
-THREAD_NUM=8
+THREAD_NUM=4
 def StoreData():
     threads=[]
     for i in range(THREAD_NUM):
@@ -221,8 +227,8 @@ def main():
     #obj.store_hist_data()
 
     #存放股票的代码和名字
-    add_code_redis()
+    #add_code_redis()
     #obj.redis_init()
-    #StoreData()
+    StoreData()
 if __name__ == '__main__':
     main()

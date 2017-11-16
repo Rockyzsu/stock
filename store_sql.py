@@ -1,12 +1,12 @@
 # -*-coding=utf-8-*-
 # 保存数据到本地mysq数据库
 import datetime
-
+import redis
 import os
 import tushare as ts
 from sqlalchemy import create_engine
 import pandas as pd
-
+from setting import engine
 
 class StoreDB():
     def __init__(self):
@@ -50,7 +50,7 @@ class StoreDB():
 class DeliveryOrder():
     def __init__(self):
         self.data_folder = os.path.join(os.getcwd(),'data')
-        self.engine = create_engine('mysql+pymysql://root:123456z@localhost:3306/db_parker?charset=utf8')
+        self.engine = create_engine('mysql+pymysql://root:123456z@localhost:3306/stock?charset=utf8')
 
 
     def store_data(self,month):
@@ -61,6 +61,16 @@ class DeliveryOrder():
         print df
         df.to_sql('delivery',self.engine,if_exists='append')
 
+# 保存市场的基本信息
+def save_baseinfo():
+    df = ts.get_stock_basics()
+    #print df
+    df = df.reset_index()
+    df.to_sql('baseinfo',engine)
+
+#删除已存在的股票代码数据库
+def del_db():
+    r=redis.StrictRedis()
 
 if __name__ == '__main__':
     #obj = StoreDB()
@@ -68,3 +78,4 @@ if __name__ == '__main__':
     obj = DeliveryOrder()
     for i in range(1,9):
         obj.store_data(str(i))
+    #save_baseinfo()
