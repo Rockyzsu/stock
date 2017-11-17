@@ -7,12 +7,16 @@ import pandas as pd
 import os, datetime, math
 import numpy as np
 import logging
-from setting import engine
+from setting import get_engine,MYSQL_HOST,MYSQL_PORT,MYSQL_USER,MYSQL_PASSWORD,REDIS_HOST
 import redis
 from threading import Thread
-conn=ts.get_apis()
-REDIS_HOST='localhost'
+import MySQLdb
 
+engine=get_engine('history')
+conn=ts.get_apis()
+MYSQL_DB='history'
+mysql_conn = MySQLdb.connect(MYSQL_HOST,MYSQL_USER,MYSQL_PASSWORD,MYSQL_DB,charset='utf8')
+cursor = mysql_conn.cursor()
 #pd.set_option('display.max_rows', None)
 
 class Kline():
@@ -61,7 +65,7 @@ class Kline():
         df.insert(1,'name',name)
         df = df.reset_index()
         try:
-            df.to_sql(code,engine,if_exists='replace')
+            df.to_sql(code,engine,if_exists='append')
         except Exception,e:
             print e
 
@@ -70,36 +74,33 @@ class Kline():
             self.today = pd.read_csv(self.today_date + '.csv', dtype={'code': np.str})
             self.all = pd.read_csv('bases.csv', dtype={'code': np.str})
 
-
-    def _xiayingxian(self, row):
-        # print type(row)
-        # print row
-        open_p = row['open']
+    def _xiayingxian(self, row,ratio):
+        '''
+        下影线的逻辑 ratio 下影线的长度比例，数字越大，下影线越长
+        row: series类型
+        '''
+        open_p = float(row['open'])
         # print open_p
-        closed = row['trade']
+        closed = float(row['close'])
         # print closed
-        low = row['low']
+        low = float(row['low'])
         # print low
-        settle = row['settlement']
+        high = float(row['high'])
+
         if open_p >= closed:
             try:
-                diff = (closed - low) * 1.00 / settle * 100
-            except Exception, e:
-                print e
-
-            # print diff
-            if diff > 5:
-                # print row['name'].decode('utf-8')
+                diff = (closed - low) * 1.00 / (high-low)
+            except ZeroDivisionError:
+                diff=0
+            if diff > ratio:
                 print row['name']
                 return row
         else:
             try:
-                diff = (open_p - low) * 1.00 / settle * 100
-            except Exception, e:
-                print e
-
-            if diff > 5:
-                # print row['name'].decode('utf-8')
+                diff = (open_p - low) * 1.00 / (high-low)
+            except ZeroDivisionError:
+                diff=0
+            if diff > ratio:
                 print row['name']
                 return row
 
@@ -138,7 +139,24 @@ class Kline():
             d=dict({i:rds.get(i)})
             rds_2.lpush('codes',d)
 
-
+    def get_hist_line(self,date):
+        cmd = 'select * from `{}` where datetime = \'{}\''
+        r0= redis.StrictRedis(REDIS_HOST,6379,db=0)
+        for code in r0.keys():
+            try:
+                cursor.execute(cmd.format(code,date))
+            except Exception,e:
+                continue
+            data =cursor.fetchall()
+            #
+            try:
+                data_row = data[0]
+            except Exception,e:
+                continue
+            #print data[0]
+            d = dict(zip(('code','name','open','close','high','low'),data_row[2:8]))
+            #print d
+            self._xiayingxian(d,0.667)
 #把股票代码放到redis
 def add_code_redis():
     rds = redis.StrictRedis(REDIS_HOST, 6379, db=0)
@@ -153,16 +171,25 @@ def add_code_redis():
         rds_1.flushdb()
 
     for i in range(len(df)):
-        code,name ,timeToMarket= df.loc[i]['code'],df.loc[i]['name'],df.loc[i]['timeToMarket']
-        print str(timeToMarket)
+        code,name ,timeToMarket = df.loc[i]['code'],df.loc[i]['name'],df.loc[i]['timeToMarket']
+        #print str(timeToMarket)
         d=dict({code:':'.join([name,str(timeToMarket)])})
-        print d
+        #print d
         rds.set(code,name)
         rds_1.lpush('codes',d)
 
+def update_daily():
+    '''
+    每天更新行情
+    :return:
+    '''
+    df =ts.get_today_all()
+    print df
+
 def get_hist_data(code,name,start_data):
     try:
-        start_data = datetime.datetime.strptime(str(start_data), '%Y%m%d').strftime('%Y-%m-%d')
+        #start_data = datetime.datetime.strptime(str(start_data), '%Y%m%d').strftime('%Y-%m-%d')
+
         df = ts.bar(code,conn=conn,start_date=start_data,adj='qfq')
         #print df
     except Exception,e:
@@ -171,8 +198,9 @@ def get_hist_data(code,name,start_data):
 
     df.insert(1,'name',name)
     df = df.reset_index()
+    print df
     try:
-        df.to_sql(code,engine,if_exists='replace')
+        df.to_sql(code,engine,if_exists='append')
     except Exception,e:
         print e
         return
@@ -189,6 +217,7 @@ class StockThread(Thread):
 
 
     def loops(self):
+        start_date=datetime.datetime.now().strftime('%Y-%m-%d')
         while 1:
             try:
                 item = self.rds.lpop('codes')
@@ -196,11 +225,13 @@ class StockThread(Thread):
             except Exception,e:
                 print e
                 break
+
             d = eval(item)
             k=d.keys()[0]
             v=d[k]
             name=v.split(':')[0].strip()
-            start_date=v.split(':')[1].strip()
+            #start_date=v.split(':')[1].strip()
+
             get_hist_data(k,name,start_date)
 
 
@@ -221,6 +252,7 @@ def StoreData():
 def main():
 
     #obj = Kline()
+    # obj.get_hist_line('2017-11-14')
     # 存储基本面的数据
     # obj.store_base_data('sql')
     #获取股票的前复权数据, 使用bar函数
@@ -229,6 +261,11 @@ def main():
     #存放股票的代码和名字
     #add_code_redis()
     #obj.redis_init()
-    StoreData()
+    #保存历史数据
+    #StoreData()
+
+    #把每天的数据更新到数据库
+    update_daily()
+
 if __name__ == '__main__':
     main()

@@ -1,4 +1,6 @@
 # -*-coding=utf-8-*-
+import sys
+
 __author__ = 'Rocky'
 '''
 http://30daydo.com
@@ -30,8 +32,15 @@ class calculator_stock():
         print "Profit: ",
         print round(earn_profit,2)
 
+def percentage(open_price):
+    open_price=float(open_price)
+    for i in range(1,11):
+        print '{}\t+{}%->{}'.format(open_price,i,open_price*(1+0.01*i))
+    for i in range(1,11):
+        print '{}\t-{}%->{}'.format(open_price,i,open_price*(1-0.01*i))
 
 if __name__=="__main__":
+    ''''
     obj=calculator_stock()
 
     code='300333'
@@ -39,3 +48,6 @@ if __name__=="__main__":
     end='2017-04-14'
 
     obj.profit(start,end,code)
+    '''
+    #percentage(sys.args[1])
+    percentage(24.54)
