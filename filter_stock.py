@@ -59,22 +59,33 @@ class Filter_Stock():
         :param date: 某一天的日期 ‘'2017-11-11
         :return:
         '''
-        cmd = 'select * from `{}`'.format(date)
-        df = pd.read_sql(cmd, daily_engine)
+        #cmd = 'select * from `{}`'.format(date)
+        df = pd.read_sql_table(date, daily_engine,index_col='index')
         # **** 这里的index需要删除一个
-        df_low = pd.DataFrame()
-
+        low_db= get_mysql_conn('db_selection')
+        low_cursor = low_db.cursor()
         for i in range(len(df)):
             code = df.loc[i]['code']
             cur_low = df.loc[i]['low']
-            mins = self.get_lowest(code, '2017')
-            if mins and float(cur_low)<=float(mins):
+
+            mins_date,mins = self.get_lowest(code, '2017',date)
+            if not mins_date:
+                continue
+            if mins and float(cur_low)<=float(mins) and float(cur_low) !=0.0:
                 print code,
                 print df.loc[i]['name']
-                print 'year mins ',mins,
+                print 'year mins {} at {}'.format(mins,mins_date)
                 print 'curent mins ',cur_low
+                create_cmd = 'create table if not exists break_low' \
+                             '(`index` int primary key auto_increment,datetime datetime,code text,name text,low_price float,last_price float, last_price_date datetime);'
+                low_cursor.execute(create_cmd)
+                insert_cmd = 'insert into break_low (datetime,code,name,low_price,last_price,last_price_date) values (%s,%s,%s,%s,%s,%s);'
+                insert_data = (date,code,df.loc[i]['name'],cur_low,mins,mins_date)
+                low_cursor.execute(insert_cmd,insert_data)
+                low_db.commit()
 
-    def get_lowest(self, code, date):
+
+    def get_lowest(self, code, date,current_date):
         '''
         返回个股某一年最低价
         :param code: 股票代码
@@ -82,13 +93,23 @@ class Filter_Stock():
         :return:
         '''
         date = date + '-01-01'
-        cmd = 'select low from `{}` where datetime > \'{}\''.format(code, date)
+        cmd = 'select * from `{}` where datetime > \'{}\' and datetime <\'{}\''.format(code, date,current_date)
+
         try:
-            df = pd.read_sql(cmd, history_engine)
+            df = pd.read_sql(cmd, history_engine,index_col='index')
         except Exception,e:
             print e
-            return None
-        return df['low'].min()
+            return None,None
+        #print df.dtypes
+        # 不知道为啥，这里的类型发生改变
+        if len(df)<1:
+            return None,None
+        df['low']=df['low'].astype('float64')
+        idx= df['low'].idxmin()
+        min_date= df.loc[idx]
+        return min_date['datetime'],min_date['low']
+
+
 
     def get_highest(self, code, date):
         '''
