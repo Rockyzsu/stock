@@ -5,9 +5,7 @@ import datetime
 __author__ = 'Rocky'
 import tushare as ts
 import os
-from setting import get_engine,get_mysql_conn
-import pandas as pd
-import pandas
+from setting import get_engine
 daily_engine=get_engine('daily')
 class SaveData():
     today = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -19,7 +17,7 @@ class SaveData():
             os.mkdir(work_space)
         os.chdir(work_space)
 
-    #当天创新低的股票
+
     @staticmethod
     def daily_market():
         df = ts.get_today_all()

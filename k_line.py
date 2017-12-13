@@ -298,7 +298,6 @@ def main():
 
     # 把每天的数据更新到数据库
     update_daily()
-
     print "Done"
 
 if __name__ == '__main__':
