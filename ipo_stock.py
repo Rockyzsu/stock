@@ -3,7 +3,10 @@ import tushare as ts
 import numpy as np
 import datetime,os
 import pandas as pd
-
+import sys
+from setting import get_engine
+reload(sys)
+sys.setdefaultencoding('utf8')
 def ipo_rank():
     new_stk_df=ts.new_stocks()
     # print 'info',new_stk_df.info()
@@ -56,17 +59,47 @@ def profit(code,start,end):
 def price_change():
     basic=ts.get_stock_basics()
     pro=[]
+    print basic.info()
+    print basic.head(10)
+
+    # basic.to_csv('basic2017.xls',encoding='gbk')
+    # df=pd.read_csv('basic2017.xls',encoding='gbk')
+    # df.to_excel('basic2017.xls',encoding='gbk')
+
+    # '''
     for code in basic.index.values:
         print code
-        p=profit(code,'2017-01-01','2017-12-29')
+        p=profit(code,'2016-12-31','2017-12-29')
         pro.append(p)
     basic['price_change']=pro
-    basic.to_excel('2017_all_price_change.xls',encoding='utf-8')
+    basic.to_csv('2017_all_price_change.xls',encoding='gbk')
+    df=pd.read_csv('2017_all_price_change.xls',encoding='gbk')
+    df.to_excel('2017_all_price_change.xls',encoding='gbk')
+    # basic.to_excel('2017_all_price_change.xls',encoding='utf-8')
+    # '''
 
-
+def analysis():
+    df=pd.read_excel('2017_all_price_change.xls',encoding='gbk')
+    # engine=get_engine('stock')
+    # df.to_sql('2017yearsPriceChange',engine)
+    # print df.head()
+    # dfx = df[df['price_change'].notnull()]
+    # new_df = dfx.sort_values(by='price_change')
+    # print new_df[['code','name','industry','area','pe','timeToMarket','holders','price_change']].head(20)
+    # print new_df[new_df.isnull()==True]
+    # print new_df.loc[1242]
+    # new_df=new_df.reset_index()
+    # print len(new_df[new_df['price_change'].isnull()])
+    # print dfx.tail(10)
+    # print new_df.head(10)
+    df=df.sort_values(by='price_change',ascending=False)
+    # print df.head(5)
+    df.to_excel('2017-year.xls',encoding='gbk')
 def main():
+
     # ipo_rank()
-    price_change()
+    # price_change()
+    analysis()
 
 if __name__=='__main__':
     data_path=os.path.join(os.getcwd(),'data')
