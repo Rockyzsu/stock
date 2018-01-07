@@ -13,7 +13,6 @@ import pandas as pd
 daily_engine = get_engine('daily')
 history_engine = get_engine('history')
 
-
 class Filter_Stock():
     def __init__(self):
         current = os.getcwd()
@@ -123,6 +122,60 @@ class Filter_Stock():
         df = pd.read_sql(cmd, history_engine)
         return df['high'].max()
 
+    def save_to_excel(self,df,filename,encoding='gbk'):
+        try:
+            df.to_csv('temp.csv',encoding=encoding,index=False)
+            df=pd.read_csv('temp.csv',encoding=encoding,dtype={'code':str})
+            df.to_excel(filename,encoding=encoding)
+            return True
+        except Exception,e:
+            print "Save to excel faile"
+            print e
+            return None
+    # 专门用来存储数据，数据保存为excel，不必每次都要从网络读取
+    def store_data(self):
+        # 预测
+        # year_2016=ts.forecast_data(2016, 4)
+        # self.save_to_excel(year_2016,'2016-profit.xls')
+
+        # year_2017=ts.forecast_data(2017, 4)
+        # self.save_to_excel(year_2017,'2017-profit.xls')
+        # 盈利能力
+        # profit_2016=ts.get_profit_data(2016,4)
+        # profit_2017=ts.get_profit_data(2017,3)
+       # self.save_to_excel(profit_2016, '2016-profit.xls')
+        # self.save_to_excel(profit_2017, '2017-3rdprofit.xls')
+        # 股票基本信息
+        # basic=ts.get_stock_basics()
+        # basic.to_csv('temp.xls',encoding='gbk')
+        # df=pd.read_csv('temp.xls',encoding='gbk',dtype={'code':str})
+        # # print df
+        # self.save_to_excel(df,'Markets.xls')
+
+        # 基本面 每股净资产<1
+        df=ts.get_report_data(2017, 3)
+        self.save_to_excel(df,'2017-3rd-report.xls')
+
+    def to_be_ST(self):
+        '''
+        df_2016=pd.read_excel('2016-profit.xls',dtype={'code':str})
+        df_2017=pd.read_excel('2017-3rdprofit.xls',dtype={'code':str})
+        loss_2016=set(df_2016[df_2016['net_profits']<0]['code'])
+        loss_2017=set(df_2017[df_2017['net_profits']<0]['code'])
+        st= list(loss_2016 & loss_2017)
+        basic=pd.read_excel('Markets.xls',dtype={'code':str})
+        # print basic.head(5)
+        # for x in st:
+        #     print x
+        # print basic[basic['code']==st]
+        for i in st:
+            print basic[basic['code']==i][['code','name']]
+        '''
+
+        # 每股净资产小于0
+        df_bpvs=pd.read_excel('2017-3rd-report.xls',dtype={'code':str})
+        # print df_bpvs.head()
+        print df_bpvs[df_bpvs['bvps']<0][['code','name']]
 
 def main():
     obj = Filter_Stock()
@@ -134,7 +187,10 @@ def main():
     # print type(obj.get_lowest('300333','2017'))
     #print obj.get_lowest('300333', '2017')
     #print obj.get_highest('300333', '2017')
-    obj.break_low('2017-11-17')
+    # obj.break_low('2017-11-17')
+
+    # obj.store_data()
+    obj.to_be_ST()
 
 if __name__ == '__main__':
     main()

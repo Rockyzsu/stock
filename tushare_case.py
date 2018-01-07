@@ -303,13 +303,5 @@ def main():
 # sb.fund()
 # sb.get_stock_chengfeng()
 
-
-
-class Pandas_test:
-    def test_function(self):
-        dates = pd.date_range("20160501", periods=10)
-        print dates
-
-
 if __name__ == "__main__":
     main()

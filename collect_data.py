@@ -38,8 +38,8 @@ class SaveData():
 
     def save_to_excel(self,df,filename,encoding='gbk'):
         try:
-            df.to_csv('temp.csv',encoding=encoding,dtype={'code':str})
-            df=pd.read_csv('temp.csv',encoding=encoding)
+            df.to_csv('temp.csv',encoding=encoding,index=False)
+            df=pd.read_csv('temp.csv',encoding=encoding,dtype={'code':str})
             df.to_excel(filename,encoding=encoding)
             return True
         except Exception,e:
