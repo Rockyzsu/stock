@@ -23,10 +23,11 @@ class Filter_Stock():
         print os.getcwd()
         self.today = datetime.datetime.now().strftime("%Y-%m-%d")
 
-    def get_location(self, loc):
+    def get_location(self):
         df = ts.get_area_classified()
         print df
-
+        # df.to_excel('location.xls')
+        self.save_to_excel(df,'location.xls')
     def get_ST(self):
         # 暂停上市
         zt = ts.get_suspended()
@@ -190,7 +191,7 @@ def main():
     # obj.break_low('2017-11-17')
 
     # obj.store_data()
-    obj.to_be_ST()
-
+    # obj.to_be_ST()
+    obj.get_location()
 if __name__ == '__main__':
     main()

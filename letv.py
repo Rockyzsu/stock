@@ -13,7 +13,7 @@ def main():
     percent=float(big_deal)/total_vol*100
     print u'大单占比',percent
     print df['volume'].value_count()
-    
+
 
 if __name__ == '__main__':
     main()
