@@ -12,7 +12,7 @@ HOSTNAME='localhost'
 class StoreDB():
     def __init__(self):
         self.cons = ts.get_apis()
-        self.engine = create_engine('mysql+pymysql://root:123456z@localhost:3306/stock?charset=utf8')
+        self.engine = create_engine('mysql+pymysql://root:password@localhost:3306/stock?charset=utf8')
         self.all_info = ts.get_stock_basics()
         self.all_codes = self.all_info.index
 
