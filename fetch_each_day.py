@@ -16,6 +16,7 @@ class Fetch_each_day():
         #self.baseinfo=ts.get_stock_basics()
         self.getDate()
 
+        self.df_today_all=pd.DataFrame()
 
     def excel_operation(self):
         self.path=os.path.join(os.path.dirname(__file__),'data')
@@ -90,7 +91,7 @@ class Fetch_each_day():
         sql_pwd=data['MYSQL_PASSWORD']
         self.engine=create_engine('mysql://root:%s@localhost/daily?charset=utf8' %sql_pwd)
 
-        self.df_today_all=ts.get_today_all()
+        # self.df_today_all=ts.get_today_all()
         self.df_today_all.to_sql(self.today,self.engine,if_exists='replace')
 
 
