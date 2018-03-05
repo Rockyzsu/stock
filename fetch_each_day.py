@@ -14,15 +14,13 @@ class Fetch_each_day():
 
     def __init__(self):
         #self.baseinfo=ts.get_stock_basics()
-
         self.getDate()
 
 
     def excel_operation(self):
-        self.path=os.path.join(os.getcwd(),'data')
+        self.path=os.path.join(os.path.dirname(__file__),'data')
         if not os.path.exists(self.path):
             os.mkdir(self.path)
-
 
         self.GetAllTodayData()
         self.sortTurnOver()
@@ -49,12 +47,13 @@ class Fetch_each_day():
             #n1=self.df_today_all[self.df_today_all['turnoverratio']==0]
             #n2=self.df_today_all.drop(n1.index)
             #print n2
-            print self.df_today_all
+            # print self.df_today_all
             self.df_today_all.to_excel(filename,sheet_name='All')
 
         else:
             self.df_today_all=pd.read_excel(filename,sheet_name='All')
-            print "File existed"
+            # print "File existed"
+        return self.df_today_all
 
     def sortTurnOver(self):
         top_filename=self.today+'_top_turnover.xls'
@@ -64,9 +63,10 @@ class Fetch_each_day():
             top_high=high_turnover.head(100)
 
             top_high.to_excel(topfile,sheet_name='heat100')
-
+            return top_high
         else:
-            top_high=pd.read_excel(topfile,sheetname='heat100')
+            df=pd.read_excel(topfile,sheetname='heat100')
+            return df
 
     def getHistory(self,id):
         data=ts.get_hist_data(id)
@@ -85,20 +85,19 @@ class Fetch_each_day():
             print "File existed"
 
     def save_sql(self):
-        data=Toolkit.getUserData()
+        cfg_file=os.path.join(os.path.dirname(__file__),'data.cfg')
+        data=Toolkit.getUserData(cfg_file)
         sql_pwd=data['mysql_password']
-        self.engine=create_engine('mysql://root:%s@localhost/daily_data?charset=utf8' %sql_pwd)
+        self.engine=create_engine('mysql://root:%s@localhost/daily?charset=utf8' %sql_pwd)
 
         self.df_today_all=ts.get_today_all()
-        self.df_today_all.to_sql(self.today,self.engine)
-
-
+        self.df_today_all.to_sql(self.today,self.engine,if_exists='inplace')
 
 
 if __name__=="__main__":
     obj=Fetch_each_day()
-    #obj.save_sql()
     #obj.getHistory('300333')
     #obj.isFileExist('candle.xls')
     #obj.my_choice('300333')
     obj.excel_operation()
+    obj.save_sql()
