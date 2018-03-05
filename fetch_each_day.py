@@ -87,7 +87,7 @@ class Fetch_each_day():
     def save_sql(self):
         cfg_file=os.path.join(os.path.dirname(__file__),'data.cfg')
         data=Toolkit.getUserData(cfg_file)
-        sql_pwd=data['mysql_password']
+        sql_pwd=data['MYSQL_PASSWORD']
         self.engine=create_engine('mysql://root:%s@localhost/daily?charset=utf8' %sql_pwd)
 
         self.df_today_all=ts.get_today_all()
