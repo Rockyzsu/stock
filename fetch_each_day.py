@@ -91,7 +91,7 @@ class Fetch_each_day():
         self.engine=create_engine('mysql://root:%s@localhost/daily?charset=utf8' %sql_pwd)
 
         self.df_today_all=ts.get_today_all()
-        self.df_today_all.to_sql(self.today,self.engine,if_exists='inplace')
+        self.df_today_all.to_sql(self.today,self.engine,if_exists='replace')
 
 
 if __name__=="__main__":
