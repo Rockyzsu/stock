@@ -41,16 +41,26 @@ class Fetch_each_day():
         #放在data文件夹下
         filename=os.path.join(self.path,filename)
         if not os.path.exists(filename):
-            self.df_today_all=ts.get_today_all()
-            #过滤停牌的
-            # self.df_today_all.drop(self.df_today_all[self.df_today_all['turnoverratio']==0].index,inplace=True)
-            #实测可用，删除的方法
-            #n1=self.df_today_all[self.df_today_all['turnoverratio']==0]
-            #n2=self.df_today_all.drop(n1.index)
-            #print n2
-            # print self.df_today_all
-            self.df_today_all.to_excel(filename,sheet_name='All')
+            re_try=5
+            while re_try>0:
+                try:
+                    self.df_today_all=ts.get_today_all()
+                #过滤停牌的
+                # self.df_today_all.drop(self.df_today_all[self.df_today_all['turnoverratio']==0].index,inplace=True)
+                #实测可用，删除的方法
+                #n1=self.df_today_all[self.df_today_all['turnoverratio']==0]
+                #n2=self.df_today_all.drop(n1.index)
+                #print n2
+                # print self.df_today_all
+                    break
+                except Exception,e:
+                    re_try=re_try-1
+                    time.sleep(5)
+            if len(self.df_today_all)!=0:
 
+                self.df_today_all.to_excel(filename,sheet_name='All')
+            else:
+                self.df_today_all=None
         else:
             self.df_today_all=pd.read_excel(filename,sheet_name='All')
             # print "File existed"
