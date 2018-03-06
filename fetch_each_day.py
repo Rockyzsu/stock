@@ -43,7 +43,7 @@ class Fetch_each_day():
         if not os.path.exists(filename):
             self.df_today_all=ts.get_today_all()
             #过滤停牌的
-            self.df_today_all.drop(self.df_today_all[self.df_today_all['turnoverratio']==0].index,inplace=True)
+            # self.df_today_all.drop(self.df_today_all[self.df_today_all['turnoverratio']==0].index,inplace=True)
             #实测可用，删除的方法
             #n1=self.df_today_all[self.df_today_all['turnoverratio']==0]
             #n2=self.df_today_all.drop(n1.index)
@@ -89,7 +89,7 @@ class Fetch_each_day():
         cfg_file=os.path.join(os.path.dirname(__file__),'data.cfg')
         data=Toolkit.getUserData(cfg_file)
         sql_pwd=data['MYSQL_PASSWORD']
-        self.engine=create_engine('mysql://root:%s@localhost/db_daily?charset=utf8' %sql_pwd)
+        self.engine=create_engine('mysql+pymysql://root:%s@localhost/db_daily?charset=utf8' %sql_pwd)
 
         # self.df_today_all=ts.get_today_all()
         self.df_today_all.to_sql(self.today,self.engine,if_exists='replace')
