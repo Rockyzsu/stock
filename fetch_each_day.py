@@ -15,11 +15,11 @@ class Fetch_each_day():
     def __init__(self):
         #self.baseinfo=ts.get_stock_basics()
         self.getDate()
+        self.path=os.path.join(os.path.dirname(__file__),'data')
 
         self.df_today_all=pd.DataFrame()
 
     def excel_operation(self):
-        self.path=os.path.join(os.path.dirname(__file__),'data')
         if not os.path.exists(self.path):
             os.mkdir(self.path)
 
