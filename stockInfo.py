@@ -7,10 +7,34 @@ Contact: weigesysu@qq.com
 from bs4 import BeautifulSoup
 import urllib2, datetime, time, codecs, cookielib, random, threading
 import os,sys
-import itchat
+# import itchat
 import smtplib
 from email.mime.text import MIMEText
 import setting
+import MySQLdb
+db_name = 'db_news'
+conn = MySQLdb.connect(host=setting.MYSQL_REMOTE,
+                       port=3306,
+                       user=setting.MYSQL_REMOTE_USER,
+                       passwd=setting.MYSQL_PASSWORD,
+                       db=db_name,
+                       charset='utf8'
+                       )
+
+cur = conn.cursor()
+
+
+def create_tb():
+    cmd = '''CREATE TABLE IF NOT EXISTS tb_cnstock(Date DATETIME ,Title VARCHAR (80),URL VARCHAR (80),PRIMARY KEY (URL)) charset=utf8;'''
+    try:
+        cur.execute(cmd)
+        conn.commit()
+        # conn.close()
+        return True
+    except Exception, e:
+        print e
+        conn.rollback()
+        return False
 
 def sendmail(content,subject):
     username=setting.EMIAL_USER
@@ -101,6 +125,16 @@ def getInfo(max_index_user=3,years='2018-'):
                 str_temp = "No.%s \n%s\t%s\n---> %s \n\n" % (str(num), news_time, node['title'], node['href'])
                 #print "inside %d" %num
                 # print str_temp
+                cmd = '''INSERT INTO tb_cnstock (Date,Title,URL ) VALUES(\'%s\',\'%s\',\'%s\');''' % (
+                years+news_time, node['title'].strip(), node['href'].strip())
+                # print cmd
+                try:
+                    cur.execute(cmd)
+                    conn.commit()
+                except Exception, e:
+                    print e
+                    conn.rollback()
+
                 all_contents.append(str_temp)
 
                 fOpen.write(str_temp)
@@ -125,6 +159,6 @@ if __name__ == "__main__":
     # for i in account:
     #     if i[u'PYQuanPin'] == u'wei':
     #         username = i['UserName']
-
+    create_tb()
     getInfo()
     # print 'done'
