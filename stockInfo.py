@@ -7,10 +7,34 @@ Contact: weigesysu@qq.com
 from bs4 import BeautifulSoup
 import urllib2, datetime, time, codecs, cookielib, random, threading
 import os,sys
+import itchat
+import smtplib
+from email.mime.text import MIMEText
+import setting
 
+def sendmail(content,subject):
+    username=setting.EMIAL_USER
+    password=setting.EMIAL_PASS
+    smtp_host=setting.SMTP_HOST
+    smtp = smtplib.SMTP(smtp_host)
 
-def getInfo(max_index_user=5):
+    try:
+        smtp.login(username, password)
+        msg=MIMEText(content, 'plain', 'utf-8')
+        msg['from']=setting.FROM_MAIL
+        msg['to']=setting.TO_MAIL
+        msg['subject']=subject
+        smtp.sendmail(msg['from'],msg['to'],msg.as_string())
+        smtp.quit()
+    except Exception,e:
+        print e
+
+def getInfo(max_index_user=3,years='2018-'):
+
+    last_day=datetime.datetime.now()+datetime.timedelta(days=-1)
+    # print last_day
     stock_news_site = "http://ggjd.cnstock.com/gglist/search/ggkx/"
+
     my_userAgent = [
         'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_8; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50',
         'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50',
@@ -32,8 +56,9 @@ def getInfo(max_index_user=5):
     temp_time = time.strftime("[%Y-%m-%d]-[%H-%M]", time.localtime())
 
     store_filename = "StockNews-%s.log" % temp_time
-    fOpen = codecs.open(store_filename, 'w', 'utf-8')
 
+    fOpen = codecs.open(store_filename, 'w', 'utf-8')
+    all_contents=[]
     while index < max_index:
         user_agent = random.choice(my_userAgent)
         # print user_agent
@@ -66,26 +91,40 @@ def getInfo(max_index_user=5):
 
         for i in all_content:
             news_time = i.string
+            # print news_time
+            news_time_f=datetime.datetime.strptime(years+news_time,'%Y-%m-%d %H:%M')
             node = i.next_sibling
-            str_temp = "No.%s \n%s\t%s\n---> %s \n\n" % (str(num), news_time, node['title'], node['href'])
-            #print "inside %d" %num
-            #print str_temp
-            fOpen.write(str_temp)
-            num = num + 1
 
-        #print "index %d" %index
+            if news_time_f>last_day:
+                # news_time_f=news_time_f.replace(2018)
+                # print news_time_f
+                str_temp = "No.%s \n%s\t%s\n---> %s \n\n" % (str(num), news_time, node['title'], node['href'])
+                #print "inside %d" %num
+                # print str_temp
+                all_contents.append(str_temp)
+
+                fOpen.write(str_temp)
+            num = num + 1
+                # itchat.send(str_temp,toUserName=username)
+                # time.sleep(1)
+            #print "index %d" %index
         index = index + 1
 
     fOpen.close()
 
+    sendmail(''.join(all_contents),temp_time)
 
 if __name__ == "__main__":
 
-    sub_folder = os.path.join(os.getcwd(), "data")
+    sub_folder = os.path.join(os.path.dirname(__file__), "data")
     if not os.path.exists(sub_folder):
         os.mkdir(sub_folder)
     os.chdir(sub_folder)
-    start_time = time.time()  # user can change the max index number getInfo(10), by default is getInfo(5)
-    getInfo(3)
-    end_time = time.time()
-    print "Total time: %s s." % str(round((end_time - start_time), 4))
+    # itchat.auto_login(hotReload=True)
+    # account = itchat.get_friends()
+    # for i in account:
+    #     if i[u'PYQuanPin'] == u'wei':
+    #         username = i['UserName']
+
+    getInfo()
+    # print 'done'
