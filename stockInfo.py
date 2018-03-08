@@ -37,8 +37,8 @@ def create_tb():
         return False
 
 def sendmail(content,subject):
-    username=setting.EMIAL_USER
-    password=setting.EMIAL_PASS
+    username=setting.EMAIL_USER
+    password=setting.EMAIL_PASS
     smtp_host=setting.SMTP_HOST
     smtp = smtplib.SMTP(smtp_host)
 
