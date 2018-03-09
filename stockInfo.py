@@ -53,9 +53,9 @@ def sendmail(content,subject):
     except Exception,e:
         print e
 
-def getInfo(max_index_user=3,years='2018-'):
+def getInfo(max_index_user=3,years='2018-',days=-1):
 
-    last_day=datetime.datetime.now()+datetime.timedelta(days=-1)
+    last_day=datetime.datetime.now()+datetime.timedelta(days=days)
     # print last_day
     stock_news_site = "http://ggjd.cnstock.com/gglist/search/ggkx/"
 
