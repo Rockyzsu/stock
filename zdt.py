@@ -17,8 +17,8 @@ sys.setdefaultencoding('gbk')
 class GetZDT():
     def __init__(self):
         self.user_agent = "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)"
-        # self.today = time.strftime("%Y%m%d")
-        self.today="20180313"
+        self.today = time.strftime("%Y%m%d")
+        # self.today="20180313"
         self.path = os.path.join(os.path.dirname(__file__), 'data')
         # print self.today
         # self.url='http://stock.jrj.com.cn/tzzs/zdtwdj/zdforce.shtml'
