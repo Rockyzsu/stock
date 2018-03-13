@@ -138,7 +138,7 @@ class GetZDT():
         filename = os.path.join(self.path, self.today + "DF.xls")
         # filename=self.path.join()
         df.to_excel(filename, encoding='gbk')
-        df.to_sql(self.today + 'zdt')
+        df.to_sql(self.today + 'zdt',engine)
         # print name
         # df.to_csv("rocky.csv",encoding='utf-8')
         # print type(temp)
