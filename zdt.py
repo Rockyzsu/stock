@@ -20,58 +20,54 @@ class GetZDT():
         self.today = time.strftime("%Y%m%d")
         # self.today="20180313"
         self.path = os.path.join(os.path.dirname(__file__), 'data')
-        # print self.today
-        # self.url='http://stock.jrj.com.cn/tzzs/zdtwdj/zdforce.shtml'
-        # self.url='http://home.flashdata2.jrj.com.cn/limitStatistic/ztForce/20161201.js'
-        self.url = 'http://home.flashdata2.jrj.com.cn/limitStatistic/ztForce/' + self.today + ".js"
+
+        self.zdt_url = 'http://home.flashdata2.jrj.com.cn/limitStatistic/ztForce/' + self.today + ".js"
+        self.zrzt_url = 'http://hqdata.jrj.com.cn/zrztjrbx/limitup.js'
+
         self.host = "home.flashdata2.jrj.com.cn"
         self.reference = "http://stock.jrj.com.cn/tzzs/zdtwdj/zdforce.shtml"
-        self.header = {"User-Agent": self.user_agent, "DNT": "1", "Host": self.host, "Referer": self.reference}
-        # self.getData()
 
-    def getData(self):
-        req = urllib2.Request(headers=self.header, url=self.url)
-        resp = urllib2.urlopen(req)
-        content = resp.read()
-        return content
+        self.header_zdt = {"User-Agent": self.user_agent,
+                           "Host": self.host,
+                           "Referer": self.reference}
 
-    def fetchData(self):
+        self.zdt_indexx = [u'代码', u'名称', u'最新价格', u'涨跌幅', u'封成比', u'封流比', u'封单金额', u'第一次涨停时间', u'最后一次涨停时间', u'打开次数',
+                           u'振幅',
+                           u'涨停强度']
+
+        self.zrzt_indexx = [u'序号', u'代码', u'名称', u'昨日涨停时间', u'最新价格', u'今日涨幅', u'最大涨幅', u'最大跌幅', u'是否连板', u'连续涨停次数',
+                            u'昨日涨停强度', u'今日涨停强度'
+            , u'是否停牌', u'昨天的日期', u'昨日涨停价', u'今日开盘价格', u'今日开盘涨幅']
+
+        self.header_zrzt = {"User-Agent": self.user_agent,
+                            "Host": "hqdata.jrj.com.cn",
+                            "Referer": "http://stock.jrj.com.cn/tzzs/zrztjrbx.shtml"
+                            }
+
+    def getData(self, url, headers, retry=5):
+        req = urllib2.Request(url=url, headers=headers)
+        for _ in range(retry):
+            try:
+                resp = urllib2.urlopen(req)
+                content = resp.read()
+                if content:
+                    return content
+                else:
+                    time.sleep(60)
+                    continue
+            except Exception, e:
+                time.sleep(60)
+                continue
+
+    def convert_json(self, content):
         p = re.compile(r'"Data":(.*)};', re.S)
-        # temp_content=open("zdt.html",'r').read()
-        # print temp_content
-        content = self.getData()
         result = p.findall(content)
-        t1 = result[0]
-        t2 = list(eval(t1))
-        # print type(t2)
-        # print t2
-        '''
-        for i in t2:
-            for j in i:
-                print j
-        '''
-        return t2
-
-    def storeData(self):
-        # filename = self.today + ".txt"
-        data = self.fetchData()
-        '''
-        f=open(filename,'w')
-        for i in data:
-            for j in i:
-                print j
-                print type(j)
-                f.write(str(j)+'; ')
-
-            f.write('\n')
-        '''
-        # f=open('20161201.txt','w')
-        # f.write(str(data))
-        # f.close()
-
-        # self.save_excel(self.today,data)
-
-        self.save_to_dataframe(data)
+        if result:
+            t1 = result[0]
+            t2 = list(eval(t1))
+            return t2
+        else:
+            return None
 
     # 2016-12-27 to do this
     def save_excel(self, date, data):
@@ -115,39 +111,33 @@ class GetZDT():
 
         w.save(excel_filename)
 
-    def save_to_dataframe(self, data):
+    def save_to_dataframe(self, data, indexx, choice, post_fix):
         engine = setting.get_engine('db_news')
         l = len(data)
-        for i in range(l):
-            data[i][1] = data[i][1].decode('gbk')
-            # data[1+1*11]=data[1+i*11]
-        indexx = [u'代码', u'名称', u'最新价格', u'涨跌幅', u'封成比', u'封流比', u'封单金额', u'第一次涨停时间', u'最后一次涨停时间', u'打开次数', u'振幅',
-                  u'涨停强度']
+        if choice==1:
+            for i in range(l):
+                data[i][choice] = data[i][choice].decode('gbk')
+
         df = pd.DataFrame(data, columns=indexx)
-        # print type(df)
-        # name=df[1]
-        # print name
-        '''
-        for i in range(len(name)):
-            name[i]=name[i].encode('utf-8')
-        '''
-        # print name
-        # print type(name)
-        # temp=df[1]
-        # print temp
-        filename = os.path.join(self.path, self.today + "DF.xls")
-        # filename=self.path.join()
-        df.to_excel(filename, encoding='gbk')
-        df.to_sql(self.today + 'zdt',engine)
-        # print name
-        # df.to_csv("rocky.csv",encoding='utf-8')
-        # print type(temp)
+        if choice==2:
+            df=df.set_index(u'序号')
+        filename = os.path.join(self.path, self.today + "_" + post_fix + ".xls")
+        if choice == 1:
+            df.to_excel(filename, encoding='gbk')
+
+        df.to_sql(self.today + post_fix, engine, if_exists='replace')
+
+    # 昨日涨停今日的状态，今日涨停
+    def storeData(self):
+        zdt_content = self.getData(self.zdt_url, headers=self.header_zdt)
+        zdt_js = self.convert_json(zdt_content)
+        self.save_to_dataframe(zdt_js, self.zdt_indexx, 1, 'zdt')
+
+        zrzt_content = self.getData(self.zrzt_url, headers=self.header_zrzt)
+        zrzt_js = self.convert_json(zrzt_content)
+        self.save_to_dataframe(zrzt_js, self.zrzt_indexx, 2, 'zrzt')
 
 
 if __name__ == '__main__':
-    # today=time.strftime("%Y-%m-%d")
-    # print today
-    # print type(today)
-
     obj = GetZDT()
     obj.storeData()
