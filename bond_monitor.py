@@ -23,10 +23,9 @@ class ConvertBond():
     def dataframe(self):
         price_list=[]
         for code in self.onSellBond['scode']:
-            print code
             price_list.append(self.stockPrice(code))
         self.onSellBond['stock_price']=price_list
-        self.onSellBond['ration'] = self.onSellBond['stock_price'] / self.onSellBond['convprice'] * 100 - self.onSellBond['marketprice']
+        self.onSellBond['ratio'] = self.onSellBond['stock_price'] / self.onSellBond['convprice'] * 100 - self.onSellBond['marketprice']
         self.onSellBond['Updated']=self.today
         self.onSellBond.to_sql('tb_bond',engine,if_exists='replace')
 
