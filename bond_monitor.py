@@ -13,7 +13,7 @@ class ConvertBond():
         self.conn=ts.get_apis()
         self.allBonds=ts.new_cbonds(pause=2)
         self.onSellBond=self.allBonds.dropna(subset=['marketprice'])
-        self.today=datetime.datetime.now().strftime('%Y-%m-%d')
+        self.today=datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
 
     def stockPrice(self,code):
         stock_df = ts.get_realtime_quotes(code)
