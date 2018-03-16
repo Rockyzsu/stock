@@ -53,6 +53,7 @@ class Jisilu():
             del df['apply_cd']
             del df['force_redeem']
             del df['stock_id']
+            del df['full_price']
             del df['pre_bond_id']
             del df['convert_cd']
             del df['ytm_rt']
