@@ -75,7 +75,7 @@ class Jisilu():
                        'convert_price':u'最新转股价','premium_rt':u'溢价率',
                        'put_convert_price':u'回售 触发价','short_maturity_dt':u'到期时间','volume':u'成交额(万元)'})
 
-        df.to_sql('tb_bonds_jisilu',engine,if_exists='replace')
+        df.to_sql('tb_bond_jisilu',engine,if_exists='replace')
 
 
 

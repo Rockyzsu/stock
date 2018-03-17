@@ -39,6 +39,7 @@ def calculation():
     df['ration']=(df['stock_price']/df['convprice']*100-df['marketprice'])/(df['stock_price']/df['convprice']*100)
     # print df[df['ration']>0]
     df.to_sql('tb_bond',engine,if_exists='replace')
+
 def main():
     bond=ConvertBond()
     bond.dataframe()

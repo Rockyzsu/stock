@@ -1,4 +1,6 @@
 # -*-coding=utf-8-*-
+import re
+
 __author__ = 'Rocky'
 '''
 http://30daydo.com
@@ -9,7 +11,10 @@ import os,datetime
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot  as plt
+from setting import  get_engine
+engine = get_engine('db_stock')
 pd.set_option('display.max_rows',None)
+
 class Delivery_Order():
     def __init__(self):
         print "Start"
@@ -65,10 +70,55 @@ class Delivery_Order():
     #计算每个月的费用
     def month(self):
         pass
-def main():
-    obj=Delivery_Order()
-    obj.years()
 
+# 银转证
+def bank_account():
+    folder_path = os.path.join(os.path.dirname(__file__),'private')
+    os.chdir(folder_path)
+
+    df_list=[]
+    for file in os.listdir(folder_path):
+        if re.search('2',file.decode('gbk')):
+            df = pd.read_table(file,encoding='gbk')
+            # df[df['']]
+            # print df
+            # df_list.append(df[[u'日期',u'操作',u'发生金额']])
+            df_list.append(df)
+    total_df=pd.concat(df_list)
+    # total_df=total_df.reset_index()
+    # del total_df[u'level_0']
+    del total_df[u'货币单位']
+    del total_df[u'合同编号']
+    del total_df[u'Unnamed: 8']
+    del total_df[u'银行名称']
+    # print total_df
+    # f=total_df[total_df[u'操作']==u'证券转银行'][u'发生金额']*-1
+    total_df[u'发生金额']=map(lambda x,y:x*-1 if y==u'证券转银行' else x, total_df[u'发生金额'],total_df[u'操作'])
+    # print total_df.columns
+    # print total_df5
+    # total_df=total_df.reset_index()
+    # total_df=total_df.set_index('index')
+    # total_df=total_df.reset_index(drop=True)
+    total_df[u'委托时间']=map(lambda x:str(x).zfill(6),total_df[u'委托时间'])
+
+    total_df[u'日期']=map(lambda x,y:str(x)+ " "+y,total_df[u'日期'],total_df[u'委托时间'])
+    total_df[u'日期']=pd.to_datetime(total_df[u'日期'],format='%Y%m%d %H%M%S')
+    total_df=total_df.set_index(u'日期')
+
+    df= total_df[total_df[u'备注']==u'成功[[0000]交易成功]']
+    # print df
+    # print total_df.iloc[131]
+    # print total_df[u'备注'].values
+    print df[u'发生金额'].sum()
+    # df.dropna('')
+    del df[u'备注']
+    del df[u'委托时间']
+    df.to_sql('tb_bank_cash',engine,if_exists='replace')
+    # print df['2018']
+def main():
+    # obj=Delivery_Order()
+    # obj.years()
+    bank_account()
 main()
 
 
