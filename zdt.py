@@ -112,7 +112,7 @@ class GetZDT():
         w.save(excel_filename)
 
     def save_to_dataframe(self, data, indexx, choice, post_fix):
-        engine = setting.get_engine('db_news')
+        engine = setting.get_engine('db_zdt')
         l = len(data)
         if choice==1:
             for i in range(l):
