@@ -18,7 +18,7 @@ pd.set_option('display.max_rows',None)
 class Delivery_Order():
     def __init__(self):
         print "Start"
-        path=os.path.join(os.getcwd(),'data/2017/')
+        path=os.path.join(os.getcwd(),'private/2016/')
         if os.path.exists(path)==False:
             os.mkdir(path)
         os.chdir(path)
@@ -31,7 +31,7 @@ class Delivery_Order():
         j=[i for i in range(1,13)]
         result=[]
         for i in range(1,13):
-            filename='2017-%s.xls' %str(i).zfill(2)
+            filename='2016-%s.xls' %str(i).zfill(2)
             #print filename
             t=pd.read_table(filename,encoding='gbk',dtype={u'证券代码':np.str})
             # fee=t[u'手续费'].sum()+t[u'印花税'].sum()+t[u'其他杂费'].sum()
@@ -40,15 +40,25 @@ class Delivery_Order():
             df_list.append(t)
             # result.append(fee)
         df=pd.concat(df_list)
-
-        df[u'成交日期']=map(lambda x:datetime.datetime.strptime(str(x),"%Y%m%d"),df[u'成交日期'])
-        df=df.sort_values(by=u'成交日期')
-        df=df.set_index(u'成交日期')
+        df[u'成交日期']=pd.to_datetime(df[u'成交日期'],format='%Y%m%d')
+        # df[u'成交日期']=map(lambda x:datetime.datetime.strptime(str(x),"%Y%m%d"),df[u'成交日期'])
+        df=df[df[u'摘要']!=u'申购配号']
+        df=df[df[u'摘要']!=u'质押回购拆出']
+        df=df[df[u'摘要']!=u'拆出质押购回']
         # print df.info()
         # print df
         # print df['2017-01']
+        del df[u'合同编号']
+        del df[u'备注']
+        del df[u'股东帐户']
+        del df[u'结算汇率']
+        del df[u'Unnamed: 16']
 
-        df=df[(df[u'摘要']==u'证券卖出') | (df[u'摘要']==u'证券买入')]
+        df=df.sort_values(by=u'成交日期')
+        df=df.set_index(u'成交日期')
+
+        df.to_sql('tb_delivery',engine,if_exists='append')
+        # df=df[(df[u'摘要']==u'证券卖出') | (df[u'摘要']==u'证券买入')]
         # df= df.groupby(df[u'证券名称'])
         # print df.describe()
         # print df[u'手续费'].sum()
@@ -116,9 +126,10 @@ def bank_account():
     df.to_sql('tb_bank_cash',engine,if_exists='replace')
     # print df['2018']
 def main():
-    # obj=Delivery_Order()
-    # obj.years()
-    bank_account()
+    obj=Delivery_Order()
+    obj.years()
+    # bank_account()
+
 main()
 
 
