@@ -17,8 +17,8 @@ sys.setdefaultencoding('gbk')
 class GetZDT():
     def __init__(self):
         self.user_agent = "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)"
-        self.today = time.strftime("%Y%m%d")
-        # self.today="20180313"
+        # self.today = time.strftime("%Y%m%d")
+        self.today="20180319"
         self.path = os.path.join(os.path.dirname(__file__), 'data')
 
         self.zdt_url = 'http://home.flashdata2.jrj.com.cn/limitStatistic/ztForce/' + self.today + ".js"
@@ -121,9 +121,17 @@ class GetZDT():
         df = pd.DataFrame(data, columns=indexx)
         if choice==2:
             df=df.set_index(u'序号')
+
         filename = os.path.join(self.path, self.today + "_" + post_fix + ".xls")
         if choice == 1:
             df.to_excel(filename, encoding='gbk')
+
+        if choice ==2:
+            df[u'最大涨幅']=map(lambda x:round(x*100,3),df[u'最大涨幅'])
+            df[u'最大跌幅']=map(lambda x:round(x*100,3),df[u'最大跌幅'])
+            df[u'今日开盘涨幅']=map(lambda x:round(x*100,3),df[u'今日开盘涨幅'])
+            df[u'昨日涨停强度']=map(lambda x:round(x,0),df[u'昨日涨停强度'])
+            df[u'今日涨停强度']=map(lambda x:round(x,0),df[u'今日涨停强度'])
 
         df.to_sql(self.today + post_fix, engine, if_exists='replace')
 
