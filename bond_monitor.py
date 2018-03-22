@@ -19,7 +19,7 @@ class ConvertBond():
         self.allBonds=ts.new_cbonds(default=0,pause=2)
         self.onSellBond=self.allBonds.dropna(subset=['marketprice'])
         self.today=datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
-        self.total = self.onSellBond[self.onSellBond['bcode'].isin(self.available_bonds)]
+        self.total = self.onSellBond[self.onSellBond[u'可转债代码'].isin(self.available_bonds)]
 
 
     def stockPrice(self,code):
