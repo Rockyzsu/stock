@@ -164,5 +164,5 @@ if __name__ == "__main__":
     else:
         day=-1
     create_tb()
-    getInfo(days=int(day)
+    getInfo(days=int(day))
     # print 'done'
