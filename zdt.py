@@ -17,8 +17,8 @@ sys.setdefaultencoding('gbk')
 class GetZDT():
     def __init__(self):
         self.user_agent = "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)"
-        # self.today = time.strftime("%Y%m%d")
-        self.today="20180319"
+        self.today = time.strftime("%Y%m%d")
+        # self.today="20180319"
         self.path = os.path.join(os.path.dirname(__file__), 'data')
 
         self.zdt_url = 'http://home.flashdata2.jrj.com.cn/limitStatistic/ztForce/' + self.today + ".js"
