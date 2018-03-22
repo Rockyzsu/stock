@@ -73,7 +73,8 @@ class Jisilu():
 
             df=df.rename(columns={'bond_id':u'可转债代码','bond_nm':u'可转债名称','stock_nm':u'正股名称','sprice':u'正股现价','sincrease_rt':u'正股涨跌幅',
                        'convert_price':u'最新转股价','premium_rt':u'溢价率',
-                       'put_convert_price':u'回售 触发价','short_maturity_dt':u'到期时间','volume':u'成交额(万元)'})
+                       'put_convert_price':u'回售 触发价','short_maturity_dt':u'到期时间','volume':u'成交额(万元)','price':u'可转债价格'})
+            df=df[[u'可转债代码',u'可转债名称',u'正股名称',u'正股现价',u'正股涨跌幅',u'最新转股价',u'溢价率',u'回售 触发价',u'到期时间']]
 
         df.to_sql('tb_bond_jisilu',engine,if_exists='replace')
 
