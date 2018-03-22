@@ -159,6 +159,10 @@ if __name__ == "__main__":
     # for i in account:
     #     if i[u'PYQuanPin'] == u'wei':
     #         username = i['UserName']
+    if len(sys.args)>1:
+        day=sys.args[1]
+    else:
+        day=-1
     create_tb()
-    getInfo()
+    getInfo(days=day)
     # print 'done'
