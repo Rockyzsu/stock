@@ -58,6 +58,7 @@ class GetZDT():
             except Exception, e:
                 time.sleep(60)
                 continue
+        return None
 
     def convert_json(self, content):
         p = re.compile(r'"Data":(.*)};', re.S)
@@ -113,6 +114,8 @@ class GetZDT():
 
     def save_to_dataframe(self, data, indexx, choice, post_fix):
         engine = setting.get_engine('db_zdt')
+        if note data:
+            exit()
         l = len(data)
         if choice==1:
             for i in range(l):
