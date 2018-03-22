@@ -136,7 +136,11 @@ class GetZDT():
             df[u'昨日涨停强度']=map(lambda x:round(x,0),df[u'昨日涨停强度'])
             df[u'今日涨停强度']=map(lambda x:round(x,0),df[u'今日涨停强度'])
 
-        df.to_sql(self.today + post_fix, engine, if_exists='replace')
+        if choice==1:
+            df.to_sql(self.today + post_fix, engine, if_exists='replace')
+
+        if choice==2:
+            df.to_sql(self.today + post_fix, engine, if_exists='fail')
 
     # 昨日涨停今日的状态，今日涨停
     def storeData(self):
