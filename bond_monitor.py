@@ -19,13 +19,13 @@ class ConvertBond():
         self.allBonds=ts.new_cbonds(default=0,pause=2)
         self.onSellBond=self.allBonds.dropna(subset=['marketprice'])
         self.today=datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
-        self.total = self.onSellBond[self.onSellBond[u'可转债代码'].isin(self.available_bonds)]
+        self.total = self.onSellBond[self.onSellBond['bcode'].isin(self.available_bonds)]
 
 
     def stockPrice(self,code):
         stock_df = ts.quotes(code,conn=self.conn)
         price = float(stock_df['price'].values[0])
-        # print code,price
+        print code,price
         return price
 
     def dataframe(self):
@@ -44,7 +44,7 @@ class ConvertBond():
         self.total['ratio']=self.total['ratio'].map(lambda x:round(x,2))
         self.total['Bond Value']=self.total['Bond Value'].map(lambda x:round(x,2))
         self.total['Updated']=self.today
-        # print self.total
+        print self.total
 
         self.total.to_sql('tb_bond',engine,if_exists='replace')
 
