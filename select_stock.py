@@ -19,17 +19,35 @@ sys.setdefaultencoding('utf-8')
 # 用来选股用的
 pd.set_option('max_rows', None)
 
-
+from setting import get_engine
+engine = get_engine('db_stock')
 # 缺陷： 暂时不能保存为excel
-class select_class():
-    def __init__(self):
-        self.bases_save = ts.get_stock_basics()
-
-        self.bases_save.to_csv('bases.csv')
+class filter_stock():
+    def __init__(self,retry=5,local=False):
+        if local:
+            for i in range(retry):
+                try:
+                    self.bases_save = ts.get_stock_basics()
+                    # print self.bases_save
+                    self.bases_save=self.bases_save.reset_index()
+                    self.bases_save.to_csv('bases.csv')
+                    self.bases_save.to_sql('bases',engine,if_exists='replace')
+                    if self.bases_save:
+                        break
+                
+                except Exception,e:
+                    if i>=4:
+                        self.bases_save=pd.DataFrame()
+                        exit()                        
+                    continue                  
+        
+        else:
+            self.bases_save = pd.read_sql('bases',engine,index_col='index')
+            self.base=self.bases_save
 
         # 因为网速问题，手动从本地抓取
         self.today = time.strftime("%Y-%m-%d", time.localtime())
-        self.base = pd.read_csv('bases.csv', dtype={'code': np.str})
+        # self.base = pd.read_csv('bases.csv', dtype={'code': np.str})
         self.all_code = self.base['code'].values
         self.working_count = 0
         self.mystocklist = Toolkit.read_stock('mystock.csv')
@@ -480,7 +498,7 @@ def main():
         os.mkdir(folder)
     os.chdir(folder)
 
-    # obj = select_class()
+    obj = filter_stock(local=True)
     # 留下来的函数都是有用的
     # obj.count_area(writeable=True)
     # df=obj.get_area(u'广东',writeable=True)
