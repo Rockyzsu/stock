@@ -52,7 +52,8 @@ class Fetch_each_day():
                 #n2=self.df_today_all.drop(n1.index)
                 #print n2
                 # print self.df_today_all
-                    break
+                    if len(self.df_today_all)!=0:
+                        break
                 except Exception,e:
                     re_try=re_try-1
                     time.sleep(5)
@@ -102,6 +103,9 @@ class Fetch_each_day():
         self.engine=create_engine('mysql+pymysql://root:%s@localhost/db_daily?charset=utf8' %sql_pwd)
 
         # self.df_today_all=ts.get_today_all()
+        self.df_today_all['turnoverratio']=map(lambda x:round(x,2),self.df_today_all['turnoverratio'])
+        self.df_today_all['per']=map(lambda x:round(x,2),self.df_today_all['per'])
+        self.df_today_all['pb']=map(lambda x:round(x,2),self.df_today_all['pb'])
         self.df_today_all.to_sql(self.today,self.engine,if_exists='replace')
 
 
