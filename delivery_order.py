@@ -18,7 +18,7 @@ pd.set_option('display.max_rows',None)
 class Delivery_Order():
     def __init__(self):
         print "Start"
-        path=os.path.join(os.getcwd(),'private/2016/')
+        path=os.path.join(os.getcwd(),'private/2018/')
         if os.path.exists(path)==False:
             os.mkdir(path)
         os.chdir(path)
@@ -30,10 +30,14 @@ class Delivery_Order():
         # print k
         j=[i for i in range(1,13)]
         result=[]
-        for i in range(1,13):
-            filename='2016-%s.xls' %str(i).zfill(2)
+        for i in range(1,2):
+            filename='HT_2018-03_week4.xls'
+            # filename='2018-%s.xls' %str(i).zfill(2)
             #print filename
-            t=pd.read_table(filename,encoding='gbk',dtype={u'证券代码':np.str})
+            try:
+                t=pd.read_table(filename,encoding='gbk',dtype={u'证券代码':np.str})
+            except:
+                continue
             # fee=t[u'手续费'].sum()+t[u'印花税'].sum()+t[u'其他杂费'].sum()
             # print i," fee: "
             # print fee
@@ -57,7 +61,7 @@ class Delivery_Order():
         df=df.sort_values(by=u'成交日期')
         df=df.set_index(u'成交日期')
 
-        df.to_sql('tb_delivery',engine,if_exists='append')
+        df.to_sql('tb_delivery_HT',engine,if_exists='append')
         # df=df[(df[u'摘要']==u'证券卖出') | (df[u'摘要']==u'证券买入')]
         # df= df.groupby(df[u'证券名称'])
         # print df.describe()
