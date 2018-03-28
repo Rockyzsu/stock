@@ -16,9 +16,9 @@ sys.setdefaultencoding('gbk')
 
 class GetZDT():
     def __init__(self):
-        self.user_agent = "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)"
+        self.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/64.0.3282.167 Chrome/64.0.3282.167 Safari/537.36"
         self.today = time.strftime("%Y%m%d")
-        # self.today="20180319"
+        # self.today="20180327"
         self.path = os.path.join(os.path.dirname(__file__), 'data')
 
         self.zdt_url = 'http://home.flashdata2.jrj.com.cn/limitStatistic/ztForce/' + self.today + ".js"
@@ -147,7 +147,7 @@ class GetZDT():
         zdt_content = self.getData(self.zdt_url, headers=self.header_zdt)
         zdt_js = self.convert_json(zdt_content)
         self.save_to_dataframe(zdt_js, self.zdt_indexx, 1, 'zdt')
-
+        time.sleep(5)
         zrzt_content = self.getData(self.zrzt_url, headers=self.header_zrzt)
         zrzt_js = self.convert_json(zrzt_content)
         self.save_to_dataframe(zrzt_js, self.zrzt_indexx, 2, 'zrzt')
