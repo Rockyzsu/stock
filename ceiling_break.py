@@ -17,6 +17,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import threading
+from setting import MsgSend
+
+
+msg=MsgSend(u'wei')
+conn = ts.get_apis()
+EXCEPTION_TIME_OUT=60
+NORMAL_TIME_OUT = 3
+TIME_RESET=60*5
 
 #监测涨停板开板监测
 class break_monitor():
@@ -100,11 +108,39 @@ class break_monitor():
         for k in thread_list:
             k.join()
 
+def breakMonitor(code,warning_vol):
+    start=True
+    start_monitor=True
+    waiting_time=datetime.datetime.now()
+    while 1:
+        current = datetime.datetime.now()
+
+        try:
+            if start_monitor:
+                df = ts.quotes(code,conn=conn)
+                print 'under monitor {}'.format(current)
+
+            if df['bid_vol1'].values[0] < warning_vol and start:
+                msg.send_ceiling(code,df['bid_vol1'].values[0])
+                start=False
+                start_monitor=False
+                waiting_time =current+datetime.timedelta(seconds=TIME_RESET)
+            time.sleep(NORMAL_TIME_OUT)
+        except Exception,e:
+            print e
+            time.sleep(EXCEPTION_TIME_OUT)
+            conn=ts.get_apis()
+            continue
+        if current > waiting_time:
+            start=True
+            start_monitor=True
 
 if __name__ == '__main__':
     path = os.path.join(os.getcwd(), 'data')
-    if os.path.exists(path) == False:
+    if not os.path.exists(path):
         os.mkdir(path)
     os.chdir(path)
-    obj = break_monitor(send=False)
-    obj.monitor_break()
+    # obj = break_monitor(send=False)
+    # obj.monitor_brea k()
+    breakMonitor('603168',2000)
+    ts.close_apis(conn=conn)

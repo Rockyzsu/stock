@@ -5,10 +5,13 @@ import datetime
 import requests
 import pandas as pd
 from setting import get_engine
+
 engine = get_engine('db_bond')
-class Jisilu():
+
+
+class Jisilu:
     def __init__(self):
-        self.t = long(time.time() * 1000)
+        self.timestamp = long(time.time() * 1000)
         self.headers = {
             'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
             'X-Requested-With': 'XMLHttpRequest'}
@@ -16,27 +19,26 @@ class Jisilu():
             'listed': 'Y',
             'rp': '50'
         }
-        self.url='https://www.jisilu.cn/data/cbnew/cb_list/?___jsl=LST___t={}'.format(self.t)
-
+        self.url = 'https://www.jisilu.cn/data/cbnew/cb_list/?___jsl=LST___t={}'.format(self.timestamp)
 
     def download(self, url, retry=5):
         for i in range(retry):
             try:
                 r = requests.post(url, data=self.post_data)
-                if not r.text or r.status_code !=200:
+                if not r.text or r.status_code != 200:
                     continue
                 else:
                     return r
-            except Exception,e:
+            except Exception, e:
+                print e
                 continue
         return None
 
-
-    def dataframe(self,adjust_no_use=True):
+    def dataframe(self, adjust_no_use=True):
         js = self.download(self.url)
         if not js:
             return None
-        ret=js.json()
+        ret = js.json()
         bond_list = ret.get('rows')
         cell_list = []
         for item in bond_list:
@@ -70,19 +72,23 @@ class Jisilu():
             del df['repo_valid_to']
             del df['repo_valid_from']
             del df['repo_discount_rt']
-            df['premium_rt']=map(lambda x:float(x.replace('%','')),df['premium_rt'])
+            df['premium_rt'] = map(lambda x: float(x.replace('%', '')), df['premium_rt'])
 
+            df = df.rename(columns={'bond_id': u'可转债代码', 'bond_nm': u'可转债名称', 'stock_nm': u'正股名称', 'sprice': u'正股现价',
+                                    'sincrease_rt': u'正股涨跌幅',
+                                    'convert_price': u'最新转股价', 'premium_rt': u'溢价率', 'increase_rt': u'可转债涨幅',
+                                    'put_convert_price': u'回售 触发价', 'short_maturity_dt': u'到期时间', 'volume': u'成交额(万元)',
+                                    'price': u'可转债价格'})
+            df = df[[u'可转债代码', u'可转债名称', u'可转债涨幅', u'可转债价格', u'正股名称', u'正股现价', u'正股涨跌幅', u'最新转股价', u'溢价率', u'回售 触发价',
+                     u'到期时间']]
+            df[u'更新日期'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
+        df.to_sql('tb_bond_jisilu', engine, if_exists='replace')
 
-            df=df.rename(columns={'bond_id':u'可转债代码','bond_nm':u'可转债名称','stock_nm':u'正股名称','sprice':u'正股现价','sincrease_rt':u'正股涨跌幅',
-                       'convert_price':u'最新转股价','premium_rt':u'溢价率','increase_rt':u'可转债涨幅',
-                       'put_convert_price':u'回售 触发价','short_maturity_dt':u'到期时间','volume':u'成交额(万元)','price':u'可转债价格'})
-            df=df[[u'可转债代码',u'可转债名称',u'可转债涨幅',u'可转债价格',u'正股名称',u'正股现价',u'正股涨跌幅',u'最新转股价',u'溢价率',u'回售 触发价',u'到期时间']]
-            df[u'更新日期']=datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
-        df.to_sql('tb_bond_jisilu',engine,if_exists='replace')
 
 def main():
-    obj=Jisilu()
+    obj = Jisilu()
     obj.dataframe()
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     main()
