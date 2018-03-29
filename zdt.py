@@ -5,7 +5,6 @@ http://30daydo.com
 Contact: weigesysu@qq.com
 '''
 # 每天的涨跌停
-# url=http://stock.jrj.com.cn/tzzs/zdtwdj/zdforce.shtml
 import urllib2, re, time, xlrd, xlwt, sys, os
 import setting
 import pandas as pd
@@ -14,13 +13,12 @@ reload(sys)
 sys.setdefaultencoding('gbk')
 
 
-class GetZDT():
+class GetZDT:
     def __init__(self):
         self.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/64.0.3282.167 Chrome/64.0.3282.167 Safari/537.36"
         self.today = time.strftime("%Y%m%d")
         # self.today="20180327"
         self.path = os.path.join(os.path.dirname(__file__), 'data')
-
         self.zdt_url = 'http://home.flashdata2.jrj.com.cn/limitStatistic/ztForce/' + self.today + ".js"
         self.zrzt_url = 'http://hqdata.jrj.com.cn/zrztjrbx/limitup.js'
 
@@ -36,15 +34,13 @@ class GetZDT():
                            u'涨停强度']
 
         self.zrzt_indexx = [u'序号', u'代码', u'名称', u'昨日涨停时间', u'最新价格', u'今日涨幅', u'最大涨幅', u'最大跌幅', u'是否连板', u'连续涨停次数',
-                            u'昨日涨停强度', u'今日涨停强度'
-            , u'是否停牌', u'昨天的日期', u'昨日涨停价', u'今日开盘价格', u'今日开盘涨幅']
-
+                            u'昨日涨停强度', u'今日涨停强度', u'是否停牌', u'昨天的日期', u'昨日涨停价', u'今日开盘价格', u'今日开盘涨幅']
         self.header_zrzt = {"User-Agent": self.user_agent,
                             "Host": "hqdata.jrj.com.cn",
                             "Referer": "http://stock.jrj.com.cn/tzzs/zrztjrbx.shtml"
                             }
 
-    def getData(self, url, headers, retry=5):
+    def getdata(self, url, headers, retry=5):
         req = urllib2.Request(url=url, headers=headers)
         for _ in range(retry):
             try:
@@ -56,6 +52,7 @@ class GetZDT():
                     time.sleep(60)
                     continue
             except Exception, e:
+                print e
                 time.sleep(60)
                 continue
         return None
@@ -116,43 +113,43 @@ class GetZDT():
         engine = setting.get_engine('db_zdt')
         if not data:
             exit()
-        l = len(data)
-        if choice==1:
-            for i in range(l):
+        data_len = len(data)
+        if choice == 1:
+            for i in range(data_len):
                 data[i][choice] = data[i][choice].decode('gbk')
 
         df = pd.DataFrame(data, columns=indexx)
-        if choice==2:
-            df=df.set_index(u'序号')
+        if choice == 2:
+            df = df.set_index(u'序号')
 
         filename = os.path.join(self.path, self.today + "_" + post_fix + ".xls")
         if choice == 1:
             df.to_excel(filename, encoding='gbk')
 
-        if choice ==2:
-            df[u'最大涨幅']=map(lambda x:round(x*100,3),df[u'最大涨幅'])
-            df[u'最大跌幅']=map(lambda x:round(x*100,3),df[u'最大跌幅'])
-            df[u'今日开盘涨幅']=map(lambda x:round(x*100,3),df[u'今日开盘涨幅'])
-            df[u'昨日涨停强度']=map(lambda x:round(x,0),df[u'昨日涨停强度'])
-            df[u'今日涨停强度']=map(lambda x:round(x,0),df[u'今日涨停强度'])
+        if choice == 2:
+            df[u'最大涨幅'] = map(lambda x: round(x * 100, 3), df[u'最大涨幅'])
+            df[u'最大跌幅'] = map(lambda x: round(x * 100, 3), df[u'最大跌幅'])
+            df[u'今日开盘涨幅'] = map(lambda x: round(x * 100, 3), df[u'今日开盘涨幅'])
+            df[u'昨日涨停强度'] = map(lambda x: round(x, 0), df[u'昨日涨停强度'])
+            df[u'今日涨停强度'] = map(lambda x: round(x, 0), df[u'今日涨停强度'])
 
-        if choice==1:
+        if choice == 1:
             df.to_sql(self.today + post_fix, engine, if_exists='replace')
 
-        if choice==2:
+        if choice == 2:
             df.to_sql(self.today + post_fix, engine, if_exists='fail')
 
     # 昨日涨停今日的状态，今日涨停
-    def storeData(self):
-        zdt_content = self.getData(self.zdt_url, headers=self.header_zdt)
+    def storedata(self):
+        zdt_content = self.getdata(self.zdt_url, headers=self.header_zdt)
         zdt_js = self.convert_json(zdt_content)
         self.save_to_dataframe(zdt_js, self.zdt_indexx, 1, 'zdt')
         time.sleep(5)
-        zrzt_content = self.getData(self.zrzt_url, headers=self.header_zrzt)
+        zrzt_content = self.getdata(self.zrzt_url, headers=self.header_zrzt)
         zrzt_js = self.convert_json(zrzt_content)
         self.save_to_dataframe(zrzt_js, self.zrzt_indexx, 2, 'zrzt')
 
 
 if __name__ == '__main__':
     obj = GetZDT()
-    obj.storeData()
+    obj.storedata()
