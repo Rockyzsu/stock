@@ -1,33 +1,68 @@
 # -*-coding=utf-8-*-
-from toolkit import Toolkit
+# 常用的配置信息
+
+import datetime
 from sqlalchemy import create_engine
-import redis
 import os
 import MySQLdb
-cfg_file=os.path.join(os.path.dirname(__file__),'data.cfg')
-MYSQL_USER = Toolkit.getUserData(cfg_file)['MYSQL_USER']
-MYSQL_REMOTE_USER = Toolkit.getUserData(cfg_file)['MYSQL_REMOTE_USER']
-MYSQL_PASSWORD = Toolkit.getUserData(cfg_file)['MYSQL_PASSWORD']
-MYSQL_HOST = Toolkit.getUserData(cfg_file)['MYSQL_HOST']
-MYSQL_REMOTE = Toolkit.getUserData(cfg_file)['MYSQL_REMOTE']
-MYSQL_PORT = Toolkit.getUserData(cfg_file)['MYSQL_PORT']
+import itchat
+import json
 
-REDIS_HOST='localhost'
+cfg_file = os.path.join(os.path.dirname(__file__), 'data.cfg')
+with open(cfg_file, 'r') as f:
+    json_data = json.load(f)
 
-EMAIL_USER = Toolkit.getUserData(cfg_file)['EMAIL_USER']
-EMAIL_PASS = Toolkit.getUserData(cfg_file)['EMAIL_PASSWORD']
-SMTP_HOST = Toolkit.getUserData(cfg_file)['SMTP_HOST']
-FROM_MAIL = Toolkit.getUserData(cfg_file)['FROM_MAIL']
-TO_MAIL = Toolkit.getUserData(cfg_file)['TO_MAIL']
+MYSQL_USER = json_data['MYSQL_USER']
+MYSQL_REMOTE_USER = json_data['MYSQL_REMOTE_USER']
+MYSQL_PASSWORD = json_data['MYSQL_PASSWORD']
+MYSQL_HOST = json_data['MYSQL_HOST']
+MYSQL_REMOTE = json_data['MYSQL_REMOTE']
+MYSQL_PORT = json_data['MYSQL_PORT']
+REDIS_HOST = 'localhost'
+EMAIL_USER = json_data['EMAIL_USER']
+EMAIL_PASS = json_data['EMAIL_PASSWORD']
+SMTP_HOST = json_data['SMTP_HOST']
+FROM_MAIL = json_data['FROM_MAIL']
+TO_MAIL = json_data['TO_MAIL']
+
 
 def get_engine(db):
-    # engine = create_engine('mysql+pymysql://{}:{}@{}:{}/{}?charset=utf8'.format(MYSQL_USER, MYSQL_PASSWORD, MYSQL_HOST, MYSQL_PORT, db))
-    engine = create_engine('mysql+pymysql://{}:{}@{}:{}/{}?charset=utf8'.format(MYSQL_REMOTE_USER, MYSQL_PASSWORD, MYSQL_REMOTE, MYSQL_PORT, db))
+    engine = create_engine(
+        'mysql+pymysql://{}:{}@{}:{}/{}?charset=utf8'.format(MYSQL_USER, MYSQL_PASSWORD, MYSQL_HOST, MYSQL_PORT, db))
+    # engine = create_engine('mysql+pymysql://{}:{}@{}:{}/{}?charset=utf8'.format(MYSQL_REMOTE_USER, MYSQL_PASSWORD, MYSQL_REMOTE, MYSQL_PORT, db))
     return engine
 
+
 def get_mysql_conn(db):
-    conn = MySQLdb.connect(MYSQL_HOST,MYSQL_USER,MYSQL_PASSWORD,db,charset='utf8')
+    conn = MySQLdb.connect(MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, db, charset='utf8')
     return conn
 
 
+class MsgSend:
+    def __init__(self, name):
+        # name为微信要发送的人的微信名称
+        self.name = name
+        itchat.auto_login(hotReload=True)
+        account = itchat.get_friends(self.name)
+        self.toName = None
+        for i in account:
+            if i[u'PYQuanPin'] == self.name:
+                self.toName = i['UserName']
+        if not self.toName:
+            print 'print input the right person name'
 
+    def send_price(self, name, real_price, real_percent, types):
+        content = name + ' ' + str(real_price) + ' ' + str(real_percent) + ' percent ' + types
+        itchat.send(content, toUserName=self.toName)
+
+    def send_ceiling(self, name, vol):
+        current = datetime.datetime.now().strftime('%Y %m %d %H:%M %S')
+        content = '{} Warning {} : ceiling volume is {}'.format(current, name, vol)
+        itchat.send(content, toUserName=self.toName)
+
+
+if __name__ == '__main__':
+    # msg=MsgSend(u'wei')
+    # msg.send_price('hsdq',12,12,'sell')
+    # print FROM_MAIL
+    pass
