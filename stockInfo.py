@@ -6,12 +6,13 @@ Contact: weigesysu@qq.com
 # working v1.0
 from bs4 import BeautifulSoup
 import urllib2, datetime, time, codecs, cookielib, random, threading
-import os,sys
+import os, sys
 # import itchat
 import smtplib
 from email.mime.text import MIMEText
 import setting
 import MySQLdb
+
 db_name = 'db_news'
 conn = MySQLdb.connect(host=setting.MYSQL_REMOTE,
                        port=3306,
@@ -36,30 +37,31 @@ def create_tb():
         conn.rollback()
         return False
 
-def sendmail(content,subject):
-    username=setting.EMAIL_USER
-    password=setting.EMAIL_PASS
-    smtp_host=setting.SMTP_HOST
+
+def sendmail(content, subject):
+    username = setting.EMAIL_USER
+    password = setting.EMAIL_PASS
+    smtp_host = setting.SMTP_HOST
     smtp = smtplib.SMTP(smtp_host)
 
     try:
         smtp.login(username, password)
-        msg=MIMEText(content, 'plain', 'utf-8')
-        msg['from']=setting.FROM_MAIL
-        msg['to']=setting.TO_MAIL
-        msg['subject']=subject
-        smtp.sendmail(msg['from'],msg['to'],msg.as_string())
+        msg = MIMEText(content, 'plain', 'utf-8')
+        msg['from'] = setting.FROM_MAIL
+        msg['to'] = setting.TO_MAIL
+        msg['subject'] = subject
+        smtp.sendmail(msg['from'], msg['to'], msg.as_string())
         smtp.quit()
-    except Exception,e:
+    except Exception, e:
         print e
 
-def getInfo(max_index_user=3,years='2018-',days=-1):
 
-    last_day=datetime.datetime.now()+datetime.timedelta(days=days)
+def getinfo(max_index_user=3, years='2018-', days=-1):
+    last_day = datetime.datetime.now() + datetime.timedelta(days=days)
     # print last_day
     stock_news_site = "http://ggjd.cnstock.com/gglist/search/ggkx/"
 
-    my_userAgent = [
+    my_useragent = [
         'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_8; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50',
         'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50',
         'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0',
@@ -81,10 +83,10 @@ def getInfo(max_index_user=3,years='2018-',days=-1):
 
     store_filename = "StockNews-%s.log" % temp_time
 
-    fOpen = codecs.open(store_filename, 'w', 'utf-8')
-    all_contents=[]
+    f_open = codecs.open(store_filename, 'w', 'utf-8')
+    all_contents = []
     while index < max_index:
-        user_agent = random.choice(my_userAgent)
+        user_agent = random.choice(my_useragent)
         # print user_agent
         company_news_site = stock_news_site + str(index)
         # content = urllib2.urlopen(company_news_site)
@@ -116,17 +118,17 @@ def getInfo(max_index_user=3,years='2018-',days=-1):
         for i in all_content:
             news_time = i.string
             # print news_time
-            news_time_f=datetime.datetime.strptime(years+news_time,'%Y-%m-%d %H:%M')
+            news_time_f = datetime.datetime.strptime(years + news_time, '%Y-%m-%d %H:%M')
             node = i.next_sibling
 
-            if news_time_f>last_day:
+            if news_time_f > last_day:
                 # news_time_f=news_time_f.replace(2018)
                 # print news_time_f
                 str_temp = "No.%s \n%s\t%s\n---> %s \n\n" % (str(num), news_time, node['title'], node['href'])
-                #print "inside %d" %num
+                # print "inside %d" %num
                 # print str_temp
                 cmd = '''INSERT INTO tb_cnstock (Date,Title,URL ) VALUES(\'%s\',\'%s\',\'%s\');''' % (
-                years+news_time, node['title'].strip(), node['href'].strip())
+                    years + news_time, node['title'].strip(), node['href'].strip())
                 # print cmd
                 try:
                     cur.execute(cmd)
@@ -137,16 +139,17 @@ def getInfo(max_index_user=3,years='2018-',days=-1):
 
                 all_contents.append(str_temp)
 
-                fOpen.write(str_temp)
+                f_open.write(str_temp)
             num = num + 1
-                # itchat.send(str_temp,toUserName=username)
-                # time.sleep(1)
-            #print "index %d" %index
+            # itchat.send(str_temp,toUserName=username)
+            # time.sleep(1)
+            # print "index %d" %index
         index = index + 1
 
-    fOpen.close()
+    f_open.close()
 
-    sendmail(''.join(all_contents),temp_time)
+    sendmail(''.join(all_contents), temp_time)
+
 
 if __name__ == "__main__":
 
@@ -159,10 +162,10 @@ if __name__ == "__main__":
     # for i in account:
     #     if i[u'PYQuanPin'] == u'wei':
     #         username = i['UserName']
-    if len(sys.argv)>1:
-        day=sys.argv[1]
+    if len(sys.argv) > 1:
+        day = sys.argv[1]
     else:
-        day=-1
+        day = -1
     create_tb()
-    getInfo(days=int(day))
+    getinfo(days=int(day))
     # print 'done'
