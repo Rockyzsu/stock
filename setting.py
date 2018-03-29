@@ -27,9 +27,8 @@ TO_MAIL = json_data['TO_MAIL']
 
 
 def get_engine(db):
-    engine = create_engine(
-        'mysql+pymysql://{}:{}@{}:{}/{}?charset=utf8'.format(MYSQL_USER, MYSQL_PASSWORD, MYSQL_HOST, MYSQL_PORT, db))
-    # engine = create_engine('mysql+pymysql://{}:{}@{}:{}/{}?charset=utf8'.format(MYSQL_REMOTE_USER, MYSQL_PASSWORD, MYSQL_REMOTE, MYSQL_PORT, db))
+    # engine = create_engine('mysql+pymysql://{}:{}@{}:{}/{}?charset=utf8'.format(MYSQL_USER, MYSQL_PASSWORD, MYSQL_HOST, MYSQL_PORT, db))
+    engine = create_engine('mysql+pymysql://{}:{}@{}:{}/{}?charset=utf8'.format(MYSQL_REMOTE_USER, MYSQL_PASSWORD, MYSQL_REMOTE, MYSQL_PORT, db))
     return engine
 
 
