@@ -30,7 +30,9 @@ TO_MAIL = json_data['TO_MAIL']
 
 def get_engine(db):
     # engine = create_engine('mysql+pymysql://{}:{}@{}:{}/{}?charset=utf8'.format(MYSQL_USER, MYSQL_PASSWORD, MYSQL_HOST, MYSQL_PORT, db))
-    engine = create_engine('mysql+pymysql://{}:{}@{}:{}/{}?charset=utf8'.format(MYSQL_REMOTE_USER, MYSQL_PASSWORD, MYSQL_REMOTE, MYSQL_PORT, db))
+    engine = create_engine(
+        'mysql+pymysql://{}:{}@{}:{}/{}?charset=utf8'.format(MYSQL_REMOTE_USER, MYSQL_PASSWORD, MYSQL_REMOTE,
+                                                             MYSQL_PORT, db))
     return engine
 
 
@@ -61,6 +63,7 @@ class MsgSend:
         content = '{} Warning {} : ceiling volume is {}'.format(current, name, vol)
         itchat.send(content, toUserName=self.toName)
 
+
 def sendmail(content, subject):
     username = EMAIL_USER
     password = EMAIL_PASS
@@ -70,13 +73,14 @@ def sendmail(content, subject):
     try:
         smtp.login(username, password)
         msg = MIMEText(content, 'plain', 'utf-8')
-        msg['from'] = setting.FROM_MAIL
-        msg['to'] = setting.TO_MAIL
+        msg['from'] = FROM_MAIL
+        msg['to'] = TO_MAIL
         msg['subject'] = subject
         smtp.sendmail(msg['from'], msg['to'], msg.as_string())
         smtp.quit()
     except Exception, e:
         print e
+
 
 if __name__ == '__main__':
     # msg=MsgSend(u'wei')
