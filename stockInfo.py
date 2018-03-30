@@ -5,13 +5,15 @@ Contact: weigesysu@qq.com
 '''
 # working v1.0
 from bs4 import BeautifulSoup
-import urllib2, datetime, time, codecs, cookielib, random, threading
+import urllib2
+import datetime
+import time
+import codecs
+import random
 import os, sys
 # import itchat
-import smtplib
-from email.mime.text import MIMEText
-import setting
 import MySQLdb
+import setting
 from setting import sendmail
 db_name = 'db_news'
 conn = MySQLdb.connect(host=setting.MYSQL_REMOTE,
