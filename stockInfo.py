@@ -12,7 +12,7 @@ import smtplib
 from email.mime.text import MIMEText
 import setting
 import MySQLdb
-
+from setting import sendmail
 db_name = 'db_news'
 conn = MySQLdb.connect(host=setting.MYSQL_REMOTE,
                        port=3306,
@@ -36,25 +36,6 @@ def create_tb():
         print e
         conn.rollback()
         return False
-
-
-def sendmail(content, subject):
-    username = setting.EMAIL_USER
-    password = setting.EMAIL_PASS
-    smtp_host = setting.SMTP_HOST
-    smtp = smtplib.SMTP(smtp_host)
-
-    try:
-        smtp.login(username, password)
-        msg = MIMEText(content, 'plain', 'utf-8')
-        msg['from'] = setting.FROM_MAIL
-        msg['to'] = setting.TO_MAIL
-        msg['subject'] = subject
-        smtp.sendmail(msg['from'], msg['to'], msg.as_string())
-        smtp.quit()
-    except Exception, e:
-        print e
-
 
 def getinfo(max_index_user=3, years='2018-', days=-1):
     last_day = datetime.datetime.now() + datetime.timedelta(days=days)

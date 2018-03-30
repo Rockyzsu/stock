@@ -2,6 +2,8 @@
 # 常用的配置信息
 
 import datetime
+import smtplib
+from email.mime.text import MIMEText
 from sqlalchemy import create_engine
 import os
 import MySQLdb
@@ -59,6 +61,22 @@ class MsgSend:
         content = '{} Warning {} : ceiling volume is {}'.format(current, name, vol)
         itchat.send(content, toUserName=self.toName)
 
+def sendmail(content, subject):
+    username = EMAIL_USER
+    password = EMAIL_PASS
+    smtp_host = SMTP_HOST
+    smtp = smtplib.SMTP(smtp_host)
+
+    try:
+        smtp.login(username, password)
+        msg = MIMEText(content, 'plain', 'utf-8')
+        msg['from'] = setting.FROM_MAIL
+        msg['to'] = setting.TO_MAIL
+        msg['subject'] = subject
+        smtp.sendmail(msg['from'], msg['to'], msg.as_string())
+        smtp.quit()
+    except Exception, e:
+        print e
 
 if __name__ == '__main__':
     # msg=MsgSend(u'wei')
