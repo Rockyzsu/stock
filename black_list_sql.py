@@ -37,33 +37,13 @@ def update_data(filename):
 
     for line in content:
         (code, name, reason) = line.strip().split(';')
-        print code
-        # cmd = '''INSERT INTO `tb_blacklist` (CODE,NAME,REASON) VALUES (\"%s\",\"%s\",\"%s\")''' % (code, name, reason)
-        # print cmd
-        # try:
-        #     cur.execute(cmd)
-        #     conn.commit()
-        # except Exception, e:
-        #     print e
-        #     conn.rollback()
-
-
-from setting import get_engine
-
-engine = get_engine('db_stock')
-import pandas as pd
-
-base = pd.read_sql('bases', engine, index_col='index')
-
-
-def validation():
-    cmd = 'select `CODE` from tb_blacklist'
-    cur.execute(cmd)
-    result = cur.fetchall()
-    for each in result:
-        # print each[0]
-        print base[base['code'] == each[0]]['name'].values[0], '\t',
-        print base[base['code'] == each[0]]['area'].values[0]
+        cmd = '''INSERT INTO `tb_blacklist` (CODE,NAME,REASON) VALUES (\"%s\",\"%s\",\"%s\")''' % (code, name, reason)
+        try:
+            cur.execute(cmd)
+            conn.commit()
+        except Exception, e:
+            print e
+            conn.rollback()
 
 
 def main():

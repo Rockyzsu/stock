@@ -1,3 +1,5 @@
+import re
+
 __author__ = 'rocchen'
 '''
 http://30daydo.com
@@ -75,29 +77,33 @@ def getinfo(max_index_user=3, years='2018-', days=-1):
         # content = urllib2.urlopen(company_news_site)
         headers = {'User-Agent': user_agent, 'Host': "ggjd.cnstock.com", 'DNT': '1',
                    'Accept': 'text/html, application/xhtml+xml, */*', }
+
         req = urllib2.Request(url=company_news_site, headers=headers)
         resp = None
         raw_content = ""
+        retry=6
+        for _ in range(retry):
+            try:
+                resp = urllib2.urlopen(req, timeout=30)
+
+            except urllib2.HTTPError as e:
+                e.fp.read()
+            except urllib2.URLError as e:
+                if hasattr(e, 'code'):
+                    print "error code %d" % e.code
+                elif hasattr(e, 'reason'):
+                    print "error reason %s " % e.reason
+
+            finally:
+                if resp:
+                    raw_content = resp.read()
+                    break
         try:
-            resp = urllib2.urlopen(req, timeout=30)
-
-        except urllib2.HTTPError as e:
-            e.fp.read()
-        except urllib2.URLError as e:
-            if hasattr(e, 'code'):
-                print "error code %d" % e.code
-            elif hasattr(e, 'reason'):
-                print "error reason %s " % e.reason
-
-        finally:
-            if resp:
-                raw_content = resp.read()
-                time.sleep(2)
-                resp.close()
-
-        soup = BeautifulSoup(raw_content, "html.parser")
-        all_content = soup.find_all("span", "time")
-
+            soup = BeautifulSoup(raw_content, "html.parser")
+            all_content = soup.find_all("span", "time")
+        except Exception,e:
+            print e
+            return None
         for i in all_content:
             news_time = i.string
             # print news_time
@@ -146,9 +152,10 @@ if __name__ == "__main__":
     #     if i[u'PYQuanPin'] == u'wei':
     #         username = i['UserName']
     if len(sys.argv) > 1:
-        day = sys.argv[1]
+        if re.match('-\d+',sys.argv[1]):
+            day = int(sys.argv[1])
     else:
         day = -1
     create_tb()
-    getinfo(days=int(day))
+    getinfo(days=day)
     # print 'done'
