@@ -1,4 +1,6 @@
 # -*- coding=utf-8 -*-
+import datetime
+
 __author__ = 'Rocky'
 '''
 http://30daydo.com
@@ -8,7 +10,7 @@ Contact: weigesysu@qq.com
 import urllib2, re, time, xlrd, xlwt, sys, os
 import setting
 import pandas as pd
-
+import tushare as ts
 reload(sys)
 sys.setdefaultencoding('gbk')
 
@@ -17,6 +19,7 @@ class GetZDT:
     def __init__(self):
         self.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/64.0.3282.167 Chrome/64.0.3282.167 Safari/537.36"
         self.today = time.strftime("%Y%m%d")
+
         # self.today="20180327"
         self.path = os.path.join(os.path.dirname(__file__), 'data')
         self.zdt_url = 'http://home.flashdata2.jrj.com.cn/limitStatistic/ztForce/' + self.today + ".js"
@@ -149,7 +152,9 @@ class GetZDT:
         zrzt_js = self.convert_json(zrzt_content)
         self.save_to_dataframe(zrzt_js, self.zrzt_indexx, 2, 'zrzt')
 
-
 if __name__ == '__main__':
-    obj = GetZDT()
-    obj.storedata()
+    if not ts.is_holiday(datetime.datetime.now().strftime("%Y-%m-%d")):
+        obj = GetZDT()
+        obj.storedata()
+    else:
+        print 'Holiday'
