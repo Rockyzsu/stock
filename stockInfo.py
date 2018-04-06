@@ -18,9 +18,9 @@ import MySQLdb
 import setting
 from setting import sendmail
 db_name = 'db_news'
-conn = MySQLdb.connect(host=setting.MYSQL_REMOTE,
+conn = MySQLdb.connect(host=setting.MYSQL_HOST,
                        port=3306,
-                       user=setting.MYSQL_REMOTE_USER,
+                       user=setting.MYSQL_USER,
                        passwd=setting.MYSQL_PASSWORD,
                        db=db_name,
                        charset='utf8'

@@ -11,14 +11,13 @@ import pandas as pd
 import os
 import tushare as ts
 import datetime
+
 def getCodeFromExcel(filename):
     #从excel表中获取代码, 并且补充前面几位000
     #获取股票数目
     df=pd.read_excel(filename)
     code_list = df[u'证券代码'].values
     quantity_list=df[u'股票余额'].values
-    print type(code_list)
-    print type(quantity_list)
     code=[]
     quantity=[]
     for i in range(len(code_list)):
@@ -30,7 +29,6 @@ def getCodeFromExcel(filename):
 
 def calc(code):
     settlement =  df[df['code']==code]['settlement'].values
-
     percentage =  df[df['code']==code]['changepercent'].values
     trade =  df[df['code']==code]['trade'].values
     #print percentage
@@ -40,15 +38,9 @@ def calc(code):
     return settlement,percentage,trade
 
 
-def today_win_lost():
-    filename_path=os.path.join(os.getcwd(),'data')
+def today_win_lost(filename_path):
     filename=os.path.join(filename_path,'ownstock.xls')
-    print filename
     code,quantity=getCodeFromExcel(filename)
-    print "Code"
-    print code
-    print "Quantity"
-    print quantity
     result=[]
     percentage_list=[]
     trade_list=[]
@@ -64,9 +56,8 @@ def today_win_lost():
 
     return result,code,percentage_list,trade_list
 
-def join_dataframe():
+def join_dataframe(filename,today):
     current_profile=today+u'当天贡献'
-
     result,code,percentage_list,trade_list=today_win_lost()
     s1=pd.DataFrame({current_profile:result})
     #s2=pd.DataFrame({u'当天涨幅':percentage_list})
@@ -80,7 +71,6 @@ def join_dataframe():
     #del df[u'当天贡献']
     #del df[u'']
     #del df[u'']
-    print code
     df[u'证券代码']=code
     #print code
     df[u'市价']=trade_list
@@ -88,25 +78,24 @@ def join_dataframe():
     #可以这样直接替换某一列的值
     #df=df.join(s2,how='right')
     df=df.join(s1,how='right')
-
     #df=df.join(s3,how='right')
     return df
 
-def save_to_excel():
-    new_df=join_dataframe()
+
+def main(today):
+    path=os.path.join(os.path.dirname(__file__),'data')
+    filename=os.path.join(path,'each_day_profile.xls')
+    org_filename=os.path.join(path,'2016-09-30_all_.xls')
+    #df_filename=os.path.join(path,'each_day_profile.xls')
+    #df=pd.read_excel(org_filename)
+    df=ts.get_today_all()
+    new_df=join_dataframe(filename,today)
     save_name=os.path.join(path,"each_day_profile.xls")
     #这样会不会把原来的覆盖掉？
     new_df.to_excel(save_name)
 
-if __name__ == "__main__":
-    path=os.path.join(os.getcwd(),'data')
-    filename=os.path.join(path,'each_day_profile.xls')
-    org_filename=os.path.join(path,'2016-09-30_all_.xls')
-    #df_filename=os.path.join(path,'each_day_profile.xls')
-    now=datetime.datetime.now()
-    today=now.strftime('%Y-%m-%d')
 
-    #df=pd.read_excel(org_filename)
-    df=ts.get_today_all()
-    #为何用pd read的会不一致？
-    save_to_excel()
+if __name__ == "__main__":
+    today=datetime.datetime.now().strftime("%Y-%m-%d")
+    if not ts.is_holiday(today):
+        main(today)

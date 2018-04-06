@@ -35,6 +35,16 @@ class SaveData():
         filename='{}-{}-classified_stock.xls'.format(year,month)
         self.save_to_excel(df,filename)
 
+    def basic_info(self):
+        engine = get_engine('db_stock')
+        df = ts.get_stock_basics()
+        if df is not None:
+            try:
+                df=df.reset_index()
+                df[u'更新日期']=datetime.datetime.now().strftime('%Y-%m-%d')
+                df.to_sql('basic_info',engine,if_exists='replace')
+            except Exception,e:
+                print e
 
     def save_to_excel(self,df,filename,encoding='gbk'):
         try:
@@ -48,8 +58,11 @@ class SaveData():
             return None
 
 
+def main():
+    obj=SaveData()
+    obj.basic_info()
 
 if __name__=='__main__':
+    main()
     # SaveData.daily_market()
-    obj=SaveData()
-    obj.get_classified_stock(2018,1)
+    # obj.get_classified_stock(2018,1)
