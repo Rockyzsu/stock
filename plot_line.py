@@ -14,9 +14,11 @@ import tushare as ts
 import matplotlib as mpl
 from mpl_finance import candlestick2_ochl,volume_overlay
 from matplotlib  import pyplot as plt
+from setting import get_engine
 mpl.rcParams['font.sans-serif'] = ['simhei']
 mpl.rcParams['axes.unicode_minus'] = False
 api=ts.get_apis()
+
 def plot_stock_line(code,name,start='2017-10-01'):
     today =datetime.datetime.now().strftime('%Y-%m-%d')
     fig = plt.figure(figsize=(10,8))
@@ -25,10 +27,12 @@ def plot_stock_line(code,name,start='2017-10-01'):
     ax2=fig.add_axes([0,0.1,1,0.25])
     df = ts.bar(code,conn=api,start_date=start)
     # df=df.sort_values(by='datetime')
+    engine = get_engine('db_stock')
+    base_info = pd.read_sql('tb_basic_info',engine,index_col='index')
     df = df.sort_index()
     # print df.head(5)
     # name=u'和顺电气'
-    # name=''
+    name = base_info[base_info['code']==code]['name'].values[0]
     df =df.reset_index()
     # df = ts.get_k_data('300141',start='2018-03-01')
     # df['date']=df['date'].dt.strftime('%Y-%m-%d')
@@ -58,7 +62,7 @@ def plot_stock_line(code,name,start='2017-10-01'):
     plt.show()
 
 if __name__ == '__main__':
-    if len((sys.argv))>2:
+    if len((sys.argv))>=2:
         code = sys.argv[1]
     else:
         code='603598'

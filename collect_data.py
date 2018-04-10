@@ -7,10 +7,10 @@ import tushare as ts
 import os
 from setting import get_engine
 import pandas as pd
-daily_engine=get_engine('daily')
 
 class SaveData():
     today = datetime.datetime.now().strftime("%Y-%m-%d")
+    daily_engine = get_engine('daily')
 
     def __init__(self):
         current=os.getcwd()
@@ -24,7 +24,7 @@ class SaveData():
     def daily_market():
         df = ts.get_today_all()
         try:
-            df.to_sql(SaveData.today,daily_engine,if_exists='replace')
+            df.to_sql(SaveData.today,SaveData.daily_engine,if_exists='replace')
         except Exception,e:
             print e
         print "Save {} data to MySQL".format(SaveData.today)
@@ -42,7 +42,7 @@ class SaveData():
             try:
                 df=df.reset_index()
                 df[u'更新日期']=datetime.datetime.now().strftime('%Y-%m-%d')
-                df.to_sql('basic_info',engine,if_exists='replace')
+                df.to_sql('tb_basic_info',engine,if_exists='replace')
             except Exception,e:
                 print e
 
