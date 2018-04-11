@@ -5,7 +5,10 @@ __author__ = 'Rocky'
 http://30daydo.com
 Contact: weigesysu@qq.com
 '''
-import datetime, os, xlrd, time
+import datetime
+import os
+import xlrd
+import time
 from xlutils.copy import copy
 import tushare as ts
 from setting import get_mysql_conn
@@ -41,7 +44,7 @@ class Prediction_rate():
         sheet = wb_copy.get_sheet(0)
         # 调用 write 函数写入 info write(1,1,'Hello')
 
-        content = []
+        # content = []
         mystock = self.today_stock[self.today_stock['code'] == stockID]
         name = mystock['name'].values[0]
         in_price = mystock['trade'].values[0]
@@ -62,41 +65,106 @@ class Prediction_rate():
 
 
 '''
-持股信息保存到Mysql数据库
+持股信息保存到Mysql数据库, 更新，删除
 '''
 
 
-def holding_stock_sql():
-    path = os.path.join(os.path.dirname(__file__), 'data', 'mystock.csv')
-    if not os.path.exists(path):
-        return
+class StockRecord:
 
-    conn = get_mysql_conn('db_stock')
-    cur = conn.cursor()
-    create_table_cmd = u'CREATE TABLE IF NOT EXISTS `tb_profit` (`证券代码` CHAR (6),`证券名称` VARCHAR (16), `保本价` FLOAT,`股票余额` INT,`盈亏比例` FLOAT,`盈亏` FLOAT, `市值` FLOAT);'
-    try:
-        cur.execute(create_table_cmd)
-        conn.commit()
-    except Exception, e:
-        print e
-        conn.rollback()
-    with codecs.open(path,'r',encoding='utf-8') as f:
-        content = f.readlines()
+    def __init__(self):
+        self.conn = get_mysql_conn('db_stock')
+        self.cur = self.conn.cursor()
+        self.table_name = 'tb_profit'
+        self.today = datetime.datetime.now().strftime('%Y-%m-%d')
 
-    for i in range(1,len(content)):
-        code,name,safe_price,count= content[i].strip().split(',')[:4]
-        print code,name,safe_price,count
-        insert_cmd=u'INSERT INTO `tb_profit`  (`证券代码`,`证券名称`,`保本价`,`股票余额`) VALUES(\"%s\",\"%s\",\"%s\",\"%s\");' %(code.zfill(6),name,safe_price,count)
+    def holding_stock_sql(self):
+        path = os.path.join(os.path.dirname(__file__), 'data', 'mystock.csv')
+        if not os.path.exists(path):
+            return
+
+        create_table_cmd = u'CREATE TABLE IF NOT EXISTS `tb_profit` (`证券代码` CHAR (6),`证券名称` VARCHAR (16), `保本价` FLOAT,`股票余额` INT,`盈亏比例` FLOAT,`盈亏` FLOAT, `市值` FLOAT);'
         try:
-            cur.execute(insert_cmd)
-            conn.commit()
-        except Exception,e:
+            self.cur.execute(create_table_cmd)
+            self.conn.commit()
+        except Exception, e:
             print e
-            conn.rollback()
-    conn.close()
+            self.conn.rollback()
+        with codecs.open(path, 'r', encoding='utf-8') as f:
+            content = f.readlines()
+
+        for i in range(1, len(content)):
+            code, name, safe_price, count = content[i].strip().split(',')[:4]
+            print code, name, safe_price, count
+            insert_cmd = u'INSERT INTO `tb_profit`  (`证券代码`,`证券名称`,`保本价`,`股票余额`) VALUES(\"%s\",\"%s\",\"%s\",\"%s\");' % (
+            code.zfill(6), name, safe_price, count)
+            self._exe(insert_cmd)
+
+    def delete(self, content):
+        name = u"证券名称"
+        cmd = u"DELETE FROM `{}` WHERE `{}` = \"{}\"".format(self.table_name, name, content)
+        self._exe(cmd)
+
+    def insert(self, code, name, safe_price, count):
+        '''
+
+        :param code: 代码
+        :param name: 名称
+        :param safe_price: 保本价
+        :param count: 股票数目
+        :return: None
+        '''
+        insert_cmd = u'INSERT INTO `tb_profit`  (`证券代码`,`证券名称`,`保本价`,`股票余额`) VALUES(\"%s\",\"%s\",\"%s\",\"%s\");' % (
+        code.zfill(6), name, safe_price, count)
+        self._exe(insert_cmd)
+
+    # 执行mysql语句
+    def _exe(self, cmd):
+        try:
+            self.cur.execute(cmd)
+            self.conn.commit()
+        except Exception, e:
+            print e
+            self.conn.rollback()
+
+        return self.cur
+
+    # 更新每天的盈亏情况
+    def update_daily(self):
+
+        add_cols = u'ALTER TABLE `{}` ADD `{}` FLOAT;'.format(self.table_name, self.today)
+        self._exe(add_cols)
+        self.conn.commit()
+        api = ts.get_apis()
+        cmd = 'SELECT * FROM `{}`'.format(self.table_name)
+        cur = self._exe(cmd)
+        for i in cur.fetchall():
+            (code, name, safe_price, count, profit_ratio, profit, values, current_price,earn) = i
+            df = ts.quotes(code, conn=api)
+            current_price = round(float(df['price'].values[0]), 2)
+            values = current_price * count
+            last_close = df['last_close'].values[0]
+            earn = (current_price - last_close) * count
+            profit = (current_price - safe_price) * count
+            profit_ratio = round(float(current_price - safe_price) / safe_price * 100, 2)
+
+            update_cmd = u'UPDATE {} SET `盈亏比例`={} ,`盈亏`={}, `市值` ={}, `现价` = {},`{}`={} where `证券代码`= {};'.format(
+                self.table_name, profit_ratio, profit, values, current_price, self.today, earn,code)
+            print update_cmd
+            self._exe(update_cmd)
+        ts.close_apis(api)
+
+    # 删除某行
+    def update_item(self, code, content):
+        cmd = u'UPDATE `{}` SET `保本价`={} where `证券代码`={};'.format(self.table_name, content, code)
+        self._exe(cmd)
 
 
 if __name__ == "__main__":
     # obj=Prediction_rate()
     # obj.first_recode()
-    holding_stock_sql()
+    # holding_stock_sql()
+    obj = StockRecord()
+    # obj.delete(u'深F120')
+    # obj.insert('300580',u'贝斯特',19.88,200)
+    obj.update_daily()
+    # obj.update_item('300580',32.568)

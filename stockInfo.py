@@ -70,7 +70,7 @@ def getinfo(max_index_user=3, years='2018-', days=-1):
 
     f_open = codecs.open(store_filename, 'w', 'utf-8')
     all_contents = []
-    while index < max_index:
+    while index <= max_index:
         user_agent = random.choice(my_useragent)
         # print user_agent
         company_news_site = stock_news_site + str(index)
@@ -110,7 +110,7 @@ def getinfo(max_index_user=3, years='2018-', days=-1):
             news_time_f = datetime.datetime.strptime(years + news_time, '%Y-%m-%d %H:%M')
             node = i.next_sibling
 
-            if news_time_f > last_day:
+            if news_time_f >= last_day:
                 # news_time_f=news_time_f.replace(2018)
                 # print news_time_f
                 str_temp = "No.%s \n%s\t%s\n---> %s \n\n" % (str(num), news_time, node['title'], node['href'])

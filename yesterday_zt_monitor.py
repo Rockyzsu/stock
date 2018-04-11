@@ -1,5 +1,6 @@
 #-*-coding=utf-8-*-
 import datetime
+import os
 
 from setting import get_engine
 import pandas as pd
@@ -58,7 +59,7 @@ def monitor():
 '''
 def plot_yesterday_zt():
     engine = get_engine('db_zdt')
-    table='20180409zdt'
+    table='20180411zdt'
     # api=ts.get_apis()
     df = pd.read_sql(table,engine,index_col='index')
     for i in range(len(df)):
@@ -67,4 +68,5 @@ def plot_yesterday_zt():
         plot_stock_line(code,name)
 
 if __name__ == '__main__':
+    os.chdir('data')
     plot_yesterday_zt()
