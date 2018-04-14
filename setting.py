@@ -15,8 +15,11 @@ with open(cfg_file, 'r') as f:
     json_data = json.load(f)
 
 MYSQL_USER = json_data['MYSQL_USER']
+MYSQL_USER_Ali = json_data['MYSQL_USER_Ali']
 MYSQL_REMOTE_USER = json_data['MYSQL_REMOTE_USER']
 MYSQL_PASSWORD = json_data['MYSQL_PASSWORD']
+MYSQL_PASSWORD_Ali = json_data['MYSQL_PASSWORD_Ali']
+MYSQL_HOST_Ali = json_data['MYSQL_HOST_Ali']
 MYSQL_HOST = json_data['MYSQL_HOST']
 MYSQL_REMOTE = json_data['MYSQL_REMOTE']
 MYSQL_PORT = json_data['MYSQL_PORT']
@@ -37,7 +40,8 @@ def get_engine(db):
 
 
 def get_mysql_conn(db):
-    conn = MySQLdb.connect(MYSQL_REMOTE, MYSQL_REMOTE_USER, MYSQL_PASSWORD, db, charset='utf8')
+    # conn = MySQLdb.connect(MYSQL_REMOTE, MYSQL_REMOTE_USER, MYSQL_PASSWORD, db, charset='utf8')
+    conn = MySQLdb.connect(MYSQL_HOST_Ali, MYSQL_USER_Ali, MYSQL_PASSWORD_Ali, db, charset='utf8')
     return conn
 
 
