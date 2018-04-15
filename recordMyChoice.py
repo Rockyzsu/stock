@@ -72,10 +72,11 @@ class Prediction_rate():
 class StockRecord:
 
     def __init__(self):
-        self.conn = get_mysql_conn('db_stock')
+        self.conn = get_mysql_conn('db_stock',local=True)
         self.cur = self.conn.cursor()
         self.table_name = 'tb_profit'
-        self.today = datetime.datetime.now().strftime('%Y-%m-%d')
+        # self.today = datetime.datetime.now().strftime('%Y-%m-%d')
+        self.today = '2018-04-13'
 
     def holding_stock_sql(self):
         path = os.path.join(os.path.dirname(__file__), 'data', 'mystock.csv')
@@ -138,7 +139,7 @@ class StockRecord:
         cmd = 'SELECT * FROM `{}`'.format(self.table_name)
         cur = self._exe(cmd)
         for i in cur.fetchall():
-            (code, name, safe_price, count, profit_ratio, profit, values, current_price,earn) = i
+            (code, name, safe_price, count, profit_ratio, profit, values, current_price,earn) = i[:9]
             df = ts.quotes(code, conn=api)
             current_price = round(float(df['price'].values[0]), 2)
             values = current_price * count
