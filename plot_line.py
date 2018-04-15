@@ -19,9 +19,9 @@ from matplotlib  import pyplot as plt
 from setting import get_engine
 mpl.rcParams['font.sans-serif'] = ['simhei']
 mpl.rcParams['axes.unicode_minus'] = False
-api=ts.get_apis()
 
 def plot_stock_line(code,name,start='2017-10-01',save=False):
+    api = ts.get_apis()
     engine = get_engine('db_stock',local=True)
     today =datetime.datetime.now().strftime('%Y-%m-%d')
     fig = plt.figure(figsize=(10,8))
@@ -78,6 +78,7 @@ def plot_stock_line(code,name,start='2017-10-01',save=False):
     else:
         plt.show()
     plt.close()
+    ts.close_apis(api)
 
 if __name__ == '__main__':    
     parser = OptionParser()
