@@ -22,7 +22,7 @@ mpl.rcParams['axes.unicode_minus'] = False
 api=ts.get_apis()
 
 def plot_stock_line(code,name,start='2017-10-01',save=False):
-    engine = get_engine('db_stock')
+    engine = get_engine('db_stock',local=True)
     today =datetime.datetime.now().strftime('%Y-%m-%d')
     fig = plt.figure(figsize=(10,8))
     base_info = pd.read_sql('tb_basic_info',engine,index_col='index')
@@ -56,7 +56,6 @@ def plot_stock_line(code,name,start='2017-10-01',save=False):
     candlestick2_ochl(ax,df['open'],df['close'],df['high'],df['low'],width=0.5,colorup='r',colordown='g',alpha=0.6)
     title=u'{} {} {}'.format(today,code,name)
     ax.set_title(title)
-    # ax.set_title(u'测试')
     ax.plot(sma5)
     ax.plot(sma20)
     plt.grid(True)
@@ -72,14 +71,12 @@ def plot_stock_line(code,name,start='2017-10-01',save=False):
     plt.setp(ax2.get_xticklabels(), rotation=30, horizontalalignment='right')
     plt.grid(True)
     # plt.subplots_adjust(hspace=0)
-
     # plt.show()
     if save:
         path = os.path.join(os.path.dirname(__file__),'data')
         fig.savefig(os.path.join(path,title+'.png'))
     else:
         plt.show()
-
     plt.close()
 
 if __name__ == '__main__':    
