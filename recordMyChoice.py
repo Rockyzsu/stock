@@ -75,8 +75,8 @@ class StockRecord:
         self.conn = get_mysql_conn('db_stock',local=True)
         self.cur = self.conn.cursor()
         self.table_name = 'tb_profit'
-        # self.today = datetime.datetime.now().strftime('%Y-%m-%d')
-        self.today = '2018-04-13'
+        self.today = datetime.datetime.now().strftime('%Y-%m-%d')
+        # self.today = '2018-04-13'
 
     def holding_stock_sql(self):
         path = os.path.join(os.path.dirname(__file__), 'data', 'mystock.csv')
@@ -161,6 +161,9 @@ class StockRecord:
 
 
 if __name__ == "__main__":
+
+    if ts.is_holiday(datetime.datetime.now().strftime('%Y-%m-%d')):
+        exit(0)
     # obj=Prediction_rate()
     # obj.first_recode()
     # holding_stock_sql()
