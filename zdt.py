@@ -153,8 +153,8 @@ class GetZDT:
         self.save_to_dataframe(zrzt_js, self.zrzt_indexx, 2, 'zrzt')
 
 if __name__ == '__main__':
-    today='2018-04-13'
-    # today = datetime.datetime.now().strftime("%Y-%m-%d")
+    # today='2018-04-13'
+    today = datetime.datetime.now().strftime("%Y-%m-%d")
     if not ts.is_holiday(today):
         obj = GetZDT()
         obj.storedata()
