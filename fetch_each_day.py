@@ -15,6 +15,7 @@ from setting import get_engine
 
 class FetchDaily:
     def __init__(self):
+        # self.today = '2018-04-13'
         self.today = datetime.datetime.now().strftime('%Y-%m-%d')
         if ts.is_holiday(self.today):
             exit()

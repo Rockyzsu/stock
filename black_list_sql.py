@@ -1,18 +1,12 @@
 # -*-coding=utf-8-*-
 
 import MySQLdb
-import setting
+from setting import get_mysql_conn
 import os
 
-db_name = 'db_stock'
+db_name = 'qdm225205669_db'
 
-conn = MySQLdb.connect(host=setting.MYSQL_REMOTE,
-                       port=3306,
-                       user=setting.MYSQL_REMOTE_USER,
-                       passwd=setting.MYSQL_PASSWORD,
-                       db=db_name,
-                       charset='utf8'
-                       )
+conn = get_mysql_conn(db_name)
 
 cur = conn.cursor()
 

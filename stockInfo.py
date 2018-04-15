@@ -14,22 +14,13 @@ import codecs
 import random
 import os, sys
 # import itchat
-import MySQLdb
-import setting
+# import MySQLdb
+# import setting
 from setting import sendmail
-db_name = 'db_news'
-conn = MySQLdb.connect(host=setting.MYSQL_HOST,
-                       port=3306,
-                       user=setting.MYSQL_USER,
-                       passwd=setting.MYSQL_PASSWORD,
-                       db=db_name,
-                       charset='utf8'
-                       )
+from setting import get_mysql_conn
 
-cur = conn.cursor()
-
-
-def create_tb():
+def create_tb(conn):
+    cur=conn.cursor()
     cmd = '''CREATE TABLE IF NOT EXISTS tb_cnstock(Date DATETIME ,Title VARCHAR (80),URL VARCHAR (80),PRIMARY KEY (URL)) charset=utf8;'''
     try:
         cur.execute(cmd)
@@ -70,6 +61,7 @@ def getinfo(max_index_user=3, years='2018-', days=-1):
 
     f_open = codecs.open(store_filename, 'w', 'utf-8')
     all_contents = []
+    cmd_list=[]
     while index <= max_index:
         user_agent = random.choice(my_useragent)
         # print user_agent
@@ -104,6 +96,7 @@ def getinfo(max_index_user=3, years='2018-', days=-1):
         except Exception,e:
             print e
             return None
+        # cmd_list = []
         for i in all_content:
             news_time = i.string
             # print news_time
@@ -119,12 +112,13 @@ def getinfo(max_index_user=3, years='2018-', days=-1):
                 cmd = '''INSERT INTO tb_cnstock (Date,Title,URL ) VALUES(\'%s\',\'%s\',\'%s\');''' % (
                     years + news_time, node['title'].strip(), node['href'].strip())
                 # print cmd
-                try:
-                    cur.execute(cmd)
-                    conn.commit()
-                except Exception, e:
-                    print e
-                    conn.rollback()
+                cmd_list.append(cmd)
+                # try:
+                #     cur.execute(cmd)
+                #     conn.commit()
+                # except Exception, e:
+                #     print e
+                #     conn.rollback()
 
                 all_contents.append(str_temp)
 
@@ -136,8 +130,33 @@ def getinfo(max_index_user=3, years='2018-', days=-1):
         index = index + 1
 
     f_open.close()
-
     sendmail(''.join(all_contents), temp_time)
+
+    db_name='db_stock'
+    conn =get_mysql_conn(db_name,local=True)
+    create_tb(conn)
+    cur = conn.cursor()
+    for i in cmd_list:
+        try:
+            cur.execute(i)
+        except Exception,e:
+            conn.rollback()
+
+    conn.commit()
+    conn.close()
+
+    db_name='qdm225205669_db'
+    conn2=get_mysql_conn(db_name,local=False)
+    create_tb(conn2)
+    cur2=conn2.cursor()
+    for i in cmd_list:
+        try:
+            cur2.execute(i)
+        except Exception,e:
+            print e
+            conn2.rollback()
+    conn2.commit()
+    conn2.close()
 
 
 if __name__ == "__main__":
@@ -156,6 +175,6 @@ if __name__ == "__main__":
             day = int(sys.argv[1])
     else:
         day = -1
-    create_tb()
+    # create_tb()
     getinfo(days=day)
     # print 'done'

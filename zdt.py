@@ -19,7 +19,7 @@ class GetZDT:
     def __init__(self):
         self.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/64.0.3282.167 Chrome/64.0.3282.167 Safari/537.36"
         self.today = time.strftime("%Y%m%d")
-
+        # self.today="20180413"
         # self.today="20180327"
         self.path = os.path.join(os.path.dirname(__file__), 'data')
         self.zdt_url = 'http://home.flashdata2.jrj.com.cn/limitStatistic/ztForce/' + self.today + ".js"
@@ -153,7 +153,9 @@ class GetZDT:
         self.save_to_dataframe(zrzt_js, self.zrzt_indexx, 2, 'zrzt')
 
 if __name__ == '__main__':
-    if not ts.is_holiday(datetime.datetime.now().strftime("%Y-%m-%d")):
+    today='2018-04-13'
+    # today = datetime.datetime.now().strftime("%Y-%m-%d")
+    if not ts.is_holiday(today):
         obj = GetZDT()
         obj.storedata()
     else:
