@@ -32,7 +32,7 @@ class GetZDT:
                            "Host": self.host,
                            "Referer": self.reference}
 
-        self.zdt_indexx = [u'代码', u'名称', u'最新价格', u'涨跌幅', u'封成比', u'封流比', u'封单金额', u'第一次涨停时间', u'最后一次涨停时间', u'打开次数',
+        self.zdt_indexx = [u'代码', u'名称', u'最新价格', u'涨跌幅', u'封成比', u'封流比', u'封单金额', u'最后一次涨停时间', u'第一次涨停时间', u'打开次数',
                            u'振幅',
                            u'涨停强度']
 
@@ -122,24 +122,22 @@ class GetZDT:
                 data[i][choice] = data[i][choice].decode('gbk')
 
         df = pd.DataFrame(data, columns=indexx)
-        if choice == 2:
-            df = df.set_index(u'序号')
+
 
         filename = os.path.join(self.path, self.today + "_" + post_fix + ".xls")
         if choice == 1:
+            df[u'今天的日期']=self.today
             df.to_excel(filename, encoding='gbk')
+            df.to_sql(self.today + post_fix, engine, if_exists='replace')
+
 
         if choice == 2:
+            df = df.set_index(u'序号')
             df[u'最大涨幅'] = map(lambda x: round(x * 100, 3), df[u'最大涨幅'])
             df[u'最大跌幅'] = map(lambda x: round(x * 100, 3), df[u'最大跌幅'])
             df[u'今日开盘涨幅'] = map(lambda x: round(x * 100, 3), df[u'今日开盘涨幅'])
             df[u'昨日涨停强度'] = map(lambda x: round(x, 0), df[u'昨日涨停强度'])
             df[u'今日涨停强度'] = map(lambda x: round(x, 0), df[u'今日涨停强度'])
-
-        if choice == 1:
-            df.to_sql(self.today + post_fix, engine, if_exists='replace')
-
-        if choice == 2:
             df.to_sql(self.today + post_fix, engine, if_exists='fail')
 
     # 昨日涨停今日的状态，今日涨停
