@@ -59,13 +59,12 @@ def monitor():
 '''
 def plot_yesterday_zt():
     engine = get_engine('db_zdt')
-    table='20180411zdt'
-    # api=ts.get_apis()
-    df = pd.read_sql(table,engine,index_col='index')
+    table='20180413zrzt'
+    df = pd.read_sql(table,engine)
     for i in range(len(df)):
         code = df.iloc[i][u'代码']
         name = df.iloc[i][u'名称']
-        plot_stock_line(code,name)
+        plot_stock_line(code,name,save=True)
 
 if __name__ == '__main__':
     os.chdir('data')
