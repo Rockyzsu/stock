@@ -29,12 +29,19 @@ EMAIL_PASS = json_data['EMAIL_PASSWORD']
 SMTP_HOST = json_data['SMTP_HOST']
 FROM_MAIL = json_data['FROM_MAIL']
 TO_MAIL = json_data['TO_MAIL']
+Ali_DB=json_data['Ali_DB']
 
 
-def get_engine(db):
+def get_engine(db,local):
+    if local:
     # engine = create_engine('mysql+pymysql://{}:{}@{}:{}/{}?charset=utf8'.format(MYSQL_USER, MYSQL_PASSWORD, MYSQL_HOST, MYSQL_PORT, db))
-    engine = create_engine(
-      'mysql+pymysql://{}:{}@{}:{}/{}?charset=utf8'.format(MYSQL_REMOTE_USER, MYSQL_PASSWORD, MYSQL_REMOTE,
+        engine = create_engine(
+                                                    'mysql+pymysql://{}:{}@{}:{}/{}?charset=utf8'.format(MYSQL_REMOTE_USER, MYSQL_PASSWORD, MYSQL_REMOTE,
+                                                            MYSQL_PORT, db))
+    else:
+        db=Ali_DB
+        engine = create_engine(
+                                                    'mysql+pymysql://{}:{}@{}:{}/{}?charset=utf8'.format(MYSQL_USER_Ali, MYSQL_PASSWORD_Ali, MYSQL_HOST_Ali,
                                                             MYSQL_PORT, db))
     return engine
 
@@ -43,6 +50,7 @@ def get_mysql_conn(db,local):
     if local:
         conn = MySQLdb.connect(MYSQL_REMOTE, MYSQL_REMOTE_USER, MYSQL_PASSWORD, db, charset='utf8')
     else:
+        db=Ali_DB
         conn = MySQLdb.connect(MYSQL_HOST_Ali, MYSQL_USER_Ali, MYSQL_PASSWORD_Ali, db, charset='utf8')
 
     return conn
