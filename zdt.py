@@ -45,7 +45,7 @@ class GetZDT:
 
     def getdata(self, url, headers, retry=5):
         req = urllib2.Request(url=url, headers=headers)
-        for _ in range(retry):
+        for i in range(retry):
             try:
                 resp = urllib2.urlopen(req,timeout=20)
                 content = resp.read()
@@ -54,6 +54,7 @@ class GetZDT:
                     return content
                 else:
                     time.sleep(60)
+                    logger.log('failed to get content, retry: {}'.format(i))
                     continue
             except Exception, e:
                 logger.log(e)
@@ -132,8 +133,10 @@ class GetZDT:
         if choice == 1:
             df[u'今天的日期']=self.today
             df.to_excel(filename, encoding='gbk')
-            df.to_sql(self.today + post_fix, engine, if_exists='fail')
-
+            try:
+                df.to_sql(self.today + post_fix, engine, if_exists='fail')
+            except Exception,e:
+                logger.log(e)
 
         if choice == 2:
             df = df.set_index(u'序号')
@@ -142,7 +145,10 @@ class GetZDT:
             df[u'今日开盘涨幅'] = map(lambda x: round(x * 100, 3), df[u'今日开盘涨幅'])
             df[u'昨日涨停强度'] = map(lambda x: round(x, 0), df[u'昨日涨停强度'])
             df[u'今日涨停强度'] = map(lambda x: round(x, 0), df[u'今日涨停强度'])
-            df.to_sql(self.today + post_fix, engine, if_exists='fail')
+            try:
+                df.to_sql(self.today + post_fix, engine, if_exists='fail')
+            except Exception,e:
+                logger.log(e)
 
     # 昨日涨停今日的状态，今日涨停
     def storedata(self):
