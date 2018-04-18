@@ -2,6 +2,7 @@
 # 常用的配置信息
 
 import datetime
+import logging
 import smtplib
 from email.mime.text import MIMEText
 from sqlalchemy import create_engine
@@ -96,9 +97,25 @@ def sendmail(content, subject):
     except Exception, e:
         print e
 
+class LLogger:
+    def __init__(self,file_name):
+        self.logger = logging.getLogger('mylogger')
+        self.logger.setLevel(logging.DEBUG)
+        f_handler = logging.FileHandler(file_name)
+        f_handler.setLevel(logging.DEBUG)
+        formatter = logging.Formatter('[%(asctime)s][%(filename)s][line: %(lineno)d]\[%(levelname)s] ## %(message)s')
+        f_handler.setFormatter(formatter)
+        self.logger.addHandler(f_handler)
+
+    def log(self,content):
+        try:
+            self.logger.debug(content)
+        except Exception,e:
+            self.logger.debug(e)
 
 if __name__ == '__main__':
     # msg=MsgSend(u'wei')
     # msg.send_price('hsdq',12,12,'sell')
     # print FROM_MAIL
-    pass
+    print os.path.dirname(__file__)
+    # mylogger('test.log','just for test')
