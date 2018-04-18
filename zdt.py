@@ -49,7 +49,7 @@ class GetZDT:
             try:
                 resp = urllib2.urlopen(req,timeout=20)
                 content = resp.read()
-                md_check = re.findall('summary',content)
+                md_check = re.findall('summary|lasttradedate',content)
                 if content and len(md_check)>0:
                     return content
                 else:
