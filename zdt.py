@@ -11,15 +11,15 @@ import urllib2, re, time, xlrd, xlwt, sys, os
 import setting
 import pandas as pd
 import tushare as ts
+from setting import LLogger
 reload(sys)
 sys.setdefaultencoding('gbk')
 
-
+logger = LLogger('zdt.log')
 class GetZDT:
     def __init__(self):
         self.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/64.0.3282.167 Chrome/64.0.3282.167 Safari/537.36"
         self.today = time.strftime("%Y%m%d")
-        # self.today="20180413"
         # self.today="20180327"
         self.path = os.path.join(os.path.dirname(__file__), 'data')
         self.zdt_url = 'http://home.flashdata2.jrj.com.cn/limitStatistic/ztForce/' + self.today + ".js"
@@ -55,13 +55,16 @@ class GetZDT:
                     time.sleep(60)
                     continue
             except Exception, e:
-                print e
+                logger.log(e)
                 time.sleep(60)
                 continue
         return None
 
     def convert_json(self, content):
         p = re.compile(r'"Data":(.*)};', re.S)
+        if len(content)<=0:
+            logger.log('Content\'s length is 0')
+            exit(0)
         result = p.findall(content)
         if result:
             t1 = result[0]
@@ -128,7 +131,7 @@ class GetZDT:
         if choice == 1:
             df[u'今天的日期']=self.today
             df.to_excel(filename, encoding='gbk')
-            df.to_sql(self.today + post_fix, engine, if_exists='replace')
+            df.to_sql(self.today + post_fix, engine, if_exists='fail')
 
 
         if choice == 2:
@@ -151,7 +154,7 @@ class GetZDT:
         self.save_to_dataframe(zrzt_js, self.zrzt_indexx, 2, 'zrzt')
 
 if __name__ == '__main__':
-    # today='2018-04-13'
+    # today='2018-04-16'
     today = datetime.datetime.now().strftime("%Y-%m-%d")
     if not ts.is_holiday(today):
         obj = GetZDT()
