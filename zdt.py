@@ -23,7 +23,7 @@ class GetZDT:
         # self.today="20180327"
         self.path = os.path.join(os.path.dirname(__file__), 'data')
         self.zdt_url = 'http://home.flashdata2.jrj.com.cn/limitStatistic/ztForce/' + self.today + ".js"
-        self.zrzt_url = 'http://hqdata.jrj.com.cn/zrztjrbx/limitup.js'
+        self.zrzt_url = 'http://hqdata.jrj.com.cn/zrztjrbx/limitup.rjs'
 
         self.host = "home.flashdata2.jrj.com.cn"
         self.reference = "http://stock.jrj.com.cn/tzzs/zdtwdj/zdforce.shtml"
@@ -47,9 +47,10 @@ class GetZDT:
         req = urllib2.Request(url=url, headers=headers)
         for _ in range(retry):
             try:
-                resp = urllib2.urlopen(req)
+                resp = urllib2.urlopen(req,timeout=20)
                 content = resp.read()
-                if content:
+                md_check = re.findall('summary',content)
+                if content and len(md_check)>0:
                     return content
                 else:
                     time.sleep(60)
