@@ -23,7 +23,7 @@ class GetZDT:
         # self.today="20180327"
         self.path = os.path.join(os.path.dirname(__file__), 'data')
         self.zdt_url = 'http://home.flashdata2.jrj.com.cn/limitStatistic/ztForce/' + self.today + ".js"
-        self.zrzt_url = 'http://hqdata.jrj.com.cn/zrztjrbx/limitup.rjs'
+        self.zrzt_url = 'http://hqdata.jrj.com.cn/zrztjrbx/limitup.js'
 
         self.host = "home.flashdata2.jrj.com.cn"
         self.reference = "http://stock.jrj.com.cn/tzzs/zdtwdj/zdforce.shtml"
