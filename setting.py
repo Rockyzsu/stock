@@ -101,7 +101,8 @@ class LLogger:
     def __init__(self,file_name):
         self.logger = logging.getLogger('mylogger')
         self.logger.setLevel(logging.DEBUG)
-        f_handler = logging.FileHandler(file_name)
+        file_path = os.path.join(os.path.dirname(__file__),file_name)
+        f_handler = logging.FileHandler(file_path)
         f_handler.setLevel(logging.DEBUG)
         formatter = logging.Formatter('[%(asctime)s][%(filename)s][line: %(lineno)d]\[%(levelname)s] ## %(message)s')
         f_handler.setFormatter(formatter)
