@@ -146,10 +146,13 @@ class GetZDT:
     # 昨日涨停今日的状态，今日涨停
     def storedata(self):
         zdt_content = self.getdata(self.zdt_url, headers=self.header_zdt)
+        logger.log('zdt Content'+zdt_content)
         zdt_js = self.convert_json(zdt_content)
         self.save_to_dataframe(zdt_js, self.zdt_indexx, 1, 'zdt')
         time.sleep(5)
         zrzt_content = self.getdata(self.zrzt_url, headers=self.header_zrzt)
+        logger.log('zrzt Content'+zdt_content)
+
         zrzt_js = self.convert_json(zrzt_content)
         self.save_to_dataframe(zrzt_js, self.zrzt_indexx, 2, 'zrzt')
 
@@ -160,4 +163,4 @@ if __name__ == '__main__':
         obj = GetZDT()
         obj.storedata()
     else:
-        print 'Holiday'
+        logger.log('Holiday')
