@@ -15,8 +15,8 @@ from setting import get_engine
 
 class FetchDaily:
     def __init__(self):
-        # self.today = '2018-04-13'
-        self.today = datetime.datetime.now().strftime('%Y-%m-%d')
+        self.today = '2018-04-16'
+        # self.today = datetime.datetime.now().strftime('%Y-%m-%d')
         if ts.is_holiday(self.today):
             exit()
         self.path = os.path.join(os.path.dirname(__file__), 'data')

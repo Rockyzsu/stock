@@ -17,47 +17,25 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import threading
-from setting import MsgSend
+from setting import  get_engine,sendmail
+# from setting import MsgSend
+# msg = MsgSend(u'wei')
 
-
-msg=MsgSend(u'wei')
-conn = ts.get_apis()
-EXCEPTION_TIME_OUT=60
+EXCEPTION_TIME_OUT = 60
 NORMAL_TIME_OUT = 3
-TIME_RESET=60*5
+TIME_RESET = 60 * 5
 
-#监测涨停板开板监测
-class break_monitor():
-    def __init__(self,send=True):
-        self.send=send
-        if self.send==True:
-            cfg = Toolkit.getUserData('data.cfg')
-            from_mail = cfg['from_mail']
-            password = cfg['password']
-            to_mail = cfg['to_mail']
-            smtp_server = 'smtp.qq.com'
 
-            self.server = smtp_server
-            self.username = from_mail.split("@")[0]
-            self.from_mail = from_mail
-            self.password = password
-            self.to_mail = to_mail
-            # 初始化邮箱设置读取需要股票信息
-            # 这样子只登陆一次
-            try:
-                self.smtp = smtplib.SMTP_SSL(port=465)
-                self.smtp.connect(self.server)
-                self.smtp.login(self.username, self.password)
-            except smtplib.SMTPException, e:
-                print e
-                return 0
-        self.bases = pd.read_csv('bases.csv', dtype={'code': np.str})
-        self.stocklist = Toolkit.read_stock('monitor_list.log')
-
+# 监测涨停板开板监测
+class BreakMonitor():
+    def __init__(self, send=True):
+        self.send = send
+        engine = get_engine('db_stock')
+        self.bases = pd.read_sql('tb_basic_info', engine, index_col='index')
+        # self.stocklist = Toolkit.read_stock('monitor_list.log')
 
     # 格式需要修改
     def send_txt(self, name, content):
-
         subject = '%s' % name
         self.msg = MIMEText(content, 'plain', 'utf-8')
         self.msg['to'] = self.to_mail
@@ -72,11 +50,11 @@ class break_monitor():
             print e
             return 0
 
-    #开板提示
+    # 开板提示
     def break_ceil(self, code):
         print threading.current_thread().name
         while 1:
-            #print code
+            # print code
             time.sleep(2)
             try:
                 df = ts.get_realtime_quotes(code)
@@ -88,13 +66,12 @@ class break_monitor():
             if v <= 1000:
                 print datetime.datetime.now().strftime("%H:%M:%S")
                 print u"小于万手，小心！跑"
-                print self.bases[self.bases['code']==code]['name'].values[0]
-                if self.send==True:
+                print self.bases[self.bases['code'] == code]['name'].values[0]
+                if self.send == True:
                     self.push_msg('break', 10, 10, 'down')
-                #这里可以优化，不必每次都登陆。s
+                # 这里可以优化，不必每次都登陆。s
 
-
-    def monitor_break(self,send=True):
+    def monitor_break(self, send=True):
         thread_num = len(self.stocklist)
         thread_list = []
         join_list = []
@@ -108,32 +85,42 @@ class break_monitor():
         for k in thread_list:
             k.join()
 
-def breakMonitor(code,warning_vol):
-    start=True
-    start_monitor=True
-    waiting_time=datetime.datetime.now()
+
+def break_monitor(code, warning_vol):
+    start = True
+    start_monitor = True
+    waiting_time = datetime.datetime.now()
+    conn = ts.get_apis()
     while 1:
         current = datetime.datetime.now()
-
         try:
             if start_monitor:
-                df = ts.quotes(code,conn=conn)
+                try:
+                    df = ts.quotes(code, conn=conn)
+                except Exception,e:
+                    print e
+                    time.sleep(EXCEPTION_TIME_OUT)
+                    conn = ts.get_apis()
+                    continue
                 print 'under monitor {}'.format(current)
 
             if df['bid_vol1'].values[0] < warning_vol and start:
-                msg.send_ceiling(code,df['bid_vol1'].values[0])
-                start=False
-                start_monitor=False
-                waiting_time =current+datetime.timedelta(seconds=TIME_RESET)
+                title=code+' Buy +1 : '+str(df['bid_vol1'].values[0])
+                sendmail(title,title)
+                # msg.send_ceiling(code, df['bid_vol1'].values[0])
+                start = False
+                start_monitor = False
+                waiting_time = current + datetime.timedelta(seconds=TIME_RESET)
             time.sleep(NORMAL_TIME_OUT)
-        except Exception,e:
+        except Exception, e:
             print e
             time.sleep(EXCEPTION_TIME_OUT)
-            conn=ts.get_apis()
+            conn = ts.get_apis()
             continue
         if current > waiting_time:
-            start=True
-            start_monitor=True
+            start = True
+            start_monitor = True
+
 
 if __name__ == '__main__':
     path = os.path.join(os.getcwd(), 'data')
@@ -142,5 +129,5 @@ if __name__ == '__main__':
     os.chdir(path)
     # obj = break_monitor(send=False)
     # obj.monitor_brea k()
-    breakMonitor('603168',2000)
-    ts.close_apis(conn=conn)
+    break_monitor('000977', 2000)
+    # ts.close_apis(conn=conn)

@@ -46,8 +46,6 @@ def monitor():
     df[u'今日振幅']=amplitude_list
     df[u'更新时间']=datetime.datetime.now().strftime('%Y %m %d %H:%M%S')
 
-    # print df
-    # df[df['today_price']==0]
     end=datetime.datetime.now()
     print 'time use {}'.format(end-start)
 
@@ -59,8 +57,11 @@ def monitor():
 '''
 def plot_yesterday_zt():
     engine = get_engine('db_zdt')
-    table='20180413zrzt'
+    zrzt='zrzt'
+    table='{}{}'.format(datetime.datetime.now().strftime('%Y%m%d'),zrzt)
     df = pd.read_sql(table,engine)
+    # if df is None:
+
     for i in range(len(df)):
         code = df.iloc[i][u'代码']
         name = df.iloc[i][u'名称']

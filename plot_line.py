@@ -34,8 +34,15 @@ def plot_stock_line(code,name,start='2017-10-01',save=False):
     if code is None and name is not None:
         code = base_info[base_info['name']==name]['code'].values[0]
         print code
+    for _ in range(4):
+        try:
+            df = ts.bar(code, conn=api, start_date=start)
+            break
+        except Exception,e:
+            print e
 
-    df = ts.bar(code, conn=api, start_date=start)
+            continue
+
     df = df.sort_index()
     # df=df.sort_values(by='datetime')
 
@@ -66,12 +73,10 @@ def plot_stock_line(code,name,start='2017-10-01',save=False):
     ax2.set_xticks(range(0,len(df),1))
     # ax.set_xticklabels(df['date'][::5])
     ax2.set_xticklabels(df['datetime'][::1])
-    # ax2.grid(True)
 
     plt.setp(ax2.get_xticklabels(), rotation=30, horizontalalignment='right')
     plt.grid(True)
     # plt.subplots_adjust(hspace=0)
-    # plt.show()
     if save:
         path = os.path.join(os.path.dirname(__file__),'data')
         fig.savefig(os.path.join(path,title+'.png'))
@@ -99,4 +104,4 @@ if __name__ == '__main__':
         code=None
         name=u'泰永长征'
     plot_stock_line(code=code,name=name,start='2018-02-01',save=False)
-    ts.close_apis(api)
+    # ts.close_apis(api)
