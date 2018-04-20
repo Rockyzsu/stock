@@ -43,16 +43,10 @@ def plot_stock_line(code,name,table_name,start='2017-10-01',save=False):
             continue
 
     df = df.sort_index()
-    # df=df.sort_values(by='datetime')
-
-    # print df.head(5)
-    # name=u'和顺电气'
     if name is None:
         name = base_info[base_info['code']==code]['name'].values[0]
 
     df =df.reset_index()
-    # df = ts.get_k_data('300141',start='2018-03-01')
-    # df['date']=df['date'].dt.strftime('%Y-%m-%d')
     df['datetime']=df['datetime'].dt.strftime('%Y-%m-%d')
     sma5=talib.SMA(df['close'].values,5)
     sma20=talib.SMA(df['close'].values,10)
@@ -65,21 +59,17 @@ def plot_stock_line(code,name,table_name,start='2017-10-01',save=False):
     ax.plot(sma5)
     ax.plot(sma20)
     plt.grid(True)
-
-
     # df['vol'].plot(kind='bar')
     volume_overlay(ax2,df['open'],df['close'],df['vol'],width=0.5,alpha=0.8,colordown='g',colorup='r')
     ax2.set_xticks(range(0,len(df),1))
     # ax.set_xticklabels(df['date'][::5])
     ax2.set_xticklabels(df['datetime'][::1])
-
     plt.setp(ax2.get_xticklabels(), rotation=30, horizontalalignment='right')
     plt.grid(True)
     # plt.subplots_adjust(hspace=0)
     if save:
-        # today=datetime.datetime.now().strftime('%Y%m%d')
         path = os.path.join(os.path.dirname(__file__),'data',today)
-        fig.savefig(os.path.join(path,title+'.png'))
+        fig.savefig(title+'.png')
     else:
         plt.show()
     plt.close()
