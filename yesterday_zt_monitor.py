@@ -57,7 +57,7 @@ def monitor():
 '''
 def plot_yesterday_zt():
     engine = get_engine('db_zdt')
-    zrzt='zrzt'
+    table_name='zrzt'
     table='{}{}'.format(datetime.datetime.now().strftime('%Y%m%d'),zrzt)
     df = pd.read_sql(table,engine)
     # if df is None:
@@ -65,7 +65,7 @@ def plot_yesterday_zt():
     for i in range(len(df)):
         code = df.iloc[i][u'代码']
         name = df.iloc[i][u'名称']
-        plot_stock_line(code,name,save=True)
+        plot_stock_line(code,name,table_name=table_name, start='2018-01-01',save=True)
 
 if __name__ == '__main__':
     os.chdir('data')

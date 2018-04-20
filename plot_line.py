@@ -20,7 +20,7 @@ from setting import get_engine
 mpl.rcParams['font.sans-serif'] = ['simhei']
 mpl.rcParams['axes.unicode_minus'] = False
 
-def plot_stock_line(code,name,start='2017-10-01',save=False):
+def plot_stock_line(code,name,table_name,start='2017-10-01',save=False):
     api = ts.get_apis()
     engine = get_engine('db_stock',local=True)
     today =datetime.datetime.now().strftime('%Y-%m-%d')
@@ -60,7 +60,7 @@ def plot_stock_line(code,name,start='2017-10-01',save=False):
     # # ax.set_xticklabels(df['date'][::5])
     # ax.set_xticklabels(df['datetime'][::20])
     candlestick2_ochl(ax,df['open'],df['close'],df['high'],df['low'],width=0.5,colorup='r',colordown='g',alpha=0.6)
-    title=u'{} {} {}'.format(today,code,name)
+    title=u'{} {} {} {}'.format(today,code,name,table_name)
     ax.set_title(title)
     ax.plot(sma5)
     ax.plot(sma20)
