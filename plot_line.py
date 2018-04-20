@@ -40,7 +40,6 @@ def plot_stock_line(code,name,start='2017-10-01',save=False):
             break
         except Exception,e:
             print e
-
             continue
 
     df = df.sort_index()
@@ -78,7 +77,8 @@ def plot_stock_line(code,name,start='2017-10-01',save=False):
     plt.grid(True)
     # plt.subplots_adjust(hspace=0)
     if save:
-        path = os.path.join(os.path.dirname(__file__),'data')
+        # today=datetime.datetime.now().strftime('%Y%m%d')
+        path = os.path.join(os.path.dirname(__file__),'data',today)
         fig.savefig(os.path.join(path,title+'.png'))
     else:
         plt.show()
