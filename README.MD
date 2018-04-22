@@ -23,4 +23,4 @@ jubi.py -获取国内山寨币平台的实时数据
 
 如果您真的很感激作者，也可以直接扫描以下二维码打赏作者。
 
-![alipay](resource/MyAlipay.jpg)
+![weixin](resource/weixin.png)    ![alipay](resource/MyAlipay.jpg)  
