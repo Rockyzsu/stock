@@ -134,7 +134,7 @@ class StockRecord:
 
         add_cols = u'ALTER TABLE `{}` ADD `{}` FLOAT;'.format(self.table_name, self.today)
         self._exe(add_cols)
-        self.conn.commit()
+        # self.conn.commit()
         api = ts.get_apis()
         cmd = 'SELECT * FROM `{}`'.format(self.table_name)
         cur = self._exe(cmd)

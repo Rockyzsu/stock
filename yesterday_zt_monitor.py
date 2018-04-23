@@ -59,8 +59,11 @@ def plot_yesterday_zt():
     engine = get_engine('db_zdt')
     table_name='zrzt'
     table='{}{}'.format(datetime.datetime.now().strftime('%Y%m%d'),table_name)
-    df = pd.read_sql(table,engine)
-    # if df is None:
+    try:
+        df = pd.read_sql(table,engine)
+    except Exception,e:
+        print e
+        return
 
     for i in range(len(df)):
         code = df.iloc[i][u'代码']
@@ -68,7 +71,9 @@ def plot_yesterday_zt():
         plot_stock_line(code,name,table_name=table_name, start='2018-01-01',save=True)
 
 if __name__ == '__main__':
-    path = os.path.join(os.path.dirname(__file__),'data')
+    current = datetime.datetime.now().strftime('%Y%m%d')
+    path = os.path.join(os.path.dirname(__file__),'data',current)
     if not os.path.exists(path):
         os.mkdir(path)
+    os.chdir(path)
     plot_yesterday_zt()
