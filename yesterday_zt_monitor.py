@@ -55,9 +55,9 @@ def monitor():
 '''
 绘制k线图，今日暂停的k线图
 '''
-def plot_yesterday_zt():
+def plot_yesterday_zt(type_name='zrzt'):
     engine = get_engine('db_zdt')
-    table_name='zrzt'
+    table_name=type_name
     table='{}{}'.format(datetime.datetime.now().strftime('%Y%m%d'),table_name)
     try:
         df = pd.read_sql(table,engine)
