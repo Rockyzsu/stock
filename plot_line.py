@@ -17,7 +17,7 @@ import talib
 import tushare as ts
 import matplotlib as mpl
 from mpl_finance import candlestick2_ochl,volume_overlay
-from matplotlib  import pyplot as plt
+import matplotlib.pyplot as plt
 from setting import get_engine
 mpl.rcParams['font.sans-serif'] = ['simhei']
 mpl.rcParams['axes.unicode_minus'] = False
