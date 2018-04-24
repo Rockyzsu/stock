@@ -161,20 +161,28 @@ class GetZDT:
         logger.log('zdt Content'+zdt_content)
         zdt_js = self.convert_json(zdt_content)
         self.save_to_dataframe(zdt_js, self.zdt_indexx, 1, 'zdt')
-        time.sleep(5)
-        # zrzt_content = self.getdata(self.zrzt_url, headers=self.header_zrzt)
-        # logger.log('zrzt Content'+zdt_content)
+        time.sleep(2)
+        zrzt_content = self.getdata(self.zrzt_url, headers=self.header_zrzt)
+        logger.log('zrzt Content'+zdt_content)
 
-        # zrzt_js = self.convert_json(zrzt_content)
-        # self.save_to_dataframe(zrzt_js, self.zrzt_indexx, 2, 'zrzt')
+        zrzt_js = self.convert_json(zrzt_content)
+        self.save_to_dataframe(zrzt_js, self.zrzt_indexx, 2, 'zrzt')
 
 if __name__ == '__main__':
     # today='2018-04-16'
+    # 填补以前的数据
     # x=pd.date_range('20170101','20180312')
-    # print x
-    date_list = [datetime.datetime.strftime(i,'%Y%m%d') for i in list(pd.date_range('20170401','20171231'))]
-    # print date_list
-    # today = datetime.datetime.now().strftime("%Y-%m-%d")
+    # date_list = [datetime.datetime.strftime(i,'%Y%m%d') for i in list(pd.date_range('20170401','20171231'))]
+    today = datetime.datetime.now().strftime("%Y-%m-%d")
+    if not ts.is_holiday(today):
+        logger.log(today)
+        obj = GetZDT(datetime.datetime.strptime(today,"%Y-%m-%d").strftime('%Y%m%d'))
+        obj.storedata()
+    else:
+        logger.log('Holiday')
+
+
+    '''
     for today in date_list:
 
         if not ts.is_holiday(datetime.datetime.strptime(today,'%Y%m%d').strftime('%Y-%m-%d')):
@@ -183,3 +191,4 @@ if __name__ == '__main__':
             obj.storedata()
         else:
             logger.log('Holiday')
+    '''
