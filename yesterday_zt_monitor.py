@@ -55,10 +55,10 @@ def monitor():
 '''
 绘制k线图，今日暂停的k线图
 '''
-def plot_yesterday_zt(type_name='zrzt'):
+def plot_yesterday_zt(type_name='zrzt',current=datetime.datetime.now().strftime('%Y%m%d')):
     engine = get_engine('db_zdt')
     table_name=type_name
-    table='{}{}'.format(datetime.datetime.now().strftime('%Y%m%d'),table_name)
+    table='{}{}'.format(current,table_name)
     try:
         df = pd.read_sql(table,engine)
     except Exception,e:
@@ -68,12 +68,13 @@ def plot_yesterday_zt(type_name='zrzt'):
     for i in range(len(df)):
         code = df.iloc[i][u'代码']
         name = df.iloc[i][u'名称']
-        plot_stock_line(code,name,table_name=table_name, start='2018-01-01',save=True)
+        plot_stock_line(code,name,table_name=table_name, current=current,start='2018-01-01',save=True)
 
 if __name__ == '__main__':
-    current = datetime.datetime.now().strftime('%Y%m%d')
+    current = '20180423'
+    # current = datetime.datetime.now().strftime('%Y%m%d')
     path = os.path.join(os.path.dirname(__file__),'data',current)
     if not os.path.exists(path):
         os.mkdir(path)
     os.chdir(path)
-    plot_yesterday_zt()
+    plot_yesterday_zt('zdt',current=current)

@@ -17,10 +17,10 @@ sys.setdefaultencoding('gbk')
 
 logger = LLogger('zdt.log')
 class GetZDT:
-    def __init__(self):
+    def __init__(self,current):
         self.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/64.0.3282.167 Chrome/64.0.3282.167 Safari/537.36"
-        self.today = time.strftime("%Y%m%d")
-        # self.today="20180327"
+        # self.today = time.strftime("%Y%m%d")
+        self.today=current
         self.path = os.path.join(os.path.dirname(__file__), 'data')
         self.zdt_url = 'http://home.flashdata2.jrj.com.cn/limitStatistic/ztForce/' + self.today + ".js"
         self.zrzt_url = 'http://hqdata.jrj.com.cn/zrztjrbx/limitup.js'
@@ -69,9 +69,14 @@ class GetZDT:
             exit(0)
         result = p.findall(content)
         if result:
-            t1 = result[0]
-            t2 = list(eval(t1))
-            return t2
+            try:
+            # print result
+                t1 = result[0]
+                t2 = list(eval(t1))
+                return t2
+            except Exception,e:
+                logger.log(e)
+                return None
         else:
             return None
 
@@ -108,9 +113,9 @@ class GetZDT:
             for col in row:
                 # print col
                 # table.put_cell(row,col,)
-                print col
+                # print col
                 ws.write(point_x, point_y, col)
-                print "[%d,%d]" % (point_x, point_y)
+                # print "[%d,%d]" % (point_x, point_y)
                 point_y = point_y + 1
 
             point_x = point_x + 1
@@ -157,17 +162,24 @@ class GetZDT:
         zdt_js = self.convert_json(zdt_content)
         self.save_to_dataframe(zdt_js, self.zdt_indexx, 1, 'zdt')
         time.sleep(5)
-        zrzt_content = self.getdata(self.zrzt_url, headers=self.header_zrzt)
-        logger.log('zrzt Content'+zdt_content)
+        # zrzt_content = self.getdata(self.zrzt_url, headers=self.header_zrzt)
+        # logger.log('zrzt Content'+zdt_content)
 
-        zrzt_js = self.convert_json(zrzt_content)
-        self.save_to_dataframe(zrzt_js, self.zrzt_indexx, 2, 'zrzt')
+        # zrzt_js = self.convert_json(zrzt_content)
+        # self.save_to_dataframe(zrzt_js, self.zrzt_indexx, 2, 'zrzt')
 
 if __name__ == '__main__':
     # today='2018-04-16'
-    today = datetime.datetime.now().strftime("%Y-%m-%d")
-    if not ts.is_holiday(today):
-        obj = GetZDT()
-        obj.storedata()
-    else:
-        logger.log('Holiday')
+    # x=pd.date_range('20170101','20180312')
+    # print x
+    date_list = [datetime.datetime.strftime(i,'%Y%m%d') for i in list(pd.date_range('20170401','20171231'))]
+    # print date_list
+    # today = datetime.datetime.now().strftime("%Y-%m-%d")
+    for today in date_list:
+
+        if not ts.is_holiday(datetime.datetime.strptime(today,'%Y%m%d').strftime('%Y-%m-%d')):
+            print today
+            obj = GetZDT(today)
+            obj.storedata()
+        else:
+            logger.log('Holiday')

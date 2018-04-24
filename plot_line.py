@@ -22,9 +22,8 @@ from setting import get_engine
 mpl.rcParams['font.sans-serif'] = ['simhei']
 mpl.rcParams['axes.unicode_minus'] = False
 
-def plot_stock_line(code,name,table_name,start='2017-10-01',save=False):
-    today =datetime.datetime.now().strftime('%Y-%m-%d')
-    title=u'{} {} {} {}'.format(today,code,name,table_name)
+def plot_stock_line(code,name,table_name,current,start='2017-10-01',save=False):
+    title=u'{} {} {} {}'.format(current,code,name,table_name)
     if os.path.exists(title+ '.png'):
         return
     engine = get_engine('db_stock',local=True)
@@ -72,9 +71,9 @@ def plot_stock_line(code,name,table_name,start='2017-10-01',save=False):
     ax.grid(True)
     # df['vol'].plot(kind='bar')
     volume_overlay(ax2,df['open'],df['close'],df['vol'],width=0.5,alpha=0.8,colordown='g',colorup='r')
-    ax2.set_xticks(range(0,len(df),1))
+    ax2.set_xticks(range(0,len(df),5))
     # ax.set_xticklabels(df['date'][::5])
-    ax2.set_xticklabels(df['datetime'][::1])
+    ax2.set_xticklabels(df['datetime'][::5])
     plt.setp(ax2.get_xticklabels(), rotation=30, horizontalalignment='right')
     ax2.grid(True)
     # plt.subplots_adjust(hspace=0)
@@ -104,5 +103,5 @@ if __name__ == '__main__':
     else:
         code=None
         name=u'泰永长征'
-    plot_stock_line(code=code,name=name,start='2018-02-01',save=False)
+    plot_stock_line(code=code,name=name,table_name='zdt',current='20180423',start='2018-02-01',save=False)
     # ts.close_apis(api)
