@@ -13,8 +13,9 @@ from xlutils.copy import copy
 import tushare as ts
 from setting import get_mysql_conn
 import codecs
+from setting import LLogger
 
-
+logger=LLogger('recordMyChoice.log')
 class Prediction_rate():
 
     def __init__(self):
@@ -88,7 +89,8 @@ class StockRecord:
             self.cur.execute(create_table_cmd)
             self.conn.commit()
         except Exception, e:
-            print e
+            # print e
+            logger.log(e)
             self.conn.rollback()
         with codecs.open(path, 'r', encoding='utf-8') as f:
             content = f.readlines()
@@ -124,7 +126,8 @@ class StockRecord:
             self.cur.execute(cmd)
             self.conn.commit()
         except Exception, e:
-            print e
+            # print e
+            logger.log(e)
             self.conn.rollback()
 
         return self.cur
@@ -150,7 +153,7 @@ class StockRecord:
 
             update_cmd = u'UPDATE {} SET `盈亏比例`={} ,`盈亏`={}, `市值` ={}, `现价` = {},`{}`={} where `证券代码`= {};'.format(
                 self.table_name, profit_ratio, profit, values, current_price, self.today, earn,code)
-            print update_cmd
+            # print update_cmd
             self._exe(update_cmd)
         ts.close_apis(api)
 
