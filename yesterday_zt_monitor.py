@@ -78,4 +78,5 @@ if __name__ == '__main__':
     if not os.path.exists(path):
         os.mkdir(path)
     os.chdir(path)
-    plot_yesterday_zt('zrzt',current=current)
+    for plot_type in ['zrzt','zdt']:
+        plot_yesterday_zt(plot_type,current=current)
