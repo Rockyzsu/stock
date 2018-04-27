@@ -1,7 +1,8 @@
 #-*-coding=utf-8-*-
 import datetime
 import os
-
+import matplotlib
+matplotlib.use("Pdf")
 from setting import get_engine
 import pandas as pd
 import tushare as ts
@@ -71,10 +72,10 @@ def plot_yesterday_zt(type_name='zrzt',current=datetime.datetime.now().strftime(
         plot_stock_line(code,name,table_name=table_name, current=current,start='2018-01-01',save=True)
 
 if __name__ == '__main__':
-    current = '20180423'
-    # current = datetime.datetime.now().strftime('%Y%m%d')
+    # current = '20180423'
+    current = datetime.datetime.now().strftime('%Y%m%d')
     path = os.path.join(os.path.dirname(__file__),'data',current)
     if not os.path.exists(path):
         os.mkdir(path)
     os.chdir(path)
-    plot_yesterday_zt('zdt',current=current)
+    plot_yesterday_zt('zrzt',current=current)
