@@ -46,9 +46,10 @@ class Delivery_Order():
             df_list.append(t)
             # result.append(fee)
         df=pd.concat(df_list)
-        df[u'xxxx']=df[u'成交日期']+df[u'成交时间']
-        df[u'成交日期']=pd.to_datetime(df[u'xxxx'],format='%Y%m%d %H:%M:%S')
-        # df[u'成交日期']=map(lambda x:datetime.datetime.strptime(str(x),"%Y%m%d"),df[u'成交日期'])
+        df=df.reset_index()
+        # df[u'xxxx']=df[u'成交日期']+df[u'成交时间']
+        # df[u'成交日期']=pd.to_datetime(df[u'xxxx'],format='%Y%m%d %H:%M:%S')
+        df[u'成交日期']=map(lambda x:datetime.datetime.strptime(str(x),"%Y%m%d"),df[u'成交日期'])
         df=df[df[u'摘要']!=u'申购配号']
         df=df[df[u'摘要']!=u'质押回购拆出']
         df=df[df[u'摘要']!=u'拆出质押购回']
@@ -59,8 +60,8 @@ class Delivery_Order():
         del df[u'备注']
         del df[u'股东帐户']
         del df[u'结算汇率']
-        del df[u'Unnamed: 16']
 
+        del df[u'Unnamed: 16']
         df=df.sort_values(by=u'成交日期')
         df=df.set_index(u'成交日期')
 
@@ -96,12 +97,12 @@ class Delivery_Order():
         j=[i for i in range(1,13)]
         result=[]
         for i in range(1,2):
-            filename='GJ_2018_04-week4.csv'
+            filename='GJ-2018-01-04-01.csv'
             # filename='GJ_2018_%s.xls' %str(i).zfill(2)
             print filename
             try:
                 t=pd.read_csv(filename,encoding='gbk',dtype={u'证券代码':np.str})
-                print t
+                # print t
             except Exception,e:
                 print e
                 continue
@@ -111,9 +112,30 @@ class Delivery_Order():
             df_list.append(t)
             # result.append(fee)
         df=pd.concat(df_list)
+        # print 'before reset index'
         # print df
-        df[u'成交日期']=pd.to_datetime(df[u'成交日期'],format='%Y%m%d')
-        # df[u'成交日期']=map(lambda x:datetime.datetime.strptime(str(x),"%Y%m%d"),df[u'成交日期'])
+        df=df.reset_index(drop='True')
+
+        # print 'after reset index'
+        # print df
+        df[u'成交时间']=map(lambda x:x.zfill(8),df[u'成交时间'])
+        df[u'成交日期'] = df[u'成交日期'].astype(np.str) + df[u'成交时间']
+        # print df.index
+        for i in df[u'成交日期'].values:
+            print i
+            try:
+                x=datetime.datetime.strptime(i, "%Y%m%d%H:%M:%S").strftime('%Y-%m-%d %H:%M:%S')
+            # print x
+        # df[u'成交日期']=
+            except Exception,e:
+                print  e
+                print i
+        try:
+            df[u'成交日期']=map(lambda x:datetime.datetime.strptime(x,"%Y%m%d%H:%M:%S").strftime('%Y-%m-%d %H:%M:%S'),df[u'成交日期'])
+            df[u'成交日期']=pd.to_datetime(df[u'成交日期'],format='%Y-%m-%d %H:%M%S')
+        except Exception,e:
+            print e
+        print df.info()
         # df=df[df[u'摘要']!=u'申购配号']
         # df=df[df[u'摘要']!=u'质押回购拆出']
         # df=df[df[u'摘要']!=u'拆出质押购回']
@@ -122,14 +144,19 @@ class Delivery_Order():
         # print df['2017-01']
         # del df[u'合同编号']
         # del df[u'备注']
+
         del df[u'股东帐户']
+        del df[u'成交时间']
+
         # del df[u'结算汇率']
         # del df[u'Unnamed: 17']
 
-        df=df.sort_values(by=u'成交日期')
-        df=df.set_index(u'成交日期')
+        df=df.sort_values(by=u'成交日期',ascending=False)
+        # df=df.set_index(u'成交日期')
+        print df.info()
+        # print df
         #
-        df.to_sql('tb_delivery_GJ',engine,if_exists='append')
+        df.to_sql('tb_delivery_GJ',engine,if_exists='replace')
         # df=df[(df[u'摘要']==u'证券卖出') | (df[u'摘要']==u'证券买入')]
         # df= df.groupby(df[u'证券名称'])
         # print df.describe()
@@ -199,8 +226,8 @@ def bank_account():
 
 def main():
     obj=Delivery_Order()
-    # obj.years_gj()
-    obj.years()
+    obj.years_gj()
+    # obj.years()
     # bank_account()
     # obj.pretty()
 
