@@ -1,12 +1,11 @@
 # -*-coding=utf-8-*-
 
-import MySQLdb
 from setting import get_mysql_conn
 import os
 
-db_name = 'qdm225205669_db'
+db_name = 'db_stock'
 
-conn = get_mysql_conn(db_name)
+conn = get_mysql_conn(db_name,local=True)
 
 cur = conn.cursor()
 

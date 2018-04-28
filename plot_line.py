@@ -26,8 +26,8 @@ def plot_stock_line(code,name,table_name,current,start='2017-10-01',save=False):
     title=u'{} {} {} {}'.format(current,code,name,table_name)
     if os.path.exists(title+ '.png'):
         return
-    engine = get_engine('db_stock',local=True)
 
+    engine = get_engine('db_stock',local=True)
     fig = plt.figure(figsize=(10,8))
     base_info = pd.read_sql('tb_basic_info',engine,index_col='index')
     # fig,(ax,ax2)=plt.subplots(2,1,sharex=True,figsize=(16,10))
@@ -35,7 +35,7 @@ def plot_stock_line(code,name,table_name,current,start='2017-10-01',save=False):
     ax2=fig.add_axes([0,0.1,1,0.25])
     if code is None and name is not None:
         code = base_info[base_info['name']==name]['code'].values[0]
-        print code
+        # print code
     df = None
     for _ in range(4):
         api = ts.get_apis()
