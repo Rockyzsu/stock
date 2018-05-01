@@ -32,9 +32,9 @@ def create_tb(conn):
         conn.rollback()
         return False
 
-def getinfo(max_index_user=3, years='2018-', days=-1):
+def getinfo(max_index_user=3, days=-1):
     last_day = datetime.datetime.now() + datetime.timedelta(days=days)
-    # print last_day
+    print last_day
     stock_news_site = "http://ggjd.cnstock.com/gglist/search/ggkx/"
 
     my_useragent = [
@@ -100,8 +100,16 @@ def getinfo(max_index_user=3, years='2018-', days=-1):
         for i in all_content:
             news_time = i.string
             # print news_time
-            news_time_f = datetime.datetime.strptime(years + news_time, '%Y-%m-%d %H:%M')
             node = i.next_sibling
+
+            url=node['href']
+            print url
+            try:
+                year = re.findall('tjd_ggkx/(\d+)/',url)[0][:4]
+                print year
+            except Exception,e:
+                continue
+            news_time_f = datetime.datetime.strptime(year +'-' +news_time, '%Y-%m-%d %H:%M')
 
             if news_time_f >= last_day:
                 # news_time_f=news_time_f.replace(2018)
@@ -110,7 +118,7 @@ def getinfo(max_index_user=3, years='2018-', days=-1):
                 # print "inside %d" %num
                 # print str_temp
                 cmd = '''INSERT INTO tb_cnstock (Date,Title,URL ) VALUES(\'%s\',\'%s\',\'%s\');''' % (
-                    years + news_time, node['title'].strip(), node['href'].strip())
+                    news_time_f, node['title'].strip(), node['href'].strip())
                 # print cmd
                 cmd_list.append(cmd)
                 # try:
@@ -134,30 +142,36 @@ def getinfo(max_index_user=3, years='2018-', days=-1):
 
     db_name='db_stock'
     conn =get_mysql_conn(db_name,local=True)
-    create_tb(conn)
+    # create_tb(conn)
     cur = conn.cursor()
     for i in cmd_list:
         try:
             cur.execute(i)
+            conn.commit()
+
         except Exception,e:
+            print e
             conn.rollback()
 
     conn.commit()
-    conn.close()
+    # conn.close()
 
     db_name='qdm225205669_db'
     conn2=get_mysql_conn(db_name,local=False)
-    create_tb(conn2)
+    # create_tb(conn2)
     cur2=conn2.cursor()
     for i in cmd_list:
         try:
             cur2.execute(i)
+            conn2.commit()
+
         except Exception,e:
             print e
             conn2.rollback()
     conn2.commit()
     conn2.close()
 
+    conn.close()
 
 if __name__ == "__main__":
 
