@@ -114,9 +114,19 @@ class LLogger:
         except Exception,e:
             self.logger.debug(e)
 
+def trading_time():
+    current = datetime.datetime.now()
+    start = datetime.datetime(current.year,current.month,current.day,9,23,0)
+    end = datetime.datetime(current.year,current.month,current.day,15,0,5)
+    if current > start and current < end:
+        return True
+    else:
+        return False
+
 if __name__ == '__main__':
     # msg=MsgSend(u'wei')
     # msg.send_price('hsdq',12,12,'sell')
     # print FROM_MAIL
     print os.path.dirname(__file__)
     # mylogger('test.log','just for test')
+    trading_time()
