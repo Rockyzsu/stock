@@ -25,6 +25,7 @@ class ReachTarget():
             if True:
                 price_list = ts.quotes(self.cb_code,conn=self.api)
                 print price_list
+                
                 time.sleep(60)
             else:
                 time.sleep(60)
