@@ -16,6 +16,7 @@ class Jisilu:
             'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
             'X-Requested-With': 'XMLHttpRequest'}
         self.post_data = {
+            'btype':'C',
             'listed': 'Y',
             'rp': '50'
         }
@@ -59,7 +60,7 @@ class Jisilu:
             del df['stock_id']
             del df['full_price']
             del df['pre_bond_id']
-            del df['convert_cd']
+            # del df['convert_cd']
             del df['ytm_rt']
             del df['ytm_rt_tax']
             del df['repo_cd']
@@ -74,13 +75,13 @@ class Jisilu:
             del df['repo_discount_rt']
             df['premium_rt'] = map(lambda x: float(x.replace('%', '')), df['premium_rt'])
 
-            df = df.rename(columns={'bond_id': u'可转债代码', 'bond_nm': u'可转债名称', 'stock_nm': u'正股名称', 'sprice': u'正股现价',
+            df = df.rename(columns={'bond_id': u'可转债代码', 'bond_nm': u'可转债名称', 'stock_nm': u'正股名称', 'stock_cd':u'正股代码','sprice': u'正股现价',
                                     'sincrease_rt': u'正股涨跌幅',
                                     'convert_price': u'最新转股价', 'premium_rt': u'溢价率', 'increase_rt': u'可转债涨幅',
-                                    'put_convert_price': u'回售 触发价', 'short_maturity_dt': u'到期时间', 'volume': u'成交额(万元)',
-                                    'price': u'可转债价格'})
-            df = df[[u'可转债代码', u'可转债名称', u'可转债涨幅', u'可转债价格', u'正股名称', u'正股现价', u'正股涨跌幅', u'最新转股价', u'溢价率', u'回售 触发价',
-                     u'到期时间']]
+                                    'put_convert_price': u'回售 触发价', 'convert_cd':u'转股起始日','short_maturity_dt': u'到期时间', 'volume': u'成交额(万元)',
+                                    'price': u'可转债价格','redeem_price':u'强赎价格','year_left':u'剩余时间'})
+            # df = df[[u'可转债代码', u'可转债名称', u'可转债涨幅', u'可转债价格', u'正股名称', u'正股现价', u'正股涨跌幅', u'最新转股价', u'溢价率', u'回售 触发价',
+            #          u'到期时间']]
             df[u'更新日期'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
         df.to_sql('tb_bond_jisilu', engine, if_exists='replace')
 
