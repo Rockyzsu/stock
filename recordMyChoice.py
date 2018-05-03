@@ -162,6 +162,26 @@ class StockRecord:
         cmd = u'UPDATE `{}` SET `保本价`={} where `证券代码`={};'.format(self.table_name, content, code)
         self._exe(cmd)
 
+    def update_sold(self):
+        cur = self.conn.cursor()
+        tb_name = 'tb_sold_stock'
+        cur.execute('select * from {}'.format(tb_name))
+        content = cur.fetchall()
+        db_daily = get_mysql_conn('db_daily')
+        db_cursor=db_daily.cursor()
+        stock_table = datetime.datetime.now().strftime('%Y-%m-%d')
+        # stock_table = '2018-05-02'
+        for i in content:
+            cmd='select `trade` from `{}` where `code`=\'{}\''.format(stock_table,i[0])
+            print cmd
+            db_cursor.execute(cmd)
+            ret = db_cursor.fetchone()
+            sold_price = i[2]
+            percentange =round(float(ret[0]- sold_price)/sold_price*100,2)
+            update_cmd = u'update  `{}` set `当前价`={} ,`卖出后涨跌幅`= {} where `代码`=\'{}\''.format(tb_name,ret[0],percentange,i[0])
+            print update_cmd
+            cur.execute(update_cmd)
+            self.conn.commit()
 
 if __name__ == "__main__":
 
@@ -174,4 +194,5 @@ if __name__ == "__main__":
     # obj.delete(u'深F120')
     # obj.insert('300580',u'贝斯特',19.88,200)
     obj.update_daily()
+    obj.update_sold()
     # obj.update_item('300580',32.568)
