@@ -176,7 +176,7 @@ class StockRecord:
             print cmd
             db_cursor.execute(cmd)
             ret = db_cursor.fetchone()
-            sold_price = i[2]
+            sold_price = i[3]
             percentange =round(float(ret[0]- sold_price)/sold_price*100,2)
             update_cmd = u'update  `{}` set `当前价`={} ,`卖出后涨跌幅`= {} where `代码`=\'{}\''.format(tb_name,ret[0],percentange,i[0])
             print update_cmd
