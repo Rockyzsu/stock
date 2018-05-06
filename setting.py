@@ -117,11 +117,20 @@ class LLogger:
 def trading_time():
     current = datetime.datetime.now()
     start = datetime.datetime(current.year,current.month,current.day,9,23,0)
-    end = datetime.datetime(current.year,current.month,current.day,15,0,5)
-    if current > start and current < end:
-        return True
-    else:
-        return False
+    noon_start = datetime.datetime(current.year,current.month,current.day,12,58,0)
+
+    morning_end = datetime.datetime(current.year,current.month,current.day,11,31,0)
+    end = datetime.datetime(current.year,current.month,current.day,15,2,5)
+    if current > start and current < morning_end:
+        return 0
+
+    elif current >noon_start and current< end:
+        return 0
+
+    elif current> end:
+        return 1
+    elif current<start:
+        return -1
 
 if __name__ == '__main__':
     # msg=MsgSend(u'wei')
