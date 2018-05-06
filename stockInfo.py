@@ -16,8 +16,9 @@ import os, sys
 # import itchat
 # import MySQLdb
 # import setting
-from setting import sendmail
+from setting import sendmail,LLogger
 from setting import get_mysql_conn
+logger = LLogger('news.log')
 
 def create_tb(conn):
     cur=conn.cursor()
@@ -28,13 +29,12 @@ def create_tb(conn):
         # conn.close()
         return True
     except Exception, e:
-        print e
+        logger.log(e)
         conn.rollback()
         return False
 
 def getinfo(max_index_user=3, days=-1):
     last_day = datetime.datetime.now() + datetime.timedelta(days=days)
-    print last_day
     stock_news_site = "http://ggjd.cnstock.com/gglist/search/ggkx/"
 
     my_useragent = [
@@ -82,9 +82,9 @@ def getinfo(max_index_user=3, days=-1):
                 e.fp.read()
             except urllib2.URLError as e:
                 if hasattr(e, 'code'):
-                    print "error code %d" % e.code
+                    logger.log("error code %d" % e.code)
                 elif hasattr(e, 'reason'):
-                    print "error reason %s " % e.reason
+                    logger.log("error reason %s " % e.reason)
 
             finally:
                 if resp:
@@ -94,7 +94,7 @@ def getinfo(max_index_user=3, days=-1):
             soup = BeautifulSoup(raw_content, "html.parser")
             all_content = soup.find_all("span", "time")
         except Exception,e:
-            print e
+            logger.log(e)
             return None
         # cmd_list = []
         for i in all_content:
@@ -103,10 +103,8 @@ def getinfo(max_index_user=3, days=-1):
             node = i.next_sibling
 
             url=node['href']
-            print url
             try:
                 year = re.findall('tjd_ggkx/(\d+)/',url)[0][:4]
-                print year
             except Exception,e:
                 continue
             news_time_f = datetime.datetime.strptime(year +'-' +news_time, '%Y-%m-%d %H:%M')
@@ -138,7 +136,8 @@ def getinfo(max_index_user=3, days=-1):
         index = index + 1
 
     f_open.close()
-    sendmail(''.join(all_contents), temp_time)
+    if len(all_contents)>0:
+        sendmail(''.join(all_contents), temp_time)
 
     db_name='db_stock'
     conn =get_mysql_conn(db_name,local=True)
@@ -150,7 +149,7 @@ def getinfo(max_index_user=3, days=-1):
             conn.commit()
 
         except Exception,e:
-            print e
+            logger.log(e)
             conn.rollback()
 
     conn.commit()
