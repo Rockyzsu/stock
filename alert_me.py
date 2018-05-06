@@ -31,8 +31,8 @@ class ReachTarget():
     # 可转债的监测
     def monitor(self):
         while 1:
-
-            if trading_time():
+            current = trading_time()
+            if current ==0:
             # if True:
                 try:
                     price_df = ts.quotes(self.code_list, conn=self.api)
@@ -64,11 +64,20 @@ class ReachTarget():
                     logger.log(e)
                     self.api=ts.get_apis()
                     time.sleep(EXECEPTION_TIME)
-            else:
+            elif current==-1:
                 time.sleep(LOOP__TIME)
 
+            elif current==1:
+                try:
+                    ts.close_apis(self.api)
+                except Exception,e:
+                    logger.log('fail to  stop monitor {}'.format(datetime.datetime.now()))
+                exit(0)
 
 if __name__ == '__main__':
-    print datetime.datetime.now()
+    today =  datetime.datetime.now().strftime('%Y-%m-%d')
+    # if ts.is_holiday(today):
+    #     logger.log('{} holiday'.format(today))
+    #     exit(0)
     obj = ReachTarget()
     obj.monitor()
