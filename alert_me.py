@@ -76,8 +76,8 @@ class ReachTarget():
 
 if __name__ == '__main__':
     today =  datetime.datetime.now().strftime('%Y-%m-%d')
-    # if ts.is_holiday(today):
-    #     logger.log('{} holiday'.format(today))
-    #     exit(0)
+    if ts.is_holiday(today):
+        logger.log('{} holiday'.format(today))
+        exit(0)
     obj = ReachTarget()
     obj.monitor()
