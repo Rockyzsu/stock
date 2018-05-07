@@ -5,8 +5,9 @@ import datetime
 __author__ = 'Rocky'
 import tushare as ts
 import os
-from setting import get_engine
+from setting import get_engine,LLogger
 import pandas as pd
+logger=LLogger('collect_data.log')
 
 class SaveData():
     today = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -63,6 +64,10 @@ def main():
     obj.basic_info()
 
 if __name__=='__main__':
+    today =  datetime.datetime.now().strftime('%Y-%m-%d')
+    if ts.is_holiday(today):
+        logger.log('{} holiday'.format(today))
+        exit(0)
     main()
     # SaveData.daily_market()
     # obj.get_classified_stock(2018,1)
