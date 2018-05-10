@@ -5,7 +5,7 @@ import os
 
 db_name = 'db_stock'
 
-conn = get_mysql_conn(db_name,local=True)
+conn = get_mysql_conn(db_name,local=False)
 
 cur = conn.cursor()
 
