@@ -14,7 +14,7 @@ EXECEPTION_TIME = 2* LOOP__TIME
 
 class ReachTarget():
     def __init__(self):
-        self.cb_code,self.name self.yjl= list(self.bond())
+        self.cb_code, self.name, self.yjl= list(self.bond())
         self.stocks = dict(zip(self.cb_code,self.name))
         self.stocks_yjl = dict(zip(self.cb_code,self.yjl))
         self.api = ts.get_apis()
