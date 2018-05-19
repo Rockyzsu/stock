@@ -14,8 +14,9 @@ EXECEPTION_TIME = 2* LOOP__TIME
 
 class ReachTarget():
     def __init__(self):
-        self.cb_code,self.name = list(self.bond())
+        self.cb_code, self.name, self.yjl= list(self.bond())
         self.stocks = dict(zip(self.cb_code,self.name))
+        self.stocks_yjl = dict(zip(self.cb_code,self.yjl))
         self.api = ts.get_apis()
         self.code_list = self.stocks.keys()
 
@@ -24,7 +25,7 @@ class ReachTarget():
         bond_table = 'tb_bond_jisilu'
         try:
             jsl_df = pd.read_sql(bond_table, engine, index_col='index')
-            return list(jsl_df[u'正股代码'].values),list(jsl_df[u'正股名称'].values)
+            return list(jsl_df[u'正股代码'].values),list(jsl_df[u'正股名称'].values,list(jsl_df[u'溢价率']))
         except Exception,e:
             logger.log(e)
             return None
@@ -42,12 +43,15 @@ class ReachTarget():
                     ret_dt = price_df[(price_df['percent']>2) | (price_df['percent']<-2) ][['code','price','percent']]
                     if len(ret_dt)>0:
                         name_list = []
+                        ylj_list=[]
                         # 只会提醒一次，下次就不会再出来了
                         for i in ret_dt['code']:
                             name_list.append(self.stocks[i])
+                            yjl_list.append(self.stocks_yjl[i])
                             self.code_list.remove(i)
                         # name_list =[self.stocks[i] for i in ret_dt['code'] ]
                         ret_dt['name']=name_list
+                        ret_dt[u'溢价率']=yjl_list
                         ret_dt = ret_dt.sort_values(by='percent',ascending=False)
                         ret_dt=ret_dt.reset_index(drop=True)
                         # print ret_dt
