@@ -24,15 +24,12 @@ class Delivery_Order():
         os.chdir(path)
 
     #合并一年的交割单
-    def years(self):
+    def years_ht(self):
         df_list=[]
-        k=[str(i) for i in range(1,13)]
-        # print k
-        j=[i for i in range(1,13)]
-        result=[]
-        for i in range(1,5):
-            # filename='HT_2018-04-week4.csv'
-            filename='2018-%s.xls' %str(i).zfill(2)
+        for i in range(1,2):
+            # 固定一个文件
+            filename='HT_2018-05_week1-3.xls'
+            # filename='2018-%s.xls' %str(i).zfill(2)
             # filename='HT_2018_%s.xls' %str(i).zfill(2)
             print filename
             try:
@@ -226,8 +223,8 @@ def bank_account():
 
 def main():
     obj=Delivery_Order()
-    obj.years_gj()
-    # obj.years()
+    # obj.years_gj()
+    obj.years_ht()
     # bank_account()
     # obj.pretty()
 
