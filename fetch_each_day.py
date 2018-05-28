@@ -15,8 +15,8 @@ from setting import get_engine
 
 class FetchDaily:
     def __init__(self):
-        # self.today = '2018-04-16'
-        self.today = datetime.datetime.now().strftime('%Y-%m-%d')
+        self.today = '2018-08-16'
+        # self.today = datetime.datetime.now().strftime('%Y-%m-%d')
         if ts.is_holiday(self.today):
             exit()
         self.path = os.path.join(os.path.dirname(__file__), 'data')
@@ -29,7 +29,7 @@ class FetchDaily:
     def gettodaymarket(self, re_try=5):
         while re_try > 0:
             try:
-                df = ts.get_today_all()
+                df = ts.get_day_all()
                 if len(df) != 0:
                     return df
             except Exception, e:
@@ -61,7 +61,23 @@ class FetchDaily:
                     print e
                     pass
 
+    def store_new(self):
+        self.df_today_all = self.gettodaymarket()
+        filename = self.today + '_all_.xls'
+        full_filename = os.path.join(self.path, filename)
+        if not os.path.exists(full_filename):
+            if self.df_today_all is not None:
+                try:
+                    self.df_today_all.to_excel(full_filename)
+                except Exception, e:
+                    print e
+                engine = get_engine('db_daily')
+                try:
+                    self.df_today_all.to_sql(self.today, engine)
+                except Exception, e:
+                    print e
+                    pass
 
 if __name__ == "__main__":
     obj = FetchDaily()
-    obj.store()
+    obj.store_new()
