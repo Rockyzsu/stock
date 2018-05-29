@@ -63,9 +63,12 @@ class Simulation():
         for item in ret:
             code = item[3]
             b_price = item[5]
-            current = df[df['code']==code]['trade'].values[0]
+            # 旧版字段
+            # current = df[df['code']==code]['trade'].values[0]
+            current = df[df['code']==code]['price'].values[0]
+
             profit = round((current-b_price)/b_price*100,2)
-            p_change = df[df['code']==code]['changepercent'].values[0]
+            p_change = df[df['code']==code]['p_change'].values[0]
             cmd = u'update tb_simulation set `当前日期`=\'{}\', `当前价格`={}, `今日涨幅`={},`盈亏比例`={}  where `代码`=\'{}\''.format(self.today,current,round(p_change,2),profit,code)
             cur.execute(cmd)
             try:
