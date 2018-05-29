@@ -10,7 +10,8 @@ from setting import get_engine, get_mysql_conn
 import pandas as pd
 import numpy as np
 from collections import OrderedDict
-
+import matplotlib
+matplotlib.use("Pdf")
 pd.set_option('display.max_rows', None)
 import matplotlib.pyplot as plt
 
