@@ -68,7 +68,7 @@ class FetchDaily:
         if not os.path.exists(full_filename):
             if self.df_today_all is not None:
                 try:
-                    self.df_today_all.to_excel(full_filename)
+                    self.save_to_excel(self.df_today_all,full_filename)
                 except Exception, e:
                     print e
                 engine = get_engine('db_daily')
@@ -78,6 +78,16 @@ class FetchDaily:
                     print e
                     pass
 
+    def save_to_excel(self,df,filename,encoding='gbk'):
+        try:
+            df.to_csv('temp.csv',encoding=encoding,index=False)
+            df=pd.read_csv('temp.csv',encoding=encoding,dtype={'code':str})
+            df.to_excel(filename,encoding=encoding)
+            return True
+        except Exception,e:
+            print "Save to excel faile"
+            print e
+            return None
 if __name__ == "__main__":
     obj = FetchDaily()
     obj.store_new()
