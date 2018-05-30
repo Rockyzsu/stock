@@ -55,8 +55,9 @@ class FetchDaily:
                 except Exception, e:
                     print e
                 engine = get_engine('db_daily')
+                # print self.df_today_all
                 try:
-                    self.df_today_all.to_sql(self.today, engine)
+                    self.df_today_all.to_sql(self.today, engine,if_exists='fail')
                 except Exception, e:
                     print e
                     pass
