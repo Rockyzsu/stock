@@ -29,7 +29,7 @@ class FetchDaily:
     def gettodaymarket(self, re_try=5):
         while re_try > 0:
             try:
-                df = ts.get_day_all()
+                df = ts.get_today_all()
                 if len(df) != 0:
                     return df
             except Exception, e:
