@@ -90,4 +90,5 @@ class FetchDaily:
             return None
 if __name__ == "__main__":
     obj = FetchDaily()
-    obj.store_new()
+    # obj.store_new()
+    obj.store()
