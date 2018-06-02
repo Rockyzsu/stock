@@ -28,7 +28,7 @@ class Delivery_Order():
         df_list=[]
         for i in range(1,2):
             # 固定一个文件
-            filename='HT_2018-05_week1-3.xls'
+            filename='HT_2018-05_week4-5.xls'
             # filename='2018-%s.xls' %str(i).zfill(2)
             # filename='HT_2018_%s.xls' %str(i).zfill(2)
             print filename
@@ -94,12 +94,13 @@ class Delivery_Order():
         j=[i for i in range(1,13)]
         result=[]
         for i in range(1,2):
-            filename='GJ-2018-01-04-01.csv'
+            filename='GJ-2018-05.csv'
             # filename='GJ_2018_%s.xls' %str(i).zfill(2)
             print filename
             try:
+                # t=pd.read_table(filename,encoding='gbk',dtype={u'证券代码':np.str})
                 t=pd.read_csv(filename,encoding='gbk',dtype={u'证券代码':np.str})
-                # print t
+                print t
             except Exception,e:
                 print e
                 continue
@@ -150,10 +151,10 @@ class Delivery_Order():
 
         df=df.sort_values(by=u'成交日期',ascending=False)
         # df=df.set_index(u'成交日期')
-        print df.info()
+        # print df.info()
         # print df
         #
-        df.to_sql('tb_delivery_GJ',engine,if_exists='replace')
+        df.to_sql('tb_delivery_GJ',engine,if_exists='append')
         # df=df[(df[u'摘要']==u'证券卖出') | (df[u'摘要']==u'证券买入')]
         # df= df.groupby(df[u'证券名称'])
         # print df.describe()
@@ -223,8 +224,8 @@ def bank_account():
 
 def main():
     obj=Delivery_Order()
-    # obj.years_gj()
-    obj.years_ht()
+    obj.years_gj()
+    # obj.years_ht()
     # bank_account()
     # obj.pretty()
 
