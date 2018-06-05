@@ -14,7 +14,7 @@ EXECEPTION_TIME = 2* LOOP__TIME
 
 class ReachTarget():
     def __init__(self):
-        self.cb_code, self.name, self.yjl= list(self.bond())
+        self.cb_code, self.name, self.yjl= self.bond()
         self.stocks = dict(zip(self.cb_code,self.name))
         self.stocks_yjl = dict(zip(self.cb_code,self.yjl))
         self.api = ts.get_apis()
@@ -25,7 +25,7 @@ class ReachTarget():
         bond_table = 'tb_bond_jisilu'
         try:
             jsl_df = pd.read_sql(bond_table, engine, index_col='index')
-            return list(jsl_df[u'正股代码'].values),list(jsl_df[u'正股名称'].values,list(jsl_df[u'溢价率']))
+            return list(jsl_df[u'正股代码'].values),list(jsl_df[u'正股名称'].values),list(jsl_df[u'溢价率'].values)
         except Exception,e:
             logger.log(e)
             return None
