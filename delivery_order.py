@@ -18,7 +18,7 @@ pd.set_option('display.max_rows',None)
 class Delivery_Order():
     def __init__(self):
         print "Start"
-        path=os.path.join(os.getcwd(),'private/2018/')
+        path=os.path.join(os.getcwd(),'private/2018/GJ')
         if os.path.exists(path)==False:
             os.mkdir(path)
         os.chdir(path)
@@ -94,13 +94,14 @@ class Delivery_Order():
         j=[i for i in range(1,13)]
         result=[]
         for i in range(1,2):
-            filename='GJ-2018-05.csv'
+            # filename='GJ_2018_0{}.csv'.format(i)
+            filename='GJ_2018_06_week2.csv'
             # filename='GJ_2018_%s.xls' %str(i).zfill(2)
             print filename
             try:
                 # t=pd.read_table(filename,encoding='gbk',dtype={u'证券代码':np.str})
                 t=pd.read_csv(filename,encoding='gbk',dtype={u'证券代码':np.str})
-                print t
+                # print t
             except Exception,e:
                 print e
                 continue
