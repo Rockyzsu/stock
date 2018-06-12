@@ -43,7 +43,7 @@ class ReachTarget():
                     ret_dt = price_df[(price_df['percent']>2) | (price_df['percent']<-2) ][['code','price','percent']]
                     if len(ret_dt)>0:
                         name_list = []
-                        ylj_list=[]
+                        yjl_list=[]
                         # 只会提醒一次，下次就不会再出来了
                         for i in ret_dt['code']:
                             name_list.append(self.stocks[i])
