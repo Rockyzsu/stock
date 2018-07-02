@@ -47,8 +47,8 @@ class CheckStock():
             if len(df)==0:
                 print "Pause of exchange"
                 return id,'pause'
-        except Exception,e:
-            print e
+        except Exception as e:
+            print(e)
             print "ERROR"
             return id,'pause'
 
@@ -185,8 +185,8 @@ def sub_process_ratio(i,q):
         if len(df)==0:
             print "Pause of exchange"
             return i,'pause'
-    except Exception,e:
-        print e
+    except Exception as e:
+        print(e)
         print "ERROR"
         return id,'pause'
 

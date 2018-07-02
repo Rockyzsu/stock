@@ -30,8 +30,8 @@ class Jisilu:
                     continue
                 else:
                     return r
-            except Exception, e:
-                print e
+            except Exception as e:
+                print(e)
                 continue
         return None
 

@@ -56,7 +56,7 @@ class GetZDT:
                     time.sleep(60)
                     logger.log('failed to get content, retry: {}'.format(i))
                     continue
-            except Exception, e:
+            except Exception as e:
                 logger.log(e)
                 time.sleep(60)
                 continue
@@ -74,7 +74,7 @@ class GetZDT:
                 t1 = result[0]
                 t2 = list(eval(t1))
                 return t2
-            except Exception,e:
+            except Exception as e:
                 logger.log(e)
                 return None
         else:
@@ -140,7 +140,7 @@ class GetZDT:
             df.to_excel(filename, encoding='gbk')
             try:
                 df.to_sql(self.today + post_fix, engine, if_exists='fail')
-            except Exception,e:
+            except Exception as e:
                 logger.log(e)
 
         if choice == 2:
@@ -152,7 +152,7 @@ class GetZDT:
             df[u'今日涨停强度'] = map(lambda x: round(x, 0), df[u'今日涨停强度'])
             try:
                 df.to_sql(self.today + post_fix, engine, if_exists='fail')
-            except Exception,e:
+            except Exception as e:
                 logger.log(e)
 
     # 昨日涨停今日的状态，今日涨停

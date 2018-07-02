@@ -15,8 +15,8 @@ def create_tb():
     try:
         cur.execute(cmd)
         conn.commit()
-    except Exception, e:
-        print e
+    except Exception as e:
+        print(e)
         conn.rollback()
 
 
@@ -34,8 +34,8 @@ def update_data(filename):
         try:
             cur.execute(cmd)
             conn.commit()
-        except Exception, e:
-            print e
+        except Exception as e:
+            print(e)
             conn.rollback()
 
 

@@ -10,7 +10,7 @@ buy 买入价
 '''
 def percentage(sold,buy):
     x=(sold-buy)*1.00/buy*100
-    print round(x,2)
+    print(round(x,2))
     return x
 
 '''
@@ -20,7 +20,7 @@ sold: 卖出的价格
 '''
 def plan_buy_price(sold,percent):
     buy=sold*1.00/(1+percent*1.00/100)
-    print round(buy,2)
+    print(round(buy,2))
     return buy
 
 #percentage(0.196,0.188)

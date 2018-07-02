@@ -32,8 +32,8 @@ def monitor():
             # print i,
             # print df[df[u'代码']==i][u'名称'].values[0],
             # print  percent
-        except Exception,e:
-            print e
+        except Exception as e:
+            print(e)
             curr_price=0
         if last_close==0:
             percent= np.nan
@@ -62,8 +62,8 @@ def plot_yesterday_zt(type_name='zrzt',current=datetime.datetime.now().strftime(
     table='{}{}'.format(current,table_name)
     try:
         df = pd.read_sql(table,engine)
-    except Exception,e:
-        print e
+    except Exception as e:
+        print(e)
         return
 
     for i in range(len(df)):

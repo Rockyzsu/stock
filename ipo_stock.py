@@ -44,13 +44,13 @@ def profit(code,start,end):
     try:
         # df=ts.bar(code,conn=conn,start_date=start,end_date=end)
         df=ts.get_k_data(code,start=start,end=end)
-    except Exception,e:
-        print e
+    except Exception as e:
+        print(e)
         return None
     try:
         p=(df['close'].iloc[-1]-df['close'].iloc[0])/df['close'].iloc[0]*100.00
-    except Exception,e:
-        print e
+    except Exception as e:
+        print(e)
         return None    
     
     # print p

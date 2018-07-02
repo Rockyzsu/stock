@@ -55,8 +55,8 @@ class Filter_Stock():
         print df
         try:
             df.to_sql(self.today, daily_engine, if_exists='replace')
-        except Exception, e:
-            print e
+        except Exception as e:
+            print(e)
         print "Save {} data to MySQL".format(self.today)
 
     def break_low(self, date):
@@ -102,8 +102,8 @@ class Filter_Stock():
 
         try:
             df = pd.read_sql(cmd, history_engine, index_col='index')
-        except Exception, e:
-            print e
+        except Exception as e:
+            print(e)
             return None, None
         # print df.dtypes
         # 不知道为啥，这里的类型发生改变
@@ -132,9 +132,9 @@ class Filter_Stock():
             df = pd.read_csv('temp.csv', encoding=encoding, dtype={'code': str})
             df.to_excel(filename, encoding=encoding)
             return True
-        except Exception, e:
+        except Exception as e:
             print "Save to excel faile"
-            print e
+            print(e)
             return None
 
     # 专门用来存储数据，数据保存为excel，不必每次都要从网络读取

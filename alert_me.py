@@ -26,7 +26,7 @@ class ReachTarget():
         try:
             jsl_df = pd.read_sql(bond_table, engine, index_col='index')
             return list(jsl_df[u'正股代码'].values),list(jsl_df[u'正股名称'].values),list(jsl_df[u'溢价率'].values)
-        except Exception,e:
+        except Exception as e:
             logger.log(e)
             return None
     # 可转债的监测
@@ -59,12 +59,12 @@ class ReachTarget():
                         try:
                             sendmail(ret_dt.to_string(),u'波动的可转债')
                             logger.log("Send mail successfully at {}".format(datetime.datetime.now()))
-                        except Exception,e:
+                        except Exception as e:
                             logger.log('sending mail failed')
                             logger.log(e)
 
                     time.sleep(LOOP__TIME)
-                except Exception, e:
+                except Exception as  e:
                     logger.log(e)
                     self.api=ts.get_apis()
                     time.sleep(EXECEPTION_TIME)
@@ -74,7 +74,7 @@ class ReachTarget():
             elif current==1:
                 try:
                     ts.close_apis(self.api)
-                except Exception,e:
+                except Exception as e:
                     logger.log('fail to  stop monitor {}'.format(datetime.datetime.now()))
                 exit(0)
 

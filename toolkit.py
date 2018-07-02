@@ -48,7 +48,7 @@ class Toolkit():
                     continue
                 result.append(i)
                 #print i
-        except Exception,e:
-            print e
+        except Exception as e:
+            print(e)
             return None
         return result

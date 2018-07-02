@@ -21,8 +21,8 @@ class StoreDB():
         # print type(self.all_codes)
         for index in self.all_info.index:
             # print self.all_info.ix[eachItem].values[0:-1]
-            # print eachItem.index()
-            # print eachItem['timeToMarket']
+            # print(e)achItem.index()
+            # print(e)achItem['timeToMarket']
             code = index
             timeToMarket = self.all_info.ix[code]['timeToMarket']
             if code and timeToMarket:
@@ -34,17 +34,15 @@ class StoreDB():
     def store(self, code, start_date):
         #print code,start_date
         try:
-            print code
-            print start_date
             df = ts.bar(code=code, conn=self.cons,start_date=start_date)
 
-        except Exception,e:
-            print e
+        except Exception as e:
+            print(e)
             return
         try:
             df.to_sql(code, self.engine)
-        except Exception,e:
-            print e
+        except Exception as e:
+            print(e)
             return
         #print df
 
@@ -56,10 +54,8 @@ class DeliveryOrder():
 
     def store_data(self,month):
         filename = os.path.join(self.data_folder,'2017-0{0}.csv'.format(month))
-        print filename
         df =pd.read_csv(filename,encoding='gbk')
 
-        print df
         df.to_sql('delivery',self.engine,if_exists='append')
 
 # 保存市场的基本信息
@@ -77,11 +73,10 @@ def del_db():
     for i in r.keys():
         #print i
         cmd='drop table if exists `{}`'.format(i)
-        print cmd
         try:
             cursor.execute(cmd)
-        except Exception,e:
-            print e
+        except Exception as e:
+            print(e)
 
 
     #print len(r.keys())

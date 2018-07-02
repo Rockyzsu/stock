@@ -46,8 +46,8 @@ def yesterday_zt_location(date='20180404'):
             result.setdefault(area,0)
             result[area]+=1
 
-        except Exception,e:
-            print e
+        except Exception as e:
+            print(e)
 
     new_result = sorted(result.items(),key=lambda x:x[1],reverse=True)
     for k,v in  new_result:

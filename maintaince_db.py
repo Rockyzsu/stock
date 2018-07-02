@@ -22,7 +22,7 @@ def clone_database():
         try:
             result =re.findall('(\d+)zdt$', table[0])
             if result:
-                print table[0]
+                print(table[0])
                 current = result[0]
                 # d= datetime.datetime.strptime(current,'%Y%m%d').strftime('%Y-%m-%d')
                 # print d
@@ -30,14 +30,14 @@ def clone_database():
                 # df[u'涨停日期']=d
                 df=df.rename(columns={u'最后一次涨停时间A':u'最后一次涨停时间',u'第一次涨停时间A':u'第一次涨停时间'})
                 try:
-                    print df.head()
+                    print(df.head())
                     df.to_sql(table[0],local_engine,if_exists='replace')
-                except Exception,e:
-                    print e
+                except Exception as e:
+                    print(e)
 
-        except Exception,e:
-            print e
-            print table[0]
+        except Exception as e:
+            print(e)
+            print(table[0])
         # dfs.append(pd.read_sql(table[0],local_engine))
     # df= pd.concat(dfs)
     # print df.head()
@@ -52,15 +52,15 @@ def merge_database():
         try:
             result =re.findall('(\d+)zdt$', table[0])
             if len(result)>0:
-                print table[0]
+                print(table[0])
                 df =pd.read_sql(table[0],local_engine,index_col='index')
                 dfs.append(df)
 
-        except Exception,e:
-            print e
-            print table[0]
+        except Exception as e:
+            print(e)
+            print(table[0])
     dfx= pd.concat(dfs)
-    print dfx.head()
+    print(dfx.head())
 
     # ali_engine = get_engine(None,local=False)
     local_engine_stock=get_engine('db_stock',local=True)

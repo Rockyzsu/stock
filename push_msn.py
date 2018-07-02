@@ -51,7 +51,7 @@ class MailSend():
             self.smtp.quit()
             print "sent"
         except smtplib.SMTPException, e:
-            print e
+            print(e)
             return 0
 
 def push_wechat(name, real_price, real_percent, type):
@@ -92,8 +92,8 @@ def read_stock(name):
 def meet_price(code, price_up, price_down,type):
     try:
         df = ts.get_realtime_quotes(code)
-    except Exception, e:
-        print e
+    except Exception as e:
+        print(e)
         time.sleep(5)
         return 0
     real_price = df['price'].values[0]
@@ -124,8 +124,8 @@ def meet_price(code, price_up, price_down,type):
 def meet_percent(code, percent_up, percent_down,type):
     try:
         df = ts.get_realtime_quotes(code)
-    except Exception, e:
-        print e
+    except Exception as e:
+        print(e)
         time.sleep(5)
         return 0
     real_price = df['price'].values[0]

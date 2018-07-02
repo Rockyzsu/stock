@@ -11,7 +11,7 @@ def get_content(url,retry=5):
 			if r.status_code == 200 and len(r.text) >0:
 				return r.text
 		except Exception ,e:
-			print e
+			print(e)
 			retry-=1
 
 		if retry == 0 :
@@ -29,8 +29,8 @@ def convert_json(url):
 		js_data = json.loads(js)
 		print js_data
 		lhb_date = js_data.get('data')
-	except Exception,e:
-		print e
+	except Exception as e:
+		print(e)
 		return
 
 def convert_json(url,pattern):
@@ -50,8 +50,8 @@ def convert_json(url,pattern):
 		# for i in lhb_date:
 			# print i
 
-	except Exception,e:
-		print e
+	except Exception as e:
+		print(e)
 		return
 
 def get_result():

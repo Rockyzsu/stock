@@ -16,13 +16,13 @@ def loop_all_stocks():
     for EachStockID in info.index:
         if is_break_high(EachStockID, 50, False):
             print "High price on",
-            print EachStockID,
+            print(e)achStockID,
             print info.ix[EachStockID]['name'].decode('utf-8')
             #sql_db.insert_break_high(all_high_stock)
 
         elif is_break_low(EachStockID, 50, False):
             print "Low price on",
-            print EachStockID,
+            print(e)achStockID,
             print info.ix[EachStockID]['name'].decode('utf-8')
             #sql_db.insert_break_high(all_high_stock)
 

@@ -32,8 +32,8 @@ class FetchDaily:
                 df = ts.get_today_all()
                 if len(df) != 0:
                     return df
-            except Exception, e:
-                print e
+            except Exception as  e:
+                print(e)
                 re_try = re_try - 1
                 time.sleep(self.TIMEOUT)
         return None
@@ -52,14 +52,14 @@ class FetchDaily:
                 self.df_today_all['pb'] = map(lambda x: round(x, 2), self.df_today_all['pb'])
                 try:
                     self.df_today_all.to_excel(full_filename)
-                except Exception, e:
-                    print e
+                except Exception as  e:
+                    print(e)
                 engine = get_engine('db_daily')
                 # print self.df_today_all
                 try:
                     self.df_today_all.to_sql(self.today, engine,if_exists='fail')
-                except Exception, e:
-                    print e
+                except Exception as e:
+                    print(e)
                     pass
 
     def store_new(self):
@@ -70,13 +70,13 @@ class FetchDaily:
             if self.df_today_all is not None:
                 try:
                     self.save_to_excel(self.df_today_all,full_filename)
-                except Exception, e:
-                    print e
+                except Exception as e:
+                    print(e)
                 engine = get_engine('db_daily')
                 try:
                     self.df_today_all.to_sql(self.today, engine)
-                except Exception, e:
-                    print e
+                except Exception as e:
+                    print(e)
                     pass
 
     def save_to_excel(self,df,filename,encoding='gbk'):
@@ -85,9 +85,9 @@ class FetchDaily:
             df=pd.read_csv('temp.csv',encoding=encoding,dtype={'code':str})
             df.to_excel(filename,encoding=encoding)
             return True
-        except Exception,e:
-            print "Save to excel faile"
-            print e
+        except Exception as e:
+            print("Save to excel faile")
+            print(e)
             return None
 if __name__ == "__main__":
     obj = FetchDaily()

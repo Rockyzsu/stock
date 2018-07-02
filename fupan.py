@@ -24,8 +24,8 @@ daily_df = pd.read_sql(today, daily_engine, index_col='index')
 def save_industry():
     try:
         doc.drop()
-    except Exception,e:
-        print e
+    except Exception as e:
+        print(e)
 
     engine = get_engine('db_stock')
     basic_df = pd.read_sql('tb_basic_info',engine,index_col='index')
@@ -39,8 +39,8 @@ def save_industry():
         try:
             # pass
             doc.insert(d)
-        except Exception,e:
-            print e
+        except Exception as e:
+            print(e)
 
 def hot_industry():
     engine = get_engine('db_stock')
@@ -125,8 +125,8 @@ def industry_hot_mongo():
         d[u'日期']=today
         try:
             collection.insert(d)
-        except Exception,e:
-            print e
+        except Exception as e:
+            print(e)
 
 def industry_detail(kind):
     select_detail = {}

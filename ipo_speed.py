@@ -24,7 +24,7 @@ class IPO_Speed():
         #print ipo.info()
         self.start=self.ipo['ipo_date'].values[-1]
         self.end=self.ipo['ipo_date'].values[0]
-        print type(self.end)
+        print(type(self.end))
         #转化类型
         #ipo['ipo_date']=ipo['ipo_date'].astype('datetime64')
         #self.start_d=datetime.datetime.strptime(self.start,'%Y-%m-%d')
@@ -64,10 +64,8 @@ class IPO_Speed():
             temp_end_data=start_data+np.timedelta64(-1,'D')
             t=pd.to_datetime(str(temp_end_data))
             d=t.strftime('%Y-%m-%d')
-            print d
             t1=pd.to_datetime(str(first_date))
             d1=t1.strftime('%Y-%m-%d')
-            print d1
             sz_index_data=ts.get_k_data('399001',index=True,start=d1,end=d)
             #print index_data
             #大盘（深圳，考虑到国家队在上证的操作） 在30天内的收益
@@ -75,8 +73,6 @@ class IPO_Speed():
             after=sz_index_data['close'].values[-1]
             #profit_index=(index_data['close'][-1]-index_data['close'][0])/index_data['close'][0]*100
             p=round((after-before)/before*100,2)
-            print p
-            print count
             count_list.append(count)
             profit_list.append(p)
 
@@ -96,7 +92,6 @@ class IPO_Speed():
         fig2.savefig('profit.png')
         '''
         r=s1.corr(s2)
-        print r
 
 
 

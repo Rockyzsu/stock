@@ -47,7 +47,7 @@ class BreakMonitor():
             self.smtp.quit()
             print "sent"
         except smtplib.SMTPException, e:
-            print e
+            print(e)
             return 0
 
     # 开板提示
@@ -97,8 +97,8 @@ def break_monitor(code, warning_vol):
             if start_monitor:
                 try:
                     df = ts.quotes(code, conn=conn)
-                except Exception,e:
-                    print e
+                except Exception as e:
+                    print(e)
                     time.sleep(EXCEPTION_TIME_OUT)
                     conn = ts.get_apis()
                     continue
@@ -112,8 +112,8 @@ def break_monitor(code, warning_vol):
                 start_monitor = False
                 waiting_time = current + datetime.timedelta(seconds=TIME_RESET)
             time.sleep(NORMAL_TIME_OUT)
-        except Exception, e:
-            print e
+        except Exception as e:
+            print(e)
             time.sleep(EXCEPTION_TIME_OUT)
             conn = ts.get_apis()
             continue

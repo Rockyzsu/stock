@@ -45,7 +45,7 @@ class Jubi_web():
                 self.smtp.connect(self.server)
                 self.smtp.login(self.username, self.password)
             except smtplib.SMTPException, e:
-                print e
+                print(e)
                 return 0
 
         if send=='wechat':
@@ -81,7 +81,7 @@ class Jubi_web():
             self.smtp.quit()
             print "sent"
         except smtplib.SMTPException, e:
-            print e
+            print(e)
             return 0
 
     def warming(self, coin, up_price, down_price,user):
@@ -90,8 +90,8 @@ class Jubi_web():
             time.sleep(5)
             try:
                 data = requests.post(url, data={'coin': coin}).json()
-            except Exception,e:
-                print e
+            except Exception as e:
+                print(e)
                 print "time out. Retry"
                 time.sleep(15)
                 continue
@@ -158,7 +158,7 @@ class Jubi_web():
             data = requests.post(url, data={'coin': coin}).json()
             #print data
         except Exception ,e:
-            print e
+            print(e)
         return data
 
 
@@ -192,8 +192,8 @@ class Jubi_web():
         url='https://www.jubi.com/api/v1/orders/'
         try:
             req=requests.get(url,params={'coin':coin})
-        except Exception,e:
-            print e
+        except Exception as e:
+            print(e)
 
         data=req.json()
         return data

@@ -41,7 +41,7 @@ def pledge_info():
 
 def pledged_detail():
 	df=ts.pledged_detail()
-	print df.tail(10)
+	print(df.tail(10))
 	# for stock in stocks:
 	# 	if len(df[df['code']==stock])!=0:
 	# 		print df[df['code']==stock]
@@ -56,10 +56,10 @@ def do_calculation():
 	# df['unrest_ratio']=map(lambda x:round(x,2),df['unrest_ratio'])
 	# df['rest_ratio']=map(lambda x:round(x,2),df['rest_ratio'])
 	# df.to_sql('tb_pledged_base',engine,if_exists='replace')
-	print 'median ',df['p_ratio'].median()
-	print 'mean ',df['p_ratio'].mean()
-	print 'std ',df['p_ratio'].std()
-	print 'var ',df['p_ratio'].var()
+	print('median ',df['p_ratio'].median())
+	print('mean ',df['p_ratio'].mean())
+	print('std ',df['p_ratio'].std())
+	print('var ',df['p_ratio'].var())
 	plt.figure()
 	plt.hist(df['p_ratio'],20)
 	# plt.hist(df['p_ratio'],10,normed=True)

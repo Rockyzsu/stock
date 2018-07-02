@@ -7,10 +7,10 @@ import smtplib
 from email.mime.text import MIMEText
 from sqlalchemy import create_engine
 import os
-import MySQLdb
+# import MySQLdb
 import itchat
 import json
-
+import pymysql
 cfg_file = os.path.join(os.path.dirname(__file__), 'data.cfg')
 with open(cfg_file, 'r') as f:
     json_data = json.load(f)
@@ -37,7 +37,7 @@ def get_engine(db,local=True):
     if local:
     # engine = create_engine('mysql+pymysql://{}:{}@{}:{}/{}?charset=utf8'.format(MYSQL_USER, MYSQL_PASSWORD, MYSQL_HOST, MYSQL_PORT, db))
         engine = create_engine(
-                                                    'mysql+pymysql://{}:{}@{}:{}/{}?charset=utf8'.format(MYSQL_REMOTE_USER, MYSQL_PASSWORD, MYSQL_REMOTE,
+                                                    'mysql+pymysql://{}:{}@{}:{}/{}?charset=utf8'.format(MYSQL_USER, MYSQL_PASSWORD, MYSQL_HOST,
                                                             MYSQL_PORT, db))
     else:
         db=Ali_DB
@@ -49,10 +49,10 @@ def get_engine(db,local=True):
 
 def get_mysql_conn(db,local=True):
     if local:
-        conn = MySQLdb.connect(MYSQL_REMOTE, MYSQL_REMOTE_USER, MYSQL_PASSWORD, db, charset='utf8')
+        conn = pymysql.connect(MYSQL_REMOTE, MYSQL_REMOTE_USER, MYSQL_PASSWORD, db, charset='utf8')
     else:
         db=Ali_DB
-        conn = MySQLdb.connect(MYSQL_HOST_Ali, MYSQL_USER_Ali, MYSQL_PASSWORD_Ali, db, charset='utf8')
+        conn = pymysql.connect(MYSQL_HOST_Ali, MYSQL_USER_Ali, MYSQL_PASSWORD_Ali, db, charset='utf8')
 
     return conn
 
@@ -68,7 +68,7 @@ class MsgSend:
             if i[u'PYQuanPin'] == self.name:
                 self.toName = i['UserName']
         if not self.toName:
-            print 'print input the right person name'
+            print('please input the right person name')
 
     def send_price(self, name, real_price, real_percent, types):
         content = name + ' ' + str(real_price) + ' ' + str(real_percent) + ' percent ' + types
@@ -94,8 +94,8 @@ def sendmail(content, subject):
         msg['subject'] = subject
         smtp.sendmail(msg['from'], msg['to'], msg.as_string())
         smtp.quit()
-    except Exception, e:
-        print e
+    except Exception as e:
+        print(e)
 
 class LLogger:
     def __init__(self,file_name):
@@ -111,7 +111,7 @@ class LLogger:
     def log(self,content):
         try:
             self.logger.debug(content)
-        except Exception,e:
+        except Exception as e:
             self.logger.debug(e)
 
 def trading_time():
@@ -136,6 +136,5 @@ if __name__ == '__main__':
     # msg=MsgSend(u'wei')
     # msg.send_price('hsdq',12,12,'sell')
     # print FROM_MAIL
-    print os.path.dirname(__file__)
     # mylogger('test.log','just for test')
     trading_time()

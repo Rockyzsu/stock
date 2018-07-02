@@ -59,16 +59,16 @@ class Kline():
             start_data = datetime.datetime.strptime(str(start_data), '%Y%m%d').strftime('%Y-%m-%d')
             df = ts.bar(code, conn=conn, start_date=start_data, adj='qfq')
             print df
-        except Exception, e:
-            print e
+        except Exception as e:
+            print(e)
             return
 
         df.insert(1, 'name', name)
         df = df.reset_index()
         try:
             df.to_sql(code, engine, if_exists='append')
-        except Exception, e:
-            print e
+        except Exception as e:
+            print(e)
 
     def inital_data(self, target):
         if target == 'sql':
@@ -102,8 +102,8 @@ class Kline():
                 try:
                     df1=pd.read_sql_table('xiayingxian',xiayinxian_engine,index_col='index')
                     df = pd.concat([df1, df])
-                except Exception,e:
-                    print e
+                except Exception as e:
+                    print(e)
                     #return None
 
                 df = df.reset_index(drop=True)
@@ -130,13 +130,13 @@ class Kline():
         for code in r0.keys():
             try:
                 cursor.execute(cmd.format(code, date))
-            except Exception, e:
+            except Exception as e:
                 continue
             data = cursor.fetchall()
             #
             try:
                 data_row = data[0]
-            except Exception, e:
+            except Exception as e:
                 continue
             d = dict(zip(('datetime','code', 'name', 'open', 'close', 'high', 'low'), data_row[1:8]))
             self._xiayingxian(d, 0.7)
@@ -194,8 +194,8 @@ def update_daily():
             history_conn = get_mysql_conn('history')
             history_cur = history_conn.cursor()
             history_cur.execute('select count(*) from `{}`;'.format(code))
-        except Exception,e:
-            print e
+        except Exception as e:
+            print(e)
             continue
         l=history_cur.fetchone()
         df = pd.DataFrame(columns=['datetime', 'code', 'name', 'open', 'close', 'high', 'low', 'vol', 'amount'])
@@ -203,17 +203,17 @@ def update_daily():
         try:
             df.to_sql(code, engine, if_exists='append')
             print code
-        except Exception, e:
+        except Exception as e:
             print df
-            print e
+            print(e)
 
 def get_hist_data(code, name, start_data):
     try:
         # start_data = datetime.datetime.strptime(str(start_data), '%Y%m%d').strftime('%Y-%m-%d')
 
         df = ts.bar(code, conn=conn, start_date=start_data, adj='qfq')
-    except Exception, e:
-        print e
+    except Exception as e:
+        print(e)
         return
     hist_con = get_engine('history')
     df.insert(1, 'name', name)
@@ -224,8 +224,8 @@ def get_hist_data(code, name, start_data):
         new_df = pd.concat([df,df2])
         new_df = new_df.reset_index(drop=True)
         new_df.to_sql(code, engine, if_exists='replace')
-    except Exception, e:
-        print e
+    except Exception as e:
+        print(e)
         return
 
 
@@ -246,8 +246,8 @@ class StockThread(Thread):
             try:
                 item = self.rds.lpop('codes')
                 print item
-            except Exception, e:
-                print e
+            except Exception as e:
+                print(e)
                 break
 
             d = eval(item)

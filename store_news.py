@@ -22,8 +22,8 @@ def create_tb():
         conn.commit()
         # conn.close()
         return True
-    except Exception, e:
-        print e
+    except Exception as e:
+        print(e)
         conn.rollback()
         return False
 
@@ -36,7 +36,7 @@ def save_sql():
     for file in files:
         years = re.findall(r'StockNews-\[(.*?)\]-\[.*?\].log', file)
         if len(years):
-            print file
+            print(file)
             cur_year = years[0].split('-')[0]
             f = open(file).readlines()
             loop=4
@@ -75,12 +75,12 @@ def save_sql():
                 # url_link='h'
                 if (count%loop==0) and (date_times) and (titles) and (url_link):
                     cmd='''INSERT INTO tb_cnstock (Date,Title,URL ) VALUES(\'%s\',\'%s\',\'%s\');''' % (date_times, titles, url_link)
-                    print cmd
+                    print(cmd)
                     try:
                         cur.execute(cmd)
                         conn.commit()
-                    except Exception,e:
-                        print e
+                    except Exception as e:
+                        print(e)
                         conn.rollback()
                 count=count+1
 

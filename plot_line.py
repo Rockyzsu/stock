@@ -43,8 +43,8 @@ def plot_stock_line(code,name,table_name,current,start='2017-10-01',save=False):
         try:
             df = ts.bar(code, conn=api, start_date=start)
             break
-        except Exception,e:
-            print e
+        except Exception as e:
+            print(e)
             ts.close_apis(api)
             time.sleep(random.random()*3)
             continue

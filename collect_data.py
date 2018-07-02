@@ -26,8 +26,8 @@ class SaveData():
         df = ts.get_today_all()
         try:
             df.to_sql(SaveData.today,SaveData.daily_engine,if_exists='replace')
-        except Exception,e:
-            print e
+        except Exception as e:
+            print(e)
         print "Save {} data to MySQL".format(SaveData.today)
 
     #获取解禁股
@@ -44,8 +44,8 @@ class SaveData():
                 df=df.reset_index()
                 df[u'更新日期']=datetime.datetime.now().strftime('%Y-%m-%d')
                 df.to_sql('tb_basic_info',engine,if_exists='replace')
-            except Exception,e:
-                print e
+            except Exception as e:
+                print(e)
 
     def save_to_excel(self,df,filename,encoding='gbk'):
         try:
@@ -53,9 +53,9 @@ class SaveData():
             df=pd.read_csv('temp.csv',encoding=encoding,dtype={'code':str})
             df.to_excel(filename,encoding=encoding)
             return True
-        except Exception,e:
+        except Exception as e:
             print "Save to excel faile"
-            print e
+            print(e)
             return None
 
 

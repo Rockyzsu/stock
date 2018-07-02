@@ -34,8 +34,8 @@ class Delivery_Order():
             print filename
             try:
                 t=pd.read_table(filename,encoding='gbk',dtype={u'证券代码':np.str})
-            except Exception,e:
-                print e
+            except Exception as e:
+                print(e)
                 continue
             # fee=t[u'手续费'].sum()+t[u'印花税'].sum()+t[u'其他杂费'].sum()
             # print i," fee: "
@@ -102,8 +102,8 @@ class Delivery_Order():
                 # t=pd.read_table(filename,encoding='gbk',dtype={u'证券代码':np.str})
                 t=pd.read_csv(filename,encoding='gbk',dtype={u'证券代码':np.str})
                 # print t
-            except Exception,e:
-                print e
+            except Exception as e:
+                print(e)
                 continue
             # fee=t[u'手续费'].sum()+t[u'印花税'].sum()+t[u'其他杂费'].sum()
             # print i," fee: "
@@ -126,14 +126,14 @@ class Delivery_Order():
                 x=datetime.datetime.strptime(i, "%Y%m%d%H:%M:%S").strftime('%Y-%m-%d %H:%M:%S')
             # print x
         # df[u'成交日期']=
-            except Exception,e:
+            except Exception as e:
                 print  e
                 print i
         try:
             df[u'成交日期']=map(lambda x:datetime.datetime.strptime(x,"%Y%m%d%H:%M:%S").strftime('%Y-%m-%d %H:%M:%S'),df[u'成交日期'])
             df[u'成交日期']=pd.to_datetime(df[u'成交日期'],format='%Y-%m-%d %H:%M%S')
-        except Exception,e:
-            print e
+        except Exception as e:
+            print(e)
         print df.info()
         # df=df[df[u'摘要']!=u'申购配号']
         # df=df[df[u'摘要']!=u'质押回购拆出']

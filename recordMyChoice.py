@@ -88,8 +88,8 @@ class StockRecord:
         try:
             self.cur.execute(create_table_cmd)
             self.conn.commit()
-        except Exception, e:
-            # print e
+        except Exception as e:
+            # print(e)
             logger.log(e)
             self.conn.rollback()
         with codecs.open(path, 'r', encoding='utf-8') as f:
@@ -125,8 +125,8 @@ class StockRecord:
         try:
             self.cur.execute(cmd)
             self.conn.commit()
-        except Exception, e:
-            # print e
+        except Exception as e:
+            # print(e)
             logger.log(e)
             self.conn.rollback()
 

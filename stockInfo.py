@@ -28,7 +28,7 @@ def create_tb(conn):
         conn.commit()
         # conn.close()
         return True
-    except Exception, e:
+    except Exception as e:
         logger.log(e)
         conn.rollback()
         return False
@@ -93,7 +93,7 @@ def getinfo(max_index_user=3, days=-2):
         try:
             soup = BeautifulSoup(raw_content, "html.parser")
             all_content = soup.find_all("span", "time")
-        except Exception,e:
+        except Exception as e:
             logger.log(e)
             return None
         # cmd_list = []
@@ -105,7 +105,7 @@ def getinfo(max_index_user=3, days=-2):
             url=node['href']
             try:
                 year = re.findall('tjd_ggkx/(\d+)/',url)[0][:4]
-            except Exception,e:
+            except Exception as e:
                 continue
             news_time_f = datetime.datetime.strptime(year +'-' +news_time, '%Y-%m-%d %H:%M')
 
@@ -122,8 +122,8 @@ def getinfo(max_index_user=3, days=-2):
                 # try:
                 #     cur.execute(cmd)
                 #     conn.commit()
-                # except Exception, e:
-                #     print e
+                # except Exception as e:
+                #     print(e)
                 #     conn.rollback()
 
                 all_contents.append(str_temp)
@@ -148,7 +148,7 @@ def getinfo(max_index_user=3, days=-2):
             cur.execute(i)
             conn.commit()
 
-        except Exception,e:
+        except Exception as e:
             logger.log(e)
             conn.rollback()
 
@@ -164,8 +164,8 @@ def getinfo(max_index_user=3, days=-2):
             cur2.execute(i)
             conn2.commit()
 
-        except Exception,e:
-            print e
+        except Exception as e:
+            print(e)
             conn2.rollback()
     conn2.commit()
     conn2.close()
