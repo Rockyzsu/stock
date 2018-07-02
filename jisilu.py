@@ -11,7 +11,9 @@ engine = get_engine('db_bond')
 
 class Jisilu:
     def __init__(self):
-        self.timestamp = long(time.time() * 1000)
+
+        #self.timestamp = long(time.time() * 1000)
+        self.timestamp = int(time.time() * 1000)
         self.headers = {
             'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
             'X-Requested-With': 'XMLHttpRequest'}
