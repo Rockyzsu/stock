@@ -7,13 +7,14 @@ http://30daydo.com
 Contact: weigesysu@qq.com
 '''
 # 每天的涨跌停
-import urllib2, re, time, xlrd, xlwt, sys, os
+import  re, time, xlrd, xlwt, sys, os
 import setting
 import pandas as pd
 import tushare as ts
 from setting import LLogger
-reload(sys)
-sys.setdefaultencoding('gbk')
+import requests
+# reload(sys)
+# sys.setdefaultencoding('gbk')
 
 logger = LLogger('zdt.log')
 class GetZDT:
@@ -44,11 +45,10 @@ class GetZDT:
                             }
 
     def getdata(self, url, headers, retry=5):
-        req = urllib2.Request(url=url, headers=headers)
         for i in range(retry):
             try:
-                resp = urllib2.urlopen(req,timeout=20)
-                content = resp.read()
+                resp = requests.get(url=url, headers=headers)
+                content = resp.text
                 md_check = re.findall('summary|lasttradedate',content)
                 if content and len(md_check)>0:
                     return content
@@ -105,7 +105,7 @@ class GetZDT:
         ws.write(0, 9, u'打开次数')
         ws.write(0, 10, u'振幅')
         ws.write(0, 11, u'涨停强度')
-        print "Rows:%d" % rows
+        print("Rows:%d" % rows)
         for row in data:
             rows = len(data)
             cols = len(row)
@@ -129,7 +129,7 @@ class GetZDT:
         data_len = len(data)
         if choice == 1:
             for i in range(data_len):
-                data[i][choice] = data[i][choice].decode('gbk')
+                data[i][choice] = data[i][choice]
 
         df = pd.DataFrame(data, columns=indexx)
 
@@ -145,11 +145,11 @@ class GetZDT:
 
         if choice == 2:
             df = df.set_index(u'序号')
-            df[u'最大涨幅'] = map(lambda x: round(x * 100, 3), df[u'最大涨幅'])
-            df[u'最大跌幅'] = map(lambda x: round(x * 100, 3), df[u'最大跌幅'])
-            df[u'今日开盘涨幅'] = map(lambda x: round(x * 100, 3), df[u'今日开盘涨幅'])
-            df[u'昨日涨停强度'] = map(lambda x: round(x, 0), df[u'昨日涨停强度'])
-            df[u'今日涨停强度'] = map(lambda x: round(x, 0), df[u'今日涨停强度'])
+            df[u'最大涨幅'] = df[u'最大涨幅'].map(lambda x: round(x * 100, 3))
+            df[u'最大跌幅'] = df[u'最大跌幅'].map(lambda x: round(x * 100, 3))
+            df[u'今日开盘涨幅'] = df[u'今日开盘涨幅'].map(lambda x: round(x * 100, 3))
+            df[u'昨日涨停强度'] = df[u'昨日涨停强度'].map(lambda x: round(x, 0))
+            df[u'今日涨停强度'] = df[u'今日涨停强度'].map(lambda x: round(x, 0))
             try:
                 df.to_sql(self.today + post_fix, engine, if_exists='fail')
             except Exception as e:
