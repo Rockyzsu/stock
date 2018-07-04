@@ -24,6 +24,7 @@ mpl.rcParams['axes.unicode_minus'] = False
 
 def plot_stock_line(code,name,table_name,current,start='2017-10-01',save=False):
     title=u'{} {} {} {}'.format(current,code,name,table_name)
+    title=title.replace('*','_')
     if os.path.exists(title+ '.png'):
         return
 
