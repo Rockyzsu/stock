@@ -47,9 +47,9 @@ class FetchDaily:
         if not os.path.exists(full_filename):
             if self.df_today_all is not None:
                 # 保留小数点的后两位数
-                self.df_today_all['turnoverratio'] = map(lambda x: round(x, 2), self.df_today_all['turnoverratio'])
-                self.df_today_all['per'] = map(lambda x: round(x, 2), self.df_today_all['per'])
-                self.df_today_all['pb'] = map(lambda x: round(x, 2), self.df_today_all['pb'])
+                self.df_today_all['turnoverratio'] = self.df_today_all['turnoverratio'].map(lambda x: round(x, 2))
+                self.df_today_all['per'] = self.df_today_all['per'].map(lambda x: round(x, 2))
+                self.df_today_all['pb'] = self.df_today_all['pb'].map(lambda x: round(x, 2))
                 try:
                     self.df_today_all.to_excel(full_filename)
                 except Exception as  e:
@@ -57,10 +57,9 @@ class FetchDaily:
                 engine = get_engine('db_daily')
                 # print self.df_today_all
                 try:
-                    self.df_today_all.to_sql(self.today, engine,if_exists='fail')
+                    self.df_today_all.to_sql(self.today, engine, if_exists='fail')
                 except Exception as e:
                     print(e)
-                    pass
 
     def store_new(self):
         self.df_today_all = self.gettodaymarket()
@@ -69,7 +68,7 @@ class FetchDaily:
         if not os.path.exists(full_filename):
             if self.df_today_all is not None:
                 try:
-                    self.save_to_excel(self.df_today_all,full_filename)
+                    self.save_to_excel(self.df_today_all, full_filename)
                 except Exception as e:
                     print(e)
                 engine = get_engine('db_daily')
@@ -79,16 +78,18 @@ class FetchDaily:
                     print(e)
                     pass
 
-    def save_to_excel(self,df,filename,encoding='gbk'):
+    def save_to_excel(self, df, filename, encoding='gbk'):
         try:
-            df.to_csv('temp.csv',encoding=encoding,index=False)
-            df=pd.read_csv('temp.csv',encoding=encoding,dtype={'code':str})
-            df.to_excel(filename,encoding=encoding)
+            df.to_csv('temp.csv', encoding=encoding, index=False)
+            df = pd.read_csv('temp.csv', encoding=encoding, dtype={'code': str})
+            df.to_excel(filename, encoding=encoding)
             return True
         except Exception as e:
             print("Save to excel faile")
             print(e)
             return None
+
+
 if __name__ == "__main__":
     obj = FetchDaily()
     # obj.store_new()
