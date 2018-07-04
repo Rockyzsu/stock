@@ -17,27 +17,27 @@ def ban_share(code,name):
     series = df['close']
     '''
     diff_series=[]
-    print series
+    print(series)
     l = len(series)
     for i in range(l-1):
-        print series[i]
+        print(series[i])
         d= series[i]-series[i+1]
         diff_series.append(d)
-    #print len(diff_series)
+    #print(len(diff_series))
     '''
 
     #s2=Series(series)
     s2=series[:len(series)-1]
     s3 = s2.sort_index(ascending=True)
-    #print s3
+    #print(s3)
     s1 = Series(year_2017[0:len(s3)])
     s3=s3.reset_index(drop=True)
-    #print s3
-    #print s1
+    #print(s3)
+    #print(s1)
     cor = s3.corr(s1)
-    #print len(s3)
-    #print len(s1)
-    print cor
+    #print(len(s3))
+    #print(len(s1))
+    print(cor)
     plt.figure()
     plt.subplot(2,1,1)
     s1.plot()
@@ -46,12 +46,12 @@ def ban_share(code,name):
     plt.show()
 
     if abs(cor) >0.5:
-        print 'Great factor: ',code
+        print('Great factor: ',code)
 
 def read_index():
     df = pd.read_excel('data/index_data.xls')
     df['index_data']=df['index_data'].apply(lambda x:str(x).zfill(6))
-    #print df
+    #print(df)
     #df['index_data'].apply(lambda x:ban_share(x))
     for i in range(len(df)):
         code = df.loc[i]['index_data']
@@ -60,5 +60,5 @@ def read_index():
 def main():
     read_index()
     #ban_share('000001')
-    print 'Done'
+    print('Done')
 main()

@@ -28,7 +28,7 @@ class SaveData():
             df.to_sql(SaveData.today,SaveData.daily_engine,if_exists='replace')
         except Exception as e:
             print(e)
-        print "Save {} data to MySQL".format(SaveData.today)
+        print("Save {} data to MySQL".format(SaveData.today))
 
     #获取解禁股
     def get_classified_stock(self,year=None,month=None):
@@ -54,7 +54,7 @@ class SaveData():
             df.to_excel(filename,encoding=encoding)
             return True
         except Exception as e:
-            print "Save to excel faile"
+            print("Save to excel faile")
             print(e)
             return None
 

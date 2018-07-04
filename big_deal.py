@@ -15,26 +15,26 @@ class Monitor_Stock():
     def __init__(self):
         self.mystock=Toolkit.read_stock('mystock.csv')
         self.base=pd.read_csv('bases.csv',dtype={'code': np.str})
-        #print self.base
+        #print(self.base)
     #大于某手的大单
     def getBigDeal(self, code,vol):
         df = ts.get_today_ticks(code)
         t= df[df['volume']>vol]
         s=df[df['amount']>100000000]
-        print '\n'
+        print('\n')
         if t.size!=0:
-            print "Big volume"
-            print self.base[self.base['code']==str(code)]['name'].values[0]
-            print t
+            print("Big volume")
+            print(self.base[self.base['code']==str(code)]['name'].values[0])
+            print(t)
         if s.size!=0:
-            print "Big amount: "
-            print self.base[self.base['code']==str(code)]['name'].values[0]
-            print s
+            print("Big amount: ")
+            print(self.base[self.base['code']==str(code)]['name'].values[0])
+            print(s)
         r=df[df['volume']>vol*10]
         if r.size!=0:
-            print "Super amount:"
-            print self.base[self.base['code']==str(code)]['name'].values[0]
-            print r
+            print("Super amount:")
+            print(self.base[self.base['code']==str(code)]['name'].values[0])
+            print(r)
 
 
     def loops(self):
@@ -45,7 +45,7 @@ class Monitor_Stock():
 
 def main():
     if ts.__version__ != '0.7.5':
-        print "Make sure using tushare 0.7.5"
+        print("Make sure using tushare 0.7.5")
         exit()
     current = os.getcwd()
     folder = os.path.join(current, 'data')

@@ -16,28 +16,28 @@ class calculator_stock():
 
         start_price=ts.get_k_data(start=start,end=start,code=code)
         if len(start_price)==0:
-            print "Not open for start day"
+            print("Not open for start day")
             #采用日期操作，往前移动上一个开盘日.
         s_price=start_price['close'].values[0]
-        print "Start price: ",s_price
+        print("Start price: ",s_price)
 
         end_price=ts.get_k_data(start=end,end=end,code=code)
 
         if len(end_price)==0:
-            print "Not open for end day"
+            print("Not open for end day")
 
         e_price=end_price['close'].values[0]
-        print "End price: ",e_price
+        print("End price: ",e_price)
         earn_profit=(e_price-s_price)/s_price*100
-        print "Profit: ",
-        print round(earn_profit,2)
+        print("Profit: ",)
+        print(round(earn_profit,2))
 
 def percentage(open_price):
     open_price=float(open_price)
     for i in range(1,11):
-        print '{}\t+{}%->{}'.format(open_price,i,open_price*(1+0.01*i))
+        print('{}\t+{}%->{}'.format(open_price,i,open_price*(1+0.01*i)))
     for i in range(1,11):
-        print '{}\t-{}%->{}'.format(open_price,i,open_price*(1-0.01*i))
+        print('{}\t-{}%->{}'.format(open_price,i,open_price*(1-0.01*i)))
 
 if __name__=="__main__":
     ''''

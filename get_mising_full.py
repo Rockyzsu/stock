@@ -11,10 +11,10 @@ def getTotal():
     os.chdir(path)
 
     all=pd.read_csv('bases.csv',dtype={'code':np.str})
-    #print all
+    #print(all)
 
     all_code=all['code'].values
-    #print all_code
+    #print(all_code)
 
     lists=[]
     for i in all_code:
@@ -22,7 +22,7 @@ def getTotal():
         lists.append(df)
 
     all_df=pd.DataFrame(lists)
-    print all_df
+    print(all_df)
     all_df.to_csv('2017-all.csv',encoding='gbk')
     all_df.to_excel('2017-excel.xls')
 

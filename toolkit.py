@@ -30,8 +30,8 @@ class Toolkit():
         account={}
         for i in f.readlines():
             ctype,passwd=i.split('=')
-            #print ctype
-            #print passwd
+            #print(ctype)
+            #print(passwd)
             account[ctype.strip()]=passwd.strip()
 
         return account
@@ -47,7 +47,7 @@ class Toolkit():
                 if len(i)!=6:
                     continue
                 result.append(i)
-                #print i
+                #print(i)
         except Exception as e:
             print(e)
             return None

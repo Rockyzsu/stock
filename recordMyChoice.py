@@ -24,7 +24,7 @@ class Prediction_rate():
         self.today = now.strftime("%Y-%m-%d")
         # weekday=now+datetime.timedelta(days=-2)
         # weekday=weekday.strftime("%Y-%m-%d")
-        # print weekday
+        # print(weekday)
         # today=now.strftime('%Y-%m-%d')
         self.path = os.path.join(os.getcwd(), 'data')
         self.filename = os.path.join(self.path, 'recordMyChoice.xls')
@@ -39,7 +39,7 @@ class Prediction_rate():
         table = wb.sheets()[0]
         nrow = table.nrows
         ncol = table.ncols
-        print "%d*%d" % (nrow, ncol)
+        print("%d*%d" % (nrow, ncol))
         row_start = nrow
         wb_copy = copy(wb)
         sheet = wb_copy.get_sheet(0)
@@ -97,7 +97,7 @@ class StockRecord:
 
         for i in range(1, len(content)):
             code, name, safe_price, count = content[i].strip().split(',')[:4]
-            print code, name, safe_price, count
+            print(code, name, safe_price, count)
             insert_cmd = u'INSERT INTO `tb_profit`  (`证券代码`,`证券名称`,`保本价`,`股票余额`) VALUES(\"%s\",\"%s\",\"%s\",\"%s\");' % (
             code.zfill(6), name, safe_price, count)
             self._exe(insert_cmd)
@@ -153,7 +153,7 @@ class StockRecord:
 
             update_cmd = u'UPDATE {} SET `盈亏比例`={} ,`盈亏`={}, `市值` ={}, `现价` = {},`{}`={} where `证券代码`= {};'.format(
                 self.table_name, profit_ratio, profit, values, current_price, self.today, earn,code)
-            # print update_cmd
+            # print(update_cmd)
             self._exe(update_cmd)
         ts.close_apis(api)
 
@@ -173,13 +173,13 @@ class StockRecord:
         # stock_table = '2018-05-02'
         for i in content:
             cmd='select `trade` from `{}` where `code`=\'{}\''.format(stock_table,i[0])
-            print cmd
+            print(cmd)
             db_cursor.execute(cmd)
             ret = db_cursor.fetchone()
             sold_price = i[3]
             percentange =round(float(ret[0]- sold_price)/sold_price*100,2)
             update_cmd = u'update  `{}` set `当前价`={} ,`卖出后涨跌幅`= {} where `代码`=\'{}\''.format(tb_name,ret[0],percentange,i[0])
-            print update_cmd
+            print(update_cmd)
             cur.execute(update_cmd)
             self.conn.commit()
 

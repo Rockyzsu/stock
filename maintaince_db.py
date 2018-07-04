@@ -25,7 +25,7 @@ def clone_database():
                 print(table[0])
                 current = result[0]
                 # d= datetime.datetime.strptime(current,'%Y%m%d').strftime('%Y-%m-%d')
-                # print d
+                # print(d)
                 df =pd.read_sql(table[0],local_engine,index_col='index')
                 # df[u'涨停日期']=d
                 df=df.rename(columns={u'最后一次涨停时间A':u'最后一次涨停时间',u'第一次涨停时间A':u'第一次涨停时间'})
@@ -40,7 +40,7 @@ def clone_database():
             print(table[0])
         # dfs.append(pd.read_sql(table[0],local_engine))
     # df= pd.concat(dfs)
-    # print df.head()
+    # print(df.head())
 def merge_database():
     local_db =get_mysql_conn('db_zdt',local=True)
     cur = local_db.cursor()

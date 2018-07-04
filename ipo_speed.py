@@ -17,11 +17,11 @@ class IPO_Speed():
 
     def __init__(self):
         self.ipo=ts.new_stocks()
-        #print ipo.info()
+        #print(ipo.info())
 
         #日期转化
         self.ipo['ipo_date']=self.ipo['ipo_date'].astype('datetime64')
-        #print ipo.info()
+        #print(ipo.info())
         self.start=self.ipo['ipo_date'].values[-1]
         self.end=self.ipo['ipo_date'].values[0]
         print(type(self.end))
@@ -29,36 +29,36 @@ class IPO_Speed():
         #ipo['ipo_date']=ipo['ipo_date'].astype('datetime64')
         #self.start_d=datetime.datetime.strptime(self.start,'%Y-%m-%d')
         #self.end_d=datetime.datetime.strptime(self.end,'%Y-%m-%d')
-        #print type(self.start_d)
+        #print(type(self.start_d))
         #period=self.start_d+datetime.timedelta(days=30)
-        #print period.strftime('%Y-%m-%d')
-        #print ipo[ipo['ipo_date']<np.datetime64(period)]
+        #print(period.strftime('%Y-%m-%d'))
+        #print(ipo[ipo['ipo_date']<np.datetime64(period)])
 
 
 
     def comparation(self):
-        #print self.start
-        #print self.end
+        #print(self.start)
+        #print(self.end)
         delta=30
         count_list=[]
         profit_list=[]
         self.period=self.end+np.timedelta64(delta,'D')
-        #print self.period
-        #print self.ipo[self.ipo['ipo_date']<self.period]
-        #print type(self.end.tolist())
+        #print(self.period)
+        #print(self.ipo[self.ipo['ipo_date']<self.period])
+        #print(type(self.end.tolist()))
         l= self.end.tolist()
         ns=1e-9
         b= datetime.utcfromtimestamp(l * ns)
-        #print datetime.fromtimestamp(self.end.tolist())
+        #print(datetime.fromtimestamp(self.end.tolist()))
         c= b.strftime('%Y-%m-%d')
-        #print type(c)
+        #print(type(c))
         start_data=self.start
         while start_data < self.end:
-            #print start_data
+            #print(start_data)
             first_date=start_data
             start_data=start_data+np.timedelta64(delta,'D')
             result=self.ipo[(self.ipo['ipo_date']>=first_date) &(self.ipo['ipo_date']<start_data)]
-            #print result
+            #print(result)
             count=len(result)
 
             temp_end_data=start_data+np.timedelta64(-1,'D')
@@ -67,7 +67,7 @@ class IPO_Speed():
             t1=pd.to_datetime(str(first_date))
             d1=t1.strftime('%Y-%m-%d')
             sz_index_data=ts.get_k_data('399001',index=True,start=d1,end=d)
-            #print index_data
+            #print(index_data)
             #大盘（深圳，考虑到国家队在上证的操作） 在30天内的收益
             before=sz_index_data['close'].values[0]
             after=sz_index_data['close'].values[-1]

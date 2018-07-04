@@ -54,8 +54,8 @@ class ReachTarget():
                         ret_dt[u'溢价率']=yjl_list
                         ret_dt = ret_dt.sort_values(by='percent',ascending=False)
                         ret_dt=ret_dt.reset_index(drop=True)
-                        # print ret_dt
-                        # print datetime.datetime.now()
+                        # print(ret_dt)
+                        # print(datetime.datetime.now())
                         try:
                             sendmail(ret_dt.to_string(),u'波动的可转债')
                             logger.log("Send mail successfully at {}".format(datetime.datetime.now()))

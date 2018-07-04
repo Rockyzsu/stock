@@ -29,9 +29,9 @@ def save_industry():
 
     engine = get_engine('db_stock')
     basic_df = pd.read_sql('tb_basic_info',engine,index_col='index')
-    # print basic_df
+    # print(basic_df)
     for name ,group in basic_df.groupby('industry'):
-        # print name, group
+        # print(name, group)
         d=dict()
         d[u'板块名称']=name
         d[u'代码']=group['code'].values.tolist()
@@ -47,7 +47,7 @@ def hot_industry():
     basic_df = pd.read_sql('tb_basic_info',engine,index_col='index')
     industry_dict = {}
     for name ,group in basic_df.groupby('industry'):
-        # print name, group
+        # print(name, group)
         industry_dict[name]=group['code'].values.tolist()
 
     result={}
@@ -60,10 +60,10 @@ def hot_industry():
             except:
                 percent=0
                 name=''
-            # print i,name,percent
+            # print(i,name,percent)
             mean=mean+float(percent)
         m = round(mean/len(v),2)
-        # print u'{} mean : {}'.format(k,m)
+        # print(u'{} mean : {}'.format(k,m))
         result[k]=m
 
     all_result = sorted(result.items(),key=lambda x:x[1],reverse=True)
@@ -80,15 +80,15 @@ def hot_industry():
         except:
             name=''
         select_detail[name]=float(percent)
-    print u'\n\n{} detail\n'.format(kind)
+    print(u'\n\n{} detail\n'.format(kind))
     select_detail = sorted(select_detail.items(),key=lambda x:x[1],reverse=True)
     for n,p in select_detail:
-        print n,p
+        print(n,p)
 
 def get_industry():
     industry={}
     for i in doc.find({},{'_id':0}):
-        print i.get(u'板块名称')
+        print(i.get(u'板块名称'))
         industry[i.get(u'板块名称')] =i.get(u'代码')
     return industry
 
@@ -105,7 +105,7 @@ def daily_hot_industry():
             except:
                     percent = 0
                     name = ''
-                # print i,name,percent
+                # print(i,name,percent)
             mean = mean + float(percent)
         m = round(mean / len(code_list), 2)
         result[item] = m
@@ -141,10 +141,10 @@ def industry_detail(kind):
         except:
             name = ''
         select_detail[name] = float(percent)
-    print u'\n\n{} detail\n'.format(kind)
+    print(u'\n\n{} detail\n'.format(kind))
     select_detail = sorted(select_detail.items(), key=lambda x: x[1], reverse=True)
     for n, p in select_detail:
-        print n, p
+        print(n, p)
 
 if __name__ == "__main__":
     # save_industry()

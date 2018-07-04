@@ -48,10 +48,10 @@ class New_Stock_Break():
         df3=df1[(df1['date']>=date_start) & (df1['date']<=date_end)]
         v_total_break=df3['volume'].sum()
         l=len(df3)
-        print l
-        print v_total_break
+        print(l)
+        print(v_total_break)
         rate=v_total_break*100*100.00/all_vol #手和股 注意
-        print round(rate,6)
+        print(round(rate,6))
         return rate,l
 
 
@@ -64,23 +64,23 @@ class New_Stock_Break():
         df1=ts.get_k_data(code)
         if len(df1)<3:
             return None
-        #print df1.info()
+        #print(df1.info())
         #df1=df.reset_index()
-        #print df1
+        #print(df1)
         start=df1['date'].values[0]
-        print 'Start day:', start
+        print('Start day:', start)
         df2= df1[(df1['close']==df1['low']) & (df1['high']==df1['low'])]
-        print self.bases[self.bases['code']==code]['name'].values[0]
+        print(self.bases[self.bases['code']==code]['name'].values[0])
         end=df2['date'].values[-1]
-        print "Break day" , end
+        print("Break day" , end)
 
         df3=df1[(df1['date']>=start) & (df1['date']<=end)]
         v_total_break=df3['volume'].sum()
         l=len(df3)
-        print l
-        print v_total_break
+        print(l)
+        print(v_total_break)
         rate=v_total_break*100*100.00/all_vol #手和股 注意
-        print round(rate,6)
+        print(round(rate,6))
         return rate,l
 
     def testcase(self):
@@ -95,8 +95,8 @@ class New_Stock_Break():
                 max_line.append({i:l})
                 k.append(l)
         x=range(len(result))
-        #print x
-        #print result
+        #print(x)
+        #print(result)
         plt.bar(x,result)
         plt.show()
         sum=0
@@ -104,10 +104,10 @@ class New_Stock_Break():
             sum=sum+i
 
         avg=sum*1.00/len(result)
-        print avg
+        print(avg)
         max_v=max(k)
-        print max_v
-        print max_line
+        print(max_v)
+        print(max_line)
 
     def getData(self):
                 #self.calc_open_day('603096')
@@ -115,7 +115,7 @@ class New_Stock_Break():
         max_line=[]
         k=[]
         for i in self.codes:
-            print i
+            print(i)
             name=self.bases[self.bases['code']==i]['name'].values[0]
             rate,l=self.calc_open_by_percent(i)
             if rate is not None:
@@ -125,8 +125,8 @@ class New_Stock_Break():
 
         #作图用的
         #x=range(len(result))
-        #print x
-        #print result
+        #print(x)
+        #print(result)
         #plt.bar(x,result)
         #lt.show()
 

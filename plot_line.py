@@ -35,7 +35,7 @@ def plot_stock_line(code,name,table_name,current,start='2017-10-01',save=False):
     ax2=fig.add_axes([0,0.1,1,0.25])
     if code is None and name is not None:
         code = base_info[base_info['name']==name]['code'].values[0]
-        # print code
+        # print(code)
     df = None
     for _ in range(4):
         api = ts.get_apis()

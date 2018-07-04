@@ -70,7 +70,7 @@ class GetZDT:
         result = p.findall(content)
         if result:
             try:
-            # print result
+            # print(result)
                 t1 = result[0]
                 t2 = list(eval(t1))
                 return t2
@@ -111,11 +111,11 @@ class GetZDT:
             cols = len(row)
             point_y = 0
             for col in row:
-                # print col
+                # print(col)
                 # table.put_cell(row,col,)
-                # print col
+                # print(col)
                 ws.write(point_x, point_y, col)
-                # print "[%d,%d]" % (point_x, point_y)
+                # print("[%d,%d]" % (point_x, point_y))
                 point_y = point_y + 1
 
             point_x = point_x + 1
@@ -186,7 +186,7 @@ if __name__ == '__main__':
     for today in date_list:
 
         if not ts.is_holiday(datetime.datetime.strptime(today,'%Y%m%d').strftime('%Y-%m-%d')):
-            print today
+            print(today)
             obj = GetZDT(today)
             obj.storedata()
         else:

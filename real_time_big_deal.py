@@ -16,7 +16,7 @@ class BigMonitor():
         path=os.path.join(os.getcwd(),'data')
         if os.path.exists(path)==False:
             os.mkdir(path)
-            print "Please put data under data folder"
+            print("Please put data under data folder")
             exit()
         os.chdir(path)
         self.stockList=Toolkit.read_stock('mystock.csv')
@@ -24,13 +24,13 @@ class BigMonitor():
 
     def loop(self,code):
         name=self.bases[self.bases['code']==code]['name'].values[0]
-        print name
+        print(name)
         while 1:
             time.sleep(2)
             df_t1=ts.get_realtime_quotes(code)
             v1=long(df_t1['volume'].values[0])
             p1=float(df_t1['price'].values[0])
-            #print df_t1
+            #print(df_t1)
             time.sleep(2)
             df_t2=ts.get_realtime_quotes(code)
             v2=long(df_t2['volume'].values[0])
@@ -40,9 +40,9 @@ class BigMonitor():
             #计算价差
             price_v=p2-p1
             if delta_v >1000:
-                print datetime.datetime.now().strftime('%H:%M:%S')
-                print "Big deal on %s" %name,
-                print delta_v,'price diff',price_v
+                print(datetime.datetime.now().strftime('%H:%M:%S'))
+                print("Big deal on %s" %name,)
+                print(delta_v,'price diff',price_v)
 
 
     def multi_thread(self,code_list):

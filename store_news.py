@@ -43,33 +43,33 @@ def save_sql():
             count=1
             for content in f:
                 s = content.strip()
-                # print s
+                # print(s)
 
                 if count%loop==2:
                     # if re.search(r'\d+-\d+ \d+:\d+', s):
-                    # print s.split()[2]
+                    # print(s.split()[2])
                     # pass
                     date_times = re.findall('(\d+-\d+ \d+:\d+)', s)[0]
                     date_times=cur_year+'-'+date_times
 
                     titles = re.findall(r'\d+-\d+ \d+:\d+(.*)', s)[0]  # 03-06 16:53
                     titles=titles.strip()
-                    # print title
+                    # print(title)
                     # if title:
                     #     titles = title[0]
-                    #     print 'title', titles
+                    #     print('title', titles)
                     # if date_time:
                     #     date_times = date_time[0]
-                    #     print 'date:', date_times
+                    #     print('date:', date_times)
 
-                # print 'new line'
+                # print('new line')
                 if count%loop==3:
                 # if re.search(r'--->', s):
-                #     print s
+                #     print(s)
                     # pass
                     url_link = re.findall(r'---> (.*)', s)[0]
                     # if url_link:
-                    #     print 'url', url_link[0]
+                    #     print('url', url_link[0])
                 # date_times='h'
                 # titles='h'
                 # url_link='h'

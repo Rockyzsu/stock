@@ -30,27 +30,27 @@ class Simulation():
         engine = get_engine('db_daily')
         df_t = pd.read_sql(self.today, engine, index_col='index')
 
-        print self.df[u'代码'].values
+        print(self.df[u'代码'].values)
         for i in self.df[u'代码'].values:
             name = self.base[self.base['code'] == i]['name'].values[0]
-            print name
+            print(name)
             t = name.decode('utf-8')
             print
-            print type(t)
-            # print chardet.detect(t)
+            print(type(t))
+            # print(chardet.detect(t))
             self.df.ix[self.df[u'代码'] == i, u'当前日期'] = self.today
             # t=ts.get_k_data(i)
 
             pchange = df_t.ix[df_t['code'] == i, 'changepercent'].values[0]
-            print pchange
+            print(pchange)
             self.df.ix[self.df[u'代码'] == i, u'今日涨幅'] = pchange
             current = df_t[df_t['code'] == i]['trade'].values[0]
             self.df.ix[self.df[u'代码'] == i, u'当前价格'] = current
             current_profit = (current - self.df[self.df[u'代码'] == i][u'买入价格'].values[0]) / \
                              self.df[self.df[u'代码'] == i][u'买入价格'].values[0]
             self.df.ix[self.df[u'代码'] == i, u'目前盈亏'] = round(current_profit * 100, 2)
-            print current_profit
-        print self.df
+            print(current_profit)
+        print(self.df)
         self.df.to_excel(self.name, encoding='utf-8')
 
     def calculation_sql(self):
