@@ -56,10 +56,10 @@ class Jubi_web():
             for i in account:
                 if i[u'PYQuanPin']==self.w_name:
                     self.toName= i['UserName']
-                    #print self.toName
+                    #print(self.toName)
                 if i[u'PYQuanPin']==self.w_name1:
                     self.toName1= i['UserName']
-                    #print self.toName
+                    #print(self.toName)
 
     def send_wechat(self,name,content,user):
         w_content=name+' '+content
@@ -79,7 +79,7 @@ class Jubi_web():
         try:
             self.smtp.sendmail(self.msg['from'], self.msg['to'], self.msg.as_string())
             self.smtp.quit()
-            print "sent"
+            print("sent")
         except smtplib.SMTPException, e:
             print(e)
             return 0
@@ -92,14 +92,14 @@ class Jubi_web():
                 data = requests.post(url, data={'coin': coin}).json()
             except Exception as e:
                 print(e)
-                print "time out. Retry"
+                print("time out. Retry")
                 time.sleep(15)
                 continue
 
             current = float(data['last'])
             if current >= up_price:
-                print "Up to ", up_price
-                print "current price ",current
+                print("Up to ", up_price)
+                print("current price ",current)
 
                 if self.send=='msn':
                     self.send_text(coin,str(current))
@@ -108,8 +108,8 @@ class Jubi_web():
 
                 time.sleep(1200)
             if current <= down_price:
-                print "Down to ", down_price
-                print "current price ",current
+                print("Down to ", down_price)
+                print("current price ",current)
                 if self.send=='msn':
                     self.send_text(coin,str(current))
                 if self.send=='wechat':
@@ -143,20 +143,20 @@ class Jubi_web():
         # sha=self.sha_convert(private_key)
         md5 = self.getHash(self.private_key)
         message = 'nonce=' + nonce + '&' + 'key=' + self.public_key
-        # print message
+        # print(message)
         signature = hmac.new(md5, message, digestmod=hashlib.sha256).digest()
-        # print signature
+        # print(signature)
 
         # req=requests.post(url,data={'signature':signature,'key':public_key,'nonce':nonce,'coin':'zet'})
         req = requests.post(url, data={'coin': coin})
-        print req.status_code
-        print req.text
+        print(req.status_code)
+        print(req.text)
 
     def real_time_ticker(self, coin):
         url = 'https://www.jubi.com/api/v1/ticker/'
         try:
             data = requests.post(url, data={'coin': coin}).json()
-            #print data
+            #print(data)
         except Exception ,e:
             print(e)
         return data
@@ -166,27 +166,27 @@ class Jubi_web():
     def real_time_depth(self, coin):
         url = 'https://www.jubi.com/api/v1/depth/'
         data = requests.post(url, data={'coin': coin}).json()
-        print data
+        print(data)
         data_bids = data['bids']
         data_asks = data['asks']
-        print "bids"
+        print("bids")
         for i in data_bids:
-            print i[0],
-            print ' ',
-            print i[1]
-        print "asks"
+            print(i[0],)
+            print(' ',)
+            print(i[1])
+        print("asks")
         for j in data_asks:
-            print j[0],
-            print ' ',
-            print j[1]
+            print(j[0],)
+            print(' ',)
+            print(j[1])
 
     def list_all_price(self):
         for i in self.coin_list:
-            print i,
-            print " price: ",
+            print(i,)
+            print(" price: ",)
             p=self.real_time_ticker(i.lower())
             if p is not None:
-                print p[u'last']
+                print(p[u'last'])
 
     def getOrder(self,coin):
         url='https://www.jubi.com/api/v1/orders/'
@@ -203,7 +203,7 @@ class Jubi_web():
         coins=Toolkit.getUserData('coins.csv')
         total=long(coins[i])
         p=self.getOrder(i)
-        print p
+        print(p)
         amount=0.00
         for j in p:
             t= j[u'amount']
@@ -211,7 +211,7 @@ class Jubi_web():
         #current=float(self.real_time_ticker(i)[u'last'])
         turn_over=amount*1.00/total*100
 
-        print turn_over
+        print(turn_over)
 
     def multi_thread(self,coin_list,price_list,username):
         thread_num=len(coin_list)
@@ -232,13 +232,13 @@ if __name__ == '__main__':
 
     obj = Jubi_web(send='wechat')
 
-    # print obj.get_signiture()
-    #print obj.real_time_ticker('zet')
+    # print(obj.get_signiture())
+    #print(obj.real_time_ticker('zet'))
     # obj.real_time_depth('zet')
     #obj.warming('zet',0.23,0.17)
     #obj.list_all_price()
     #obj.turnover('doge')
-    #print obj.getOrder('zet')
+    #print(obj.getOrder('zet'))
 
     coin_list=['zet','doge']
     price_list=[[0.2,0.11],[0.03,0.02]]

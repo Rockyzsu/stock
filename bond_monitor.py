@@ -25,7 +25,7 @@ class ConvertBond():
     def stockPrice(self,code):
         stock_df = ts.quotes(code,conn=self.conn)
         price = float(stock_df['price'].values[0])
-        print code,price
+        print(code,price)
         return price
 
     def dataframe(self):
@@ -44,7 +44,7 @@ class ConvertBond():
         self.total['ratio']=self.total['ratio'].map(lambda x:round(x,2))
         self.total['Bond Value']=self.total['Bond Value'].map(lambda x:round(x,2))
         self.total['Updated']=self.today
-        print self.total
+        print(self.total)
 
         self.total.to_sql('tb_bond',engine,if_exists='replace')
 
@@ -54,7 +54,7 @@ class ConvertBond():
 def calculation():
     df=pd.read_sql('bond',engine,index_col='index')
     df['ration']=(df['stock_price']/df['convprice']*100-df['marketprice'])/(df['stock_price']/df['convprice']*100)
-    # print df[df['ration']>0]
+    # print(df[df['ration']>0])
     df.to_sql('tb_bond',engine,if_exists='replace')
 
 def main():
@@ -65,4 +65,4 @@ def main():
 
 if __name__=='__main__':
     main()
-    print 'done'
+    print('done')

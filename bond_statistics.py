@@ -13,9 +13,9 @@ from filter_stock import Filter_Stock
 def get_data():
     engine = get_engine('db_bond')
     bond_df = pd.read_sql('tb_bond_jisilu',engine,index_col='index')
-    # print bond_df
+    # print(bond_df)
     api = ts.get_apis()
-    # print bond_df
+    # print(bond_df)
     close_price=[]
     for code in bond_df[u'可转债代码'].values:
         try:
@@ -23,9 +23,9 @@ def get_data():
         except Exception as e:
             print(e)
             continue
-        # print df[0]
-        # print code
-        print bond_df[bond_df[u'可转债代码']==code][u'可转债名称'].values[0],'\t'
+        # print(df[0])
+        # print(code)
+        print(bond_df[bond_df[u'可转债代码']==code][u'可转债名称'].values[0],'\t')
         try:
             close_price.append(df.iloc[-1]['close'])
         except Exception as e:
@@ -44,7 +44,7 @@ def get_zhenggu():
     zg_code = ns_df[ns_df['code'].isin(code_list)]['code'].values
 
     ret_df = df[df[u'正股代码'].isin(zg_code)][[u'可转债代码',u'可转债名称',u'正股名称',u'溢价率',u'可转债价格']]
-    print ret_df
+    print(ret_df)
     with open('new_stock_zzk.txt','w') as f:
         s = '\n'.join(list(ret_df[u'可转债代码'].values))
         f.write(s)

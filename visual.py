@@ -19,9 +19,9 @@ def count_up_down(filename):
         total.append(count)
     count= len(df[(df['changepercent']>=9)])
     total.append(count)
-    print total
+    print(total)
     df_figure=pd.Series(total,index=[range(-10,10)])
-    print df_figure
+    print(df_figure)
     fg=df_figure.plot(kind='bar',table=True)
     plt.show(fg)
 

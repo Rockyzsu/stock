@@ -27,4 +27,4 @@ def plan_buy_price(sold,percent):
 # plan_buy_price(10,10)
 
 a=1.567
-print round(a,2)
+print(round(a,2))

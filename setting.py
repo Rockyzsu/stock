@@ -135,6 +135,6 @@ def trading_time():
 if __name__ == '__main__':
     # msg=MsgSend(u'wei')
     # msg.send_price('hsdq',12,12,'sell')
-    # print FROM_MAIL
+    # print(FROM_MAIL)
     # mylogger('test.log','just for test')
     trading_time()

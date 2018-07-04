@@ -17,22 +17,22 @@ class StoreDB():
         self.all_codes = self.all_info.index
 
     def start(self):
-        # print list(self.all_codes)
-        # print type(self.all_codes)
+        # print(list(self.all_codes))
+        # print(type(self.all_codes))
         for index in self.all_info.index:
-            # print self.all_info.ix[eachItem].values[0:-1]
+            # print(self.all_info.ix[eachItem].values[0:-1])
             # print(e)achItem.index()
             # print(e)achItem['timeToMarket']
             code = index
             timeToMarket = self.all_info.ix[code]['timeToMarket']
             if code and timeToMarket:
                 timeToMarket= datetime.datetime.strptime(str(timeToMarket),'%Y%m%d').strftime('%Y-%m-%d')
-                #print timeToMarket
+                #print(timeToMarket)
                 self.store(code, timeToMarket)
 
 
     def store(self, code, start_date):
-        #print code,start_date
+        #print(code,start_date)
         try:
             df = ts.bar(code=code, conn=self.cons,start_date=start_date)
 
@@ -44,7 +44,7 @@ class StoreDB():
         except Exception as e:
             print(e)
             return
-        #print df
+        #print(df)
 
 class DeliveryOrder():
     def __init__(self):
@@ -61,7 +61,7 @@ class DeliveryOrder():
 # 保存市场的基本信息
 def save_baseinfo():
     df = ts.get_stock_basics()
-    #print df
+    #print(df)
     df = df.reset_index()
     df.to_sql('baseinfo',engine)
 
@@ -71,7 +71,7 @@ def del_db():
     db = MySQLdb.connect('localhost','root','123456z','stock')
     cursor =db.cursor()
     for i in r.keys():
-        #print i
+        #print(i)
         cmd='drop table if exists `{}`'.format(i)
         try:
             cursor.execute(cmd)
@@ -79,7 +79,7 @@ def del_db():
             print(e)
 
 
-    #print len(r.keys())
+    #print(len(r.keys()))
 
 if __name__ == '__main__':
     #obj = StoreDB()

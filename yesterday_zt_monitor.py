@@ -17,7 +17,7 @@ def monitor():
     table='20180409zdt'
     api=ts.get_apis()
     df = pd.read_sql(table,engine,index_col='index')
-    # print df
+    # print(df)
     price_list=[]
     percent_list=[]
     amplitude_list=[]
@@ -29,9 +29,9 @@ def monitor():
             curr_price =curr['price'].values[0]
             amplitude=round(((curr['high'].values[0]-curr['low'].values[0])*1.00/last_close)*100,2)
             # if last_close>=curr_price:
-            # print i,
-            # print df[df[u'代码']==i][u'名称'].values[0],
-            # print  percent
+            # print(i,)
+            # print(df[df[u'代码']==i][u'名称'].values[0],)
+            # print( percent)
         except Exception as e:
             print(e)
             curr_price=0
@@ -48,7 +48,7 @@ def monitor():
     df[u'更新时间']=datetime.datetime.now().strftime('%Y %m %d %H:%M%S')
 
     end=datetime.datetime.now()
-    print 'time use {}'.format(end-start)
+    print('time use {}'.format(end-start))
 
     df.to_sql(table+'monitor',engine,if_exists='replace')
     ts.close_apis(api)

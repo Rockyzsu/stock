@@ -34,7 +34,7 @@ class Kline():
     def store_base_data(self, target):
         self.all_info = ts.get_stock_basics()
         self.all_info = self.all_info.reset_index()
-        print self.all_info
+        print(self.all_info)
         if target == 'sql':
             self.all_info.to_sql('tb_baseinfo', engine,if_exists='replace')
 
@@ -51,14 +51,14 @@ class Kline():
             code, name, start_date = df.loc[i]['code'], df.loc[i]['name'], df.loc[i]['timeToMarket']
             self.get_hist_data(code, name, start_date)
             # time.sleep(random.random())
-            print code, name, start_date
+            print(code, name, start_date)
 
     # 获取历史行情，前复权 ，使用bar函数，get_hist_data 经常会出错
     def get_hist_data(self, code, name, start_data):
         try:
             start_data = datetime.datetime.strptime(str(start_data), '%Y%m%d').strftime('%Y-%m-%d')
             df = ts.bar(code, conn=conn, start_date=start_data, adj='qfq')
-            print df
+            print(df)
         except Exception as e:
             print(e)
             return
@@ -81,11 +81,11 @@ class Kline():
         row: series类型
         '''
         open_p = float(row['open'])
-        # print open_p
+        # print(open_p)
         closed = float(row['close'])
-        # print closed
+        # print(closed)
         low = float(row['low'])
-        # print low
+        # print(low)
         high = float(row['high'])
         p = min(closed,open_p)
         try:
@@ -124,7 +124,7 @@ class Kline():
 
     # 正确的模板
     def get_hist_line(self, date):
-        print "Starting to capture"
+        print("Starting to capture")
         cmd = 'select * from `{}` where datetime = \'{}\''
         r0 = redis.StrictRedis(REDIS_HOST, 6379, db=0)
         for code in r0.keys():
@@ -157,9 +157,9 @@ def add_code_redis():
 
     for i in range(len(df)):
         code, name, timeToMarket = df.loc[i]['code'], df.loc[i]['name'], df.loc[i]['timeToMarket']
-        # print str(timeToMarket)
+        # print(str(timeToMarket))
         d = dict({code: ':'.join([name, str(timeToMarket)])})
-        # print d
+        # print(d)
         rds.set(code, name)
         rds_1.lpush('codes', d)
 
@@ -202,9 +202,9 @@ def update_daily():
         df.loc[l] = [today, code, name, opens, close, high, low, vol, amount]
         try:
             df.to_sql(code, engine, if_exists='append')
-            print code
+            print(code)
         except Exception as e:
-            print df
+            print(df)
             print(e)
 
 def get_hist_data(code, name, start_data):
@@ -218,7 +218,7 @@ def get_hist_data(code, name, start_data):
     hist_con = get_engine('history')
     df.insert(1, 'name', name)
     df = df.reset_index()
-    #print df
+    #print(df)
     df2=pd.read_sql_table(code,hist_con,index_col='index')
     try:
         new_df = pd.concat([df,df2])
@@ -245,7 +245,7 @@ class StockThread(Thread):
         while 1:
             try:
                 item = self.rds.lpop('codes')
-                print item
+                print(item)
             except Exception as e:
                 print(e)
                 break
@@ -270,7 +270,7 @@ def StoreData():
 
     for j in range(THREAD_NUM):
         threads[j].join()
-    print 'done'
+    print('done')
 
 
 # 能够正常运行的函数
@@ -298,7 +298,7 @@ def main():
 
     # 把每天的数据更新到数据库
     update_daily()
-    print "Done"
+    print("Done")
 
 if __name__ == '__main__':
     main()

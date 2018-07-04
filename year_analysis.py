@@ -4,10 +4,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 def stock_analysis():
     df=pd.read_excel('2017-year.xls',encoding='gbk')
-    print 'mean:\n',df['price_change'].mean()
-    print 'max:\n',df['price_change'].max()
-    print 'min:\n',df['price_change'].min()
-    print 'middle\n',df['price_change'].median()
+    print('mean:\n',df['price_change'].mean())
+    print('max:\n',df['price_change'].max())
+    print('min:\n',df['price_change'].min())
+    print('middle\n',df['price_change'].median())
     plt.figure()
     df['price_change'].plot.hist()
     plt.show()

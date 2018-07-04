@@ -23,11 +23,11 @@ def convert_json(url):
 		return
 	lhb_date = []
 	try:
-		# print content
+		# print(content)
 		js = re.findall("var dateList=(.*?);",content,re.S)[0]
-		# print type(js)
+		# print(type(js))
 		js_data = json.loads(js)
-		print js_data
+		print(js_data)
 		lhb_date = js_data.get('data')
 	except Exception as e:
 		print(e)
@@ -39,16 +39,16 @@ def convert_json(url,pattern):
 		return
 	lhb_date = []
 	try:
-		# print content
+		# print(content)
 		js = re.findall(pattern,content,re.S)[0]
-		# print type(js)
+		# print(type(js))
 		js_data = json.loads(js)
-		# print js_data
+		# print(js_data)
 		lhb_date = js_data.get('data')
-		# print lhb_date
+		# print(lhb_date)
 		return lhb_date
 		# for i in lhb_date:
-			# print i
+			# print(i)
 
 	except Exception as e:
 		print(e)

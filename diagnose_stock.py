@@ -17,7 +17,7 @@ def check_blacklist(code):
     if len(ret)==0:
         return False
     else:
-        print ret[3]
+        print(ret[3])
         return True
 # 是否是东北的
 def dongbei(code):
@@ -42,10 +42,10 @@ def get_code(name):
 
 def diagnose(code):
     if check_blacklist(code):
-        print u'存在黑名单'
+        print(u'存在黑名单')
 
     if dongbei(code):
-        print u'东北股'
+        print(u'东北股')
 
 
 
@@ -54,7 +54,7 @@ def main():
     if not re.search('\d{6}',ipt):
         code = get_code(ipt)
 
-    print code
+    print(code)
     diagnose(code)
 
 

@@ -31,7 +31,7 @@ def calc(code):
     settlement =  df[df['code']==code]['settlement'].values
     percentage =  df[df['code']==code]['changepercent'].values
     trade =  df[df['code']==code]['trade'].values
-    #print percentage
+    #print(percentage)
     #settlement=df[df['code'==code]]['settlement'].values
     #percentage=df[df['code'==code].index]['changepercent'].values
     #返回四舍五入的结果
@@ -46,9 +46,9 @@ def today_win_lost(filename_path):
     trade_list=[]
     for i in range(len(code)):
         settlement,percentage,trade=calc(code[i])
-        print "settlement", settlement
-        print "percent", percentage
-        print "trade", trade
+        print("settlement", settlement)
+        print("percent", percentage)
+        print("trade", trade)
         profit=round(settlement[0]*percentage[0]*quantity[i]*0.01,1)
         result.append(profit)
         percentage_list.append(percentage[0])
@@ -62,7 +62,7 @@ def join_dataframe(filename,today):
     s1=pd.DataFrame({current_profile:result})
     #s2=pd.DataFrame({u'当天涨幅':percentage_list})
     #s3=pd.DataFrame({u'当天价钱':trade_list})
-    #print s
+    #print(s)
     df=pd.read_excel(filename)
     #del df[u'交易市场']
     #del df[u'股东帐户']
@@ -72,7 +72,7 @@ def join_dataframe(filename,today):
     #del df[u'']
     #del df[u'']
     df[u'证券代码']=code
-    #print code
+    #print(code)
     df[u'市价']=trade_list
     df[u'当天涨幅']=percentage_list
     #可以这样直接替换某一列的值

@@ -64,7 +64,7 @@ def getinfo(max_index_user=3, days=-2):
     cmd_list=[]
     while index <= max_index:
         user_agent = random.choice(my_useragent)
-        # print user_agent
+        # print(user_agent)
         company_news_site = stock_news_site + str(index)
         # content = urllib2.urlopen(company_news_site)
         headers = {'User-Agent': user_agent, 'Host': "ggjd.cnstock.com", 'DNT': '1',
@@ -99,7 +99,7 @@ def getinfo(max_index_user=3, days=-2):
         # cmd_list = []
         for i in all_content:
             news_time = i.string
-            # print news_time
+            # print(news_time)
             node = i.next_sibling
 
             url=node['href']
@@ -111,13 +111,13 @@ def getinfo(max_index_user=3, days=-2):
 
             if news_time_f >= last_day:
                 # news_time_f=news_time_f.replace(2018)
-                # print news_time_f
+                # print(news_time_f)
                 str_temp = "No.%s \n%s\t%s\n---> %s \n\n" % (str(num), news_time, node['title'], node['href'])
-                # print "inside %d" %num
-                # print str_temp
+                # print("inside %d" %num)
+                # print(str_temp)
                 cmd = '''INSERT INTO tb_cnstock (Date,Title,URL ) VALUES(\'%s\',\'%s\',\'%s\');''' % (
                     news_time_f, node['title'].strip(), node['href'].strip())
-                # print cmd
+                # print(cmd)
                 cmd_list.append(cmd)
                 # try:
                 #     cur.execute(cmd)
@@ -132,7 +132,7 @@ def getinfo(max_index_user=3, days=-2):
             num = num + 1
             # itchat.send(str_temp,toUserName=username)
             # time.sleep(1)
-            # print "index %d" %index
+            # print("index %d" %index)
         index = index + 1
 
     f_open.close()
@@ -190,4 +190,4 @@ if __name__ == "__main__":
         day = -2
     # create_tb()
     getinfo(days=day)
-    # print 'done'
+    # print('done')

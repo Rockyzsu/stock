@@ -28,7 +28,7 @@ class filter_stock():
             for i in range(retry):
                 try:
                     self.bases_save = ts.get_stock_basics()
-                    # print self.bases_save
+                    # print(self.bases_save)
                     self.bases_save=self.bases_save.reset_index()
                     self.bases_save.to_csv('bases.csv')
                     self.bases_save.to_sql('bases',engine,if_exists='replace')
@@ -62,24 +62,24 @@ class filter_stock():
         os.remove(self.today + '.csv')
 
     def insert_garbe(self):
-        print '*' * 30
-        print '\n'
+        print('*' * 30)
+        print('\n')
 
     def showInfo(self, df):
-        print '*' * 30
-        print '\n'
-        print df.info()
-        print '*' * 30
-        print '\n'
-        print df.dtypes
+        print('*' * 30)
+        print('\n')
+        print(df.info())
+        print('*' * 30)
+        print('\n')
+        print(df.dtypes)
         self.insert_garbe()
-        print df.describe()
+        print(df.describe())
 
     # 计算每个地区有多少上市公司
     def count_area(self, writeable=False):
         count = self.base['area'].value_counts()
-        print count
-        print type(count)
+        print(count)
+        print(type(count))
         if writeable:
             count.to_csv(u'各省的上市公司数目.csv')
         return count
@@ -113,8 +113,8 @@ class filter_stock():
 
         pe_av = df[df['pe'] != 0]['pe'].mean()
         pe_all_av = self.base[self.base['pe'] != 0]['pe'].mean()
-        print u"平均市盈率为 ", pe_av
-        print u'A股的平均市盈率为 ', pe_all_av
+        print(u"平均市盈率为 ", pe_av)
+        print(u'A股的平均市盈率为 ', pe_all_av)
         return df
 
     # 获取成分股
@@ -123,8 +123,8 @@ class filter_stock():
         if writeable == True:
             s50.to_excel('sz50.xls')
         list_s50 = s50['code'].values.tolist()
-        # print type(s50)
-        # print type(list_s50)
+        # print(type(s50))
+        # print(type(list_s50))
         # 返回list类型
         return list_s50
 
@@ -134,38 +134,38 @@ class filter_stock():
         end_day = datetime.date(datetime.date.today().year, datetime.date.today().month, datetime.date.today().day)
         end_day = end_day.strftime("%Y-%m-%d")
         # print(e)nd_day
-        # print start
+        # print(start)
         total = ts.get_k_data(code=code, start=start, end=end_day)
-        # print total
+        # print(total)
         high = total['high'].max()
         high_day = total.loc[total['high'] == high]['date'].values[0]
 
-        print high
-        print high_day
+        print(high)
+        print(high_day)
         current = total['close'].values[-1]
-        print current
+        print(current)
         percent = round((current - high) / high * 100, 2)
-        print percent
+        print(percent)
         return percent
 
     def loop_each_cixin(self):
         df = self.fetch_new_ipo(20170101, writeable=False)
         all_code = df['code'].values
-        print all_code
+        print(all_code)
         # exit()
         percents = []
         for each in all_code:
             print(e)ach
-            # print type(each)
+            # print(type(each))
             percent = self.drop_down_from_high('2017-01-01', each)
             percents.append(percent)
 
         df['Drop_Down'] = percents
 
-        # print df
+        # print(df)
 
         df.sort_values('Drop_Down', ascending=True, inplace=True)
-        # print df
+        # print(df)
         df.to_csv(self.today + '_drop_Down_cixin.csv')
 
     # 获取所有的ma5>ma10
@@ -173,7 +173,7 @@ class filter_stock():
         # df=self.fetch_new_ipo(writeable=True)
         # all_code=df['code'].values
         # all_code=self.get_all_code()
-        # print all_code
+        # print(all_code)
         result = []
         for each_code in self.all_code:
             print(e)ach_code
@@ -181,21 +181,21 @@ class filter_stock():
                 df_x = ts.get_k_data(code=each_code, start='2017-03-01')
             # 只找最近一个月的，所以no item的是停牌。
             except:
-                print "Can't get k_data"
+                print("Can't get k_data")
                 continue
             if len(df_x) < 11:
                 # return
-                print "no item"
+                print("no item")
                 continue
             ma5 = df_x['close'][-5:].mean()
             ma10 = df_x['close'][-10:].mean()
             if ma5 > ma10:
-                # print "m5>m10: ",each_code," ",self.base[self.base['code']==each_code]['name'].values[0], "ma5: ",ma5,' m10: ',ma10
+                # print("m5>m10: ",each_code," ",self.base[self.base['code']==each_code]['name'].values[0], "ma5: ",ma5,' m10: ',ma10)
                 temp = [each_code, self.base[self.base['code'] == each_code]['name'].values[0]]
-                print temp
+                print(temp)
                 result.append(temp)
-        print result
-        print "Done"
+        print(result)
+        print("Done")
         return result
 
     # 返回所有股票的代码
@@ -210,7 +210,7 @@ class filter_stock():
 
         start_day = start_day.strftime("%Y-%m-%d")
         end_day = end_day.strftime("%Y-%m-%d")
-        print start_day
+        print(start_day)
         print(e)nd_day
         result_m5_large = []
         result_m5_small = []
@@ -218,14 +218,14 @@ class filter_stock():
             # print(e)ach_code
             try:
                 df = ts.get_k_data(each_code, start=start_day, end=end_day)
-                print df
+                print(df)
             except Exception as e:
-                print "Failed to get"
+                print("Failed to get")
                 print(e)
                 continue
 
             if len(df) < 20:
-                # print "not long enough"
+                # print("not long enough")
                 continue
             print(e)ach_code
             all_mean = df['volume'].mean()
@@ -234,10 +234,10 @@ class filter_stock():
             last_vol = df['volume'][-1]  # 这里会不会有问题？？？
             # 在这里分几个分支，放量 180天均量的4倍
             if m5_volume_m > (4.0 * all_mean):
-                print "m5 > m_all_avg "
+                print("m5 > m_all_avg ")
                 print(e)ach_code,
                 temp = self.base[self.base['code'] == each_code]['name'].values[0]
-                print temp
+                print(temp)
                 result_m5_large.append(each_code)
 
             # 成交量萎缩
@@ -252,13 +252,13 @@ class filter_stock():
 
         start_day = start_day.strftime("%Y-%m-%d")
         end_day = end_day.strftime("%Y-%m-%d")
-        print start_day
+        print(start_day)
         print(e)nd_day
         for each_code in self.all_code:
             try:
                 df = ts.get_hist_data(code=each_code, start=start_day, end=end_day)
             except:
-                print "Failed to get data"
+                print("Failed to get data")
                 continue
             mv5 = df['v_ma5'][-1]
             mv20 = df['v_ma20'][-1]
@@ -267,7 +267,7 @@ class filter_stock():
 
     # 写入csv文件
     def write_to_text(self):
-        print "On write"
+        print("On write")
         r = self.macd()
         filename = self.today + "-macd.csv"
         f = open(filename, 'w')
@@ -295,14 +295,14 @@ class filter_stock():
     def read_csv(self):
         filename = self.today + "-macd.csv"
         df = pd.read_csv(filename)
-        print df
+        print(df)
 
     # 持股从高点下跌幅度
     def own_drop_down(self):
         for i in self.mystocklist:
-            print i
+            print(i)
             self.drop_down_from_high(code=i, start='2017-01-01')
-            print '\n'
+            print('\n')
 
     # 持股跌破均线
     def _break_line(self, codes, k_type):
@@ -312,7 +312,7 @@ class filter_stock():
 
         start_day = start_day.strftime("%Y-%m-%d")
         end_day = end_day.strftime("%Y-%m-%d")
-        print start_day
+        print(start_day)
         print(e)nd_day
         all_break = []
 
@@ -332,13 +332,13 @@ class filter_stock():
                 ma20 = df['ma20'][0]
                 ma_dict = {'5': ma5, '10': ma10, '20': ma20}
                 ma_x = ma_dict[k_type]
-                # print ma_x
+                # print(ma_x)
                 if current < ma_x:
-                    print u'破位'
-                    print i, " current: ", current
-                    print self.base[self.base['code'] == i]['name'].values[0], " "
-                    print "holding place: ", ma_x
-                    print "Break MA", k_type, "\n"
+                    print(u'破位')
+                    print(i, " current: ", current)
+                    print(self.base[self.base['code'] == i]['name'].values[0], " ")
+                    print("holding place: ", ma_x)
+                    print("Break MA", k_type, "\n")
                     all_break.append(i)
         return all_break
 
@@ -348,8 +348,8 @@ class filter_stock():
         all_break = self._break_line(code, k_type)
         l = len(all_break)
         beaking_rate = l * 1.00 / self.working_count * 100
-        print "how many break: ", l
-        print "break Line rate ", beaking_rate
+        print("how many break: ", l)
+        print("break Line rate ", beaking_rate)
         if mystock == False:
             name = '_all_'
         else:
@@ -367,7 +367,7 @@ class filter_stock():
 
         start_day = start_day.strftime("%Y-%m-%d")
         end_day = end_day.strftime("%Y-%m-%d")
-        print start_day
+        print(start_day)
         print(e)nd_day
         all_break = []
         for i in codes:
@@ -386,12 +386,12 @@ class filter_stock():
                 ma20 = df['ma20'][0]
                 ma_dict = {'5': ma5, '10': ma10, '20': ma20}
                 ma_x = ma_dict[k_type]
-                # print ma_x
+                # print(ma_x)
                 if current > ma_x:
-                    print i, " current: ", current
-                    print self.base[self.base['code'] == i]['name'].values[0], " "
+                    print(i, " current: ", current)
+                    print(self.base[self.base['code'] == i]['name'].values[0], " ")
 
-                    print "Break MA", k_type, "\n"
+                    print("Break MA", k_type, "\n")
                     all_break.append(i)
         q.put(all_break)
 
@@ -417,12 +417,12 @@ class filter_stock():
         for j in range(len(t)):
             t[j].join()
         result = []
-        print "working done"
+        print("working done")
         while not q.empty():
             result.append(q.get())
         ff = open(self.today + '_high_m%s.csv' % ktype, 'w')
         for kk in result:
-            print kk
+            print(kk)
             for k in kk:
                 ff.write(k)
                 ff.write(',')
@@ -436,18 +436,18 @@ class filter_stock():
     def relation(self):
         sh_index = ts.get_k_data('000001', index=True, start='2012-01-01')
         sh = sh_index['close'].values
-        print sh
+        print(sh)
         vol_close = sh_index.corr()
-        print vol_close
+        print(vol_close)
         '''
         sz_index=ts.get_k_data('399001',index=True)
         sz=sz_index['close'].values
-        print sz
+        print(sz)
 
         cy_index=ts.get_k_data('399006',index=True)
         s1=Series(sh)
         s2=Series(sz)
-        print s1.corr(s2)
+        print(s1.corr(s2))
         '''
 
     # 寻找业绩两年未负的，以防要st
@@ -463,13 +463,13 @@ class filter_stock():
         code_2015_lost = df_2015[df_2015['net_profits'] < 0]['code'].values
         code_2016_lost = df_2016[df_2016['net_profits'] < 0]['code'].values
 
-        print code_2015_lost
-        print code_2016_lost
+        print(code_2015_lost)
+        print(code_2016_lost)
         two_year_lost = []
         # two_year_lost_name=[]
         for i in code_2015_lost:
             if i in code_2016_lost:
-                print i,
+                print(i,)
                 # name=self.base[self.base['code']==i].values[0]
                 two_year_lost.append(i)
 
@@ -540,8 +540,8 @@ def main():
 
 if __name__ == "__main__":
     start_time = datetime.datetime.now()
-    print start_time
+    print(start_time)
     main()
     end_time = datetime.datetime.now()
     print(e)nd_time
-    print "time use : ", (end_time - start_time).seconds
+    print("time use : ", (end_time - start_time).seconds)

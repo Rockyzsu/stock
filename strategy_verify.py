@@ -34,9 +34,9 @@ def create_table(strategy):
         conn.execute(create_tb_cmd)
         conn.commit()
         conn.close()
-        print "create table successful"
+        print("create table successful")
     except:
-        print "Create table failed"
+        print("Create table failed")
         return False
 
 
@@ -52,16 +52,16 @@ def insert(strategy,date_time,code,name,trigger_time,profit,trigger_price,curren
     dbname=os.path.join(work_path,dbname)
     try:
         conn = sqlite3.connect(dbname)
-        print "open database passed"
+        print("open database passed")
             #conn.text_factory = str
         cmd="INSERT INTO STRATEGY ('日期','代码', '股票','买入时间' ,'盈亏' ,'买入价格' ,'当前价格','描述' ) VALUES ('%s','%s','%s','%s','%s','%s','%s','%s');" %(date_time,code,name,trigger_time,profit,trigger_price,current,desc)
 
         conn.execute(cmd)
         conn.commit()
         conn.close()
-        print "Insert successful"
+        print("Insert successful")
     except:
-        print "Insert Failed"
+        print("Insert Failed")
 
 class Strategy():
 
@@ -78,8 +78,8 @@ class Strategy():
     def getData(self,page):
         url=self.base_url+str(page)
         resp=requests.get(url,headers=self.headers)
-        print resp.status_code
-        print resp.text
+        print(resp.status_code)
+        print(resp.text)
 
 
     def show_strategy(self):
@@ -95,7 +95,7 @@ class Strategy():
                 content=resp.text
                 tree=etree.HTML(content)
                 all_contnet=tree.xpath('//div[@class="detail-bd"]')
-                print tree.xpath('//title/text()')[0]
+                print(tree.xpath('//title/text()')[0])
                 content_str=[]
                 temp=[]
                 p=re.compile(u'待定')
@@ -106,9 +106,9 @@ class Strategy():
                         no_strategy=1
 
                 if no_strategy==0:
-                    print '%d has strategy' %i
+                    print('%d has strategy' %i)
                     for it in temp:
-                        print it
+                        print(it)
             time.sleep(10)
 
     def getStock(self,strategy,page):
@@ -125,7 +125,7 @@ class Strategy():
 
     def dataStore_SQLite(self,strategy,page):
         json_data=self.getStock(strategy,page)
-        #print json_data
+        #print(json_data)
         if len(json_data)==0:
 
             return 0
@@ -147,18 +147,18 @@ class Strategy():
             trigger_price=item['trigger_price']
             code=item['symbol'].encode('utf-8')
             profit=item['change_percent']*100.0
-            #print profit
+            #print(profit)
             date_time=str_time
             #date_time=time.ctime(item['trigger_time']*1.0/1000)
             '''
-            print type(desc)
-            print type(current)
-            print type(trigger_price)
-            print type(trigger_time)
-            print type(code)
-            print type(profit)
-            print type(date_time)
-            print type(name)
+            print(type(desc))
+            print(type(current))
+            print(type(trigger_price))
+            print(type(trigger_time))
+            print(type(code))
+            print(type(profit))
+            print(type(date_time))
+            print(type(name))
             '''
             insert(strategy,date_time,code,name,trigger_time,profit,trigger_price,current,desc)
 
@@ -169,9 +169,9 @@ class Strategy():
 
         df_total=DataFrame(colums_dict,index=['0'])
         for item in items:
-            #print item
+            #print(item)
             df=DataFrame(item,index=['0'])
-            print df
+            print(df)
             df_total=df_total.append(df,ignore_index=True)
 
             '''
@@ -203,35 +203,35 @@ class Strategy():
             conn.close()
             time.sleep(1)
         except:
-            print "remove failed on ",strategy
+            print("remove failed on ",strategy)
 
     def loops(self):
         for i in range(1,70):
                 for j in range(20):
-                    print "Strategy %d" %i
+                    print("Strategy %d" %i)
                     status=self.dataStore_SQLite(i,j)
                     if status==0:
                         break
                     time.sleep(2)
 
     def monitor(self,strategy):
-        print "monitor"
-        print "#"*20
-        print '\n'
+        print("monitor")
+        print("#"*20)
+        print('\n')
         for i in range(10):
             json_data=self.getStock(strategy,i)
             items=json_data['items']
             for item in items:
-                print '\n\n'
+                print('\n\n')
                 d_time=datetime.datetime.fromtimestamp(item['trigger_time']*1.00/1000)
                 str_time=d_time.strftime('%Y-%m-%d %H:%M')
-                print u'买入时间 ',str_time
-                #print u'买入时间 ',time.ctime(item['trigger_time']*1.00/1000)
-                print u'当前价格 ',item['current']
-                print item['name']
-                print u'买入价格 ',item['trigger_price']
-                print u'目前盈亏 ',float(item['change_percent'])*100.0
-                print item['desc']
+                print(u'买入时间 ',str_time)
+                #print(u'买入时间 ',time.ctime(item['trigger_time']*1.00/1000))
+                print(u'当前价格 ',item['current'])
+                print(item['name'])
+                print(u'买入价格 ',item['trigger_price'])
+                print(u'目前盈亏 ',float(item['change_percent'])*100.0)
+                print(item['desc'])
 
             time.sleep(1)
 

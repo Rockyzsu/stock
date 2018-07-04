@@ -45,16 +45,16 @@ class BreakMonitor():
         try:
             self.smtp.sendmail(self.msg['from'], self.msg['to'], self.msg.as_string())
             self.smtp.quit()
-            print "sent"
+            print("sent")
         except smtplib.SMTPException, e:
             print(e)
             return 0
 
     # 开板提示
     def break_ceil(self, code):
-        print threading.current_thread().name
+        print(threading.current_thread().name)
         while 1:
-            # print code
+            # print(code)
             time.sleep(2)
             try:
                 df = ts.get_realtime_quotes(code)
@@ -64,9 +64,9 @@ class BreakMonitor():
             v = long(df['b1_v'].values[0])
 
             if v <= 1000:
-                print datetime.datetime.now().strftime("%H:%M:%S")
-                print u"小于万手，小心！跑"
-                print self.bases[self.bases['code'] == code]['name'].values[0]
+                print(datetime.datetime.now().strftime("%H:%M:%S"))
+                print(u"小于万手，小心！跑")
+                print(self.bases[self.bases['code'] == code]['name'].values[0])
                 if self.send == True:
                     self.push_msg('break', 10, 10, 'down')
                 # 这里可以优化，不必每次都登陆。s
@@ -102,7 +102,7 @@ def break_monitor(code, warning_vol):
                     time.sleep(EXCEPTION_TIME_OUT)
                     conn = ts.get_apis()
                     continue
-                print 'under monitor {}'.format(current)
+                print('under monitor {}'.format(current))
 
             if df['bid_vol1'].values[0] < warning_vol and start:
                 title=code+' Buy +1 : '+str(df['bid_vol1'].values[0])

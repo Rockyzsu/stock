@@ -30,21 +30,21 @@ class Filter_Stock():
 
     def get_location(self):
         df = ts.get_area_classified()
-        print df
+        print(df)
         # df.to_excel('location.xls')
         self.save_to_excel(df, 'location.xls')
 
     def get_ST(self):
         # 暂停上市
         zt = ts.get_suspended()
-        print zt
+        print(zt)
         # 终止上市
         zz = ts.get_terminated()
-        print zz
+        print(zz)
 
     def get_achievement(self):
         fc = ts.forecast_data(2016, 4)
-        print fc
+        print(fc)
 
     def daily_market(self):
         '''
@@ -52,12 +52,12 @@ class Filter_Stock():
         :return:
         '''
         df = ts.get_today_all()
-        print df
+        print(df)
         try:
             df.to_sql(self.today, daily_engine, if_exists='replace')
         except Exception as e:
             print(e)
-        print "Save {} data to MySQL".format(self.today)
+        print("Save {} data to MySQL".format(self.today))
 
     def break_low(self, date):
         '''
@@ -78,10 +78,10 @@ class Filter_Stock():
             if not mins_date:
                 continue
             if mins and float(cur_low) <= float(mins) and float(cur_low) != 0.0:
-                print code,
-                print df.loc[i]['name']
-                print 'year mins {} at {}'.format(mins, mins_date)
-                print 'curent mins ', cur_low
+                print(code,)
+                print(df.loc[i]['name'])
+                print('year mins {} at {}'.format(mins, mins_date))
+                print('curent mins ', cur_low)
                 create_cmd = 'create table if not exists break_low' \
                              '(`index` int primary key auto_increment,datetime datetime,code text,name text,low_price float,last_price float, last_price_date datetime);'
                 low_cursor.execute(create_cmd)
@@ -105,7 +105,7 @@ class Filter_Stock():
         except Exception as e:
             print(e)
             return None, None
-        # print df.dtypes
+        # print(df.dtypes)
         # 不知道为啥，这里的类型发生改变
         if len(df) < 1:
             return None, None
@@ -133,7 +133,7 @@ class Filter_Stock():
             df.to_excel(filename, encoding=encoding)
             return True
         except Exception as e:
-            print "Save to excel faile"
+            print("Save to excel faile")
             print(e)
             return None
 
@@ -154,7 +154,7 @@ class Filter_Stock():
         # basic=ts.get_stock_basics()
         # basic.to_csv('temp.xls',encoding='gbk')
         # df=pd.read_csv('temp.xls',encoding='gbk',dtype={'code':str})
-        # # print df
+        # # print(df)
         # self.save_to_excel(df,'Markets.xls')
 
         # 基本面 每股净资产<1
@@ -169,18 +169,18 @@ class Filter_Stock():
         loss_2017=set(df_2017[df_2017['net_profits']<0]['code'])
         st= list(loss_2016 & loss_2017)
         basic=pd.read_excel('Markets.xls',dtype={'code':str})
-        # print basic.head(5)
+        # print(basic.head(5))
         # for x in st:
-        #     print x
-        # print basic[basic['code']==st]
+        #     print(x)
+        # print(basic[basic['code']==st])
         for i in st:
-            print basic[basic['code']==i][['code','name']]
+            print(basic[basic['code']==i][['code','name']])
         '''
 
         # 每股净资产小于0
         df_bpvs = pd.read_excel('2017-3rd-report.xls', dtype={'code': str})
-        # print df_bpvs.head()
-        print df_bpvs[df_bpvs['bvps'] < 0][['code', 'name']]
+        # print(df_bpvs.head())
+        print(df_bpvs[df_bpvs['bvps'] < 0][['code', 'name']])
 
     # 返回新股信息
     def get_new_stock(self, start, end):
@@ -194,7 +194,7 @@ class Filter_Stock():
         df = df[df['timeToMarket'] != 0]
         df['timeToMarket'] = pd.to_datetime(df['timeToMarket'], format='%Y%m%d')
         df = df.set_index('timeToMarket', drop=True)
-        # print len(df['2010'])
+        # print(len(df['2010']))
         years = OrderedDict()
         values = []
         # for year in range(1994, 2019):
@@ -226,9 +226,9 @@ def main():
     # obj.get_location(u'深圳')
     # obj.break_low()
     # obj.break_low('2017-11-17')
-    # print type(obj.get_lowest('300333','2017'))
-    # print obj.get_lowest('300333', '2017')
-    # print obj.get_highest('300333', '2017')
+    # print(type(obj.get_lowest('300333','2017')))
+    # print(obj.get_lowest('300333', '2017'))
+    # print(obj.get_highest('300333', '2017'))
     # obj.break_low('2017-11-17')
 
     # obj.store_data()
