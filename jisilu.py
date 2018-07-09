@@ -77,7 +77,7 @@ class Jisilu:
             del df['repo_discount_rt']
             del df['adjust_tc']
             del df['cpn_desc']
-            df['premium_rt'] = map(lambda x: float(x.replace('%', '')), df['premium_rt'])
+            df['premium_rt'] = df['premium_rt'].map(lambda x: float(x.replace('%', '')))
 
             df = df.rename(columns={'bond_id': u'可转债代码', 'bond_nm': u'可转债名称', 'stock_nm': u'正股名称', 'stock_cd':u'正股代码','sprice': u'正股现价',
                                     'sincrease_rt': u'正股涨跌幅',
