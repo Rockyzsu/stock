@@ -77,8 +77,15 @@ class Jisilu:
             del df['repo_discount_rt']
             del df['adjust_tc']
             del df['cpn_desc']
-            df['premium_rt'] = map(lambda x: float(x.replace('%', '')), df['premium_rt'])
-
+            df['premium_rt'] = df['premium_rt'].map(lambda x: float(x.replace('%', '')))
+            df['price']=df['price'].astype('float64')
+            # df['sincrease_rt']=df['sincrease_rt'].astype('float64')
+            df['convert_price']=df['convert_price'].astype('float64')
+            df['premium_rt']=df['premium_rt'].astype('float64')
+            # df['increase_rt']=df['increase_rt'].astype('float64')
+            # df['put_convert_price']=df['put_convert_price'].astype('float64')
+            df['redeem_price']=df['redeem_price'].astype('float64')
+            
             df = df.rename(columns={'bond_id': u'可转债代码', 'bond_nm': u'可转债名称', 'stock_nm': u'正股名称', 'stock_cd':u'正股代码','sprice': u'正股现价',
                                     'sincrease_rt': u'正股涨跌幅',
                                     'convert_price': u'最新转股价', 'premium_rt': u'溢价率', 'increase_rt': u'可转债涨幅',
