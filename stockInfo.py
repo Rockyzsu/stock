@@ -1,5 +1,7 @@
 import re
 
+import requests
+
 __author__ = 'rocchen'
 '''
 http://30daydo.com
@@ -7,7 +9,6 @@ Contact: weigesysu@qq.com
 '''
 # working v1.0
 from bs4 import BeautifulSoup
-import urllib2
 import datetime
 import time
 import codecs
@@ -16,12 +17,14 @@ import os, sys
 # import itchat
 # import MySQLdb
 # import setting
-from setting import sendmail,LLogger
+from setting import sendmail, LLogger
 from setting import get_mysql_conn
+
 logger = LLogger('news.log')
 
+
 def create_tb(conn):
-    cur=conn.cursor()
+    cur = conn.cursor()
     cmd = '''CREATE TABLE IF NOT EXISTS tb_cnstock(Date DATETIME ,Title VARCHAR (80),URL VARCHAR (80),PRIMARY KEY (URL)) charset=utf8;'''
     try:
         cur.execute(cmd)
@@ -32,6 +35,7 @@ def create_tb(conn):
         logger.log(e)
         conn.rollback()
         return False
+
 
 def getinfo(max_index_user=3, days=-2):
     last_day = datetime.datetime.now() + datetime.timedelta(days=days)
@@ -61,7 +65,7 @@ def getinfo(max_index_user=3, days=-2):
 
     f_open = codecs.open(store_filename, 'w', 'utf-8')
     all_contents = []
-    cmd_list=[]
+    cmd_list = []
     while index <= max_index:
         user_agent = random.choice(my_useragent)
         # print(user_agent)
@@ -70,25 +74,21 @@ def getinfo(max_index_user=3, days=-2):
         headers = {'User-Agent': user_agent, 'Host': "ggjd.cnstock.com", 'DNT': '1',
                    'Accept': 'text/html, application/xhtml+xml, */*', }
 
-        req = urllib2.Request(url=company_news_site, headers=headers)
         resp = None
         raw_content = ""
-        retry=6
+        retry = 6
         for _ in range(retry):
             try:
-                resp = urllib2.urlopen(req, timeout=30)
+                req = requests.get(url=company_news_site, headers=headers)
 
-            except urllib2.HTTPError as e:
-                e.fp.read()
-            except urllib2.URLError as e:
+            except Exception as e:
                 if hasattr(e, 'code'):
                     logger.log("error code %d" % e.code)
                 elif hasattr(e, 'reason'):
                     logger.log("error reason %s " % e.reason)
-
             finally:
-                if resp:
-                    raw_content = resp.read()
+                if req:
+                    raw_content = req.text
                     break
         try:
             soup = BeautifulSoup(raw_content, "html.parser")
@@ -102,12 +102,12 @@ def getinfo(max_index_user=3, days=-2):
             # print(news_time)
             node = i.next_sibling
 
-            url=node['href']
+            url = node['href']
             try:
-                year = re.findall('tjd_ggkx/(\d+)/',url)[0][:4]
+                year = re.findall('tjd_ggkx/(\d+)/', url)[0][:4]
             except Exception as e:
                 continue
-            news_time_f = datetime.datetime.strptime(year +'-' +news_time, '%Y-%m-%d %H:%M')
+            news_time_f = datetime.datetime.strptime(year + '-' + news_time, '%Y-%m-%d %H:%M')
 
             if news_time_f >= last_day:
                 # news_time_f=news_time_f.replace(2018)
@@ -136,11 +136,11 @@ def getinfo(max_index_user=3, days=-2):
         index = index + 1
 
     f_open.close()
-    if len(all_contents)>0:
+    if len(all_contents) > 0:
         sendmail(''.join(all_contents), temp_time)
 
-    db_name='db_stock'
-    conn =get_mysql_conn(db_name,local=True)
+    db_name = 'db_stock'
+    conn = get_mysql_conn(db_name, local=True)
     # create_tb(conn)
     cur = conn.cursor()
     for i in cmd_list:
@@ -155,10 +155,10 @@ def getinfo(max_index_user=3, days=-2):
     conn.commit()
     # conn.close()
 
-    db_name='qdm225205669_db'
-    conn2=get_mysql_conn(db_name,local=False)
+    db_name = 'qdm225205669_db'
+    conn2 = get_mysql_conn(db_name, local=False)
     # create_tb(conn2)
-    cur2=conn2.cursor()
+    cur2 = conn2.cursor()
     for i in cmd_list:
         try:
             cur2.execute(i)
@@ -172,6 +172,7 @@ def getinfo(max_index_user=3, days=-2):
 
     conn.close()
 
+
 if __name__ == "__main__":
 
     sub_folder = os.path.join(os.path.dirname(__file__), "data")
@@ -184,10 +185,9 @@ if __name__ == "__main__":
     #     if i[u'PYQuanPin'] == u'wei':
     #         username = i['UserName']
     if len(sys.argv) > 1:
-        if re.match('-\d+',sys.argv[1]):
+        if re.match('-\d+', sys.argv[1]):
             day = int(sys.argv[1])
     else:
         day = -2
     # create_tb()
     getinfo(days=day)
-    # print('done')
