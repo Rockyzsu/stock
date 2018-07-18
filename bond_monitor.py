@@ -1,6 +1,6 @@
 #-*-coding=utf-8
 '''
-可转债监控
+可转债监控 python2
 '''
 # from __future__ import division
 import tushare as ts

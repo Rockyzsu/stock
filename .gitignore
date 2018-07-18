@@ -12,3 +12,4 @@ bases.csv
 *.csv
 *.xls
 *.png
+config.py

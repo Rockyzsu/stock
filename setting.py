@@ -81,9 +81,12 @@ class MsgSend:
         itchat.send(content, toUserName=self.toName)
 
 
-def sendmail(content, subject):
-    username = EMAIL_USER
-    password = EMAIL_PASS
+def sendmail(content, subject,fromuser,password,frommail,tomail):
+    '''
+    
+    '''
+    username = fromuser
+    password = password
     smtp_host = SMTP_HOST
     smtp = smtplib.SMTP(smtp_host)
 
@@ -91,7 +94,7 @@ def sendmail(content, subject):
         smtp.login(username, password)
         msg = MIMEText(content, 'plain', 'utf-8')
         msg['from'] = FROM_MAIL
-        msg['to'] = TO_MAIL
+        msg['to'] = touser
         msg['subject'] = subject
         smtp.sendmail(msg['from'], msg['to'], msg.as_string())
         smtp.quit()
