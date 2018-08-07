@@ -50,7 +50,7 @@ def get_engine(db, local=True):
 
 def get_mysql_conn(db, local=True):
     if local:
-        conn = pymysql.connect(MYSQL_REMOTE, MYSQL_REMOTE_USER, MYSQL_PASSWORD, db, charset='utf8')
+        conn = pymysql.connect(MYSQL_REMOTE, MYSQL_USER, MYSQL_PASSWORD, db, charset='utf8')
     else:
         db = Ali_DB
         conn = pymysql.connect(MYSQL_HOST_Ali, MYSQL_USER_Ali, MYSQL_PASSWORD_Ali, db, charset='utf8')
@@ -81,12 +81,12 @@ class MsgSend:
         itchat.send(content, toUserName=self.toName)
 
 
-def sendmail(content, subject,fromuser,password,frommail,tomail):
+def sendmail(content, subject):
     '''
-    
+    发送邮件
     '''
-    username = fromuser
-    password = password
+    username = EMAIL_USER
+    password = EMAIL_PASS
     smtp_host = SMTP_HOST
     smtp = smtplib.SMTP(smtp_host)
 
@@ -94,7 +94,7 @@ def sendmail(content, subject,fromuser,password,frommail,tomail):
         smtp.login(username, password)
         msg = MIMEText(content, 'plain', 'utf-8')
         msg['from'] = FROM_MAIL
-        msg['to'] = touser
+        msg['to'] = TO_MAIL
         msg['subject'] = subject
         smtp.sendmail(msg['from'], msg['to'], msg.as_string())
         smtp.quit()
@@ -144,4 +144,5 @@ if __name__ == '__main__':
     # msg.send_price('hsdq',12,12,'sell')
     # print(FROM_MAIL)
     # mylogger('test.log','just for test')
-    trading_time()
+    # trading_time()
+    sendmail('content--------','subject------')
