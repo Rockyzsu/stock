@@ -22,8 +22,7 @@ logger = llogger(__file__)
 class GetZDT:
     def __init__(self):
         self.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/64.0.3282.167 Chrome/64.0.3282.167 Safari/537.36"
-        # self.today = time.strftime("%Y%m%d")
-        self.today=current
+        self.today = time.strftime("%Y%m%d")
         self.path = os.path.join(os.path.dirname(__file__), 'data')
         self.zdt_url = 'http://home.flashdata2.jrj.com.cn/limitStatistic/ztForce/' + self.today + ".js"
         self.zrzt_url = 'http://hqdata.jrj.com.cn/zrztjrbx/limitup.js'
@@ -175,6 +174,7 @@ if __name__ == '__main__':
     # 填补以前的数据
     # x=pd.date_range('20170101','20180312')
     # date_list = [datetime.datetime.strftime(i,'%Y%m%d') for i in list(pd.date_range('20170401','20171231'))
+
     if is_holiday():
         logger.info('Holiday')
         exit()
