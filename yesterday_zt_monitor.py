@@ -3,15 +3,18 @@ import datetime
 import os
 import matplotlib
 matplotlib.use("Pdf")
-from setting import get_engine
+from setting import get_engine,is_holiday
 import pandas as pd
 import tushare as ts
 import numpy as np
 from plot_line import plot_stock_line
+
 '''
 昨日涨停的今日的实时情况
 '''
+from setting import llogger
 
+logger = llogger(__file__)
 def monitor():
     engine = get_engine('db_zdt')
     table='20180409zdt'
@@ -63,7 +66,7 @@ def plot_yesterday_zt(type_name='zrzt',current=datetime.datetime.now().strftime(
     try:
         df = pd.read_sql(table,engine)
     except Exception as e:
-        print(e)
+        logger.error(e)
         return
 
     for i in range(len(df)):
@@ -72,8 +75,14 @@ def plot_yesterday_zt(type_name='zrzt',current=datetime.datetime.now().strftime(
         plot_stock_line(code,name,table_name=table_name, current=current,start='2018-01-01',save=True)
 
 if __name__ == '__main__':
-    # current = '20180423'
+    # current = '20180810'
+
+    if is_holiday():
+        logger.info('Holiday')
+        exit()
+    logger.info("Start")
     current = datetime.datetime.now().strftime('%Y%m%d')
+
     path = os.path.join(os.path.dirname(__file__),'data',current)
     if not os.path.exists(path):
         os.mkdir(path)

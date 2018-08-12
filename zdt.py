@@ -9,16 +9,18 @@ Contact: weigesysu@qq.com
 # 每天的涨跌停
 import  re, time, xlrd, xlwt, sys, os
 import setting
+from setting import is_holiday
 import pandas as pd
 import tushare as ts
-from setting import LLogger
+from setting import llogger
 import requests
 # reload(sys)
 # sys.setdefaultencoding('gbk')
 
-logger = LLogger('zdt.log')
+logger = llogger(__file__)
+
 class GetZDT:
-    def __init__(self,current):
+    def __init__(self):
         self.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/64.0.3282.167 Chrome/64.0.3282.167 Safari/537.36"
         # self.today = time.strftime("%Y%m%d")
         self.today=current
@@ -172,23 +174,11 @@ if __name__ == '__main__':
     # today='2018-04-16'
     # 填补以前的数据
     # x=pd.date_range('20170101','20180312')
-    # date_list = [datetime.datetime.strftime(i,'%Y%m%d') for i in list(pd.date_range('20170401','20171231'))]
-    today = datetime.datetime.now().strftime("%Y-%m-%d")
-    if not ts.is_holiday(today):
-        logger.log(today)
-        obj = GetZDT(datetime.datetime.strptime(today,"%Y-%m-%d").strftime('%Y%m%d'))
-        obj.storedata()
-    else:
-        logger.log('Holiday')
+    # date_list = [datetime.datetime.strftime(i,'%Y%m%d') for i in list(pd.date_range('20170401','20171231'))
+    if is_holiday():
+        logger.info('Holiday')
+        exit()
+    logger.info("start")
+    obj = GetZDT()
+    obj.storedata()
 
-
-    '''
-    for today in date_list:
-
-        if not ts.is_holiday(datetime.datetime.strptime(today,'%Y%m%d').strftime('%Y-%m-%d')):
-            print(today)
-            obj = GetZDT(today)
-            obj.storedata()
-        else:
-            logger.log('Holiday')
-    '''

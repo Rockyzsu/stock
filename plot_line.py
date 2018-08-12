@@ -21,6 +21,9 @@ import matplotlib.pyplot as plt
 from setting import get_engine
 mpl.rcParams['font.sans-serif'] = ['simhei']
 mpl.rcParams['axes.unicode_minus'] = False
+from setting import llogger
+
+logger = llogger(__file__)
 
 def plot_stock_line(code,name,table_name,current,start='2017-10-01',save=False):
     title=u'{} {} {} {}'.format(current,code,name,table_name)
@@ -45,7 +48,7 @@ def plot_stock_line(code,name,table_name,current,start='2017-10-01',save=False):
             df = ts.bar(code, conn=api, start_date=start)
             break
         except Exception as e:
-            print(e)
+            logger.info(e)
             ts.close_apis(api)
             time.sleep(random.random()*3)
             continue

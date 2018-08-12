@@ -10,15 +10,13 @@ import pandas as pd
 import time
 import datetime
 import os
-from setting import get_engine
+from setting import get_engine,llogger,is_holiday
 
+logger = llogger(__file__)
 
 class FetchDaily:
     def __init__(self):
-        # self.today = '2018-08-16'
-        self.today = datetime.datetime.now().strftime('%Y-%m-%d')
-        if ts.is_holiday(self.today):
-            exit()
+
         self.path = os.path.join(os.path.dirname(__file__), 'data')
         if not os.path.exists(self.path):
             os.mkdir(self.path)
@@ -33,7 +31,7 @@ class FetchDaily:
                 if len(df) != 0:
                     return df
             except Exception as  e:
-                print(e)
+                logger.error(e)
                 re_try = re_try - 1
                 time.sleep(self.TIMEOUT)
         return None
@@ -53,13 +51,15 @@ class FetchDaily:
                 try:
                     self.df_today_all.to_excel(full_filename)
                 except Exception as  e:
-                    print(e)
+                    logger.error(e)
+
                 engine = get_engine('db_daily')
                 # print(self.df_today_all)
                 try:
                     self.df_today_all.to_sql(self.today, engine, if_exists='fail')
                 except Exception as e:
-                    print(e)
+                    # print(e)
+                    logger.error(e)
 
     def store_new(self):
         self.df_today_all = self.gettodaymarket()
@@ -91,6 +91,10 @@ class FetchDaily:
 
 
 if __name__ == "__main__":
+
+    if is_holiday():
+        logger.info("Holidy")
+        exit()
+    logger.info("Start")
     obj = FetchDaily()
-    # obj.store_new()
     obj.store()

@@ -7,10 +7,10 @@ import smtplib
 from email.mime.text import MIMEText
 from sqlalchemy import create_engine
 import os
-# import MySQLdb
 import itchat
 import json
 import pymysql
+import tushare as ts
 
 cfg_file = os.path.join(os.path.dirname(__file__), 'data.cfg')
 with open(cfg_file, 'r') as f:
@@ -32,6 +32,11 @@ SMTP_HOST = json_data['SMTP_HOST']
 FROM_MAIL = json_data['FROM_MAIL']
 TO_MAIL = json_data['TO_MAIL']
 Ali_DB = json_data['Ali_DB']
+
+MYSQL_XGD_HOST = json_data['MYSQL_XGD_HOST']
+MYSQL_XGD_USER = json_data['MYSQL_XGD_USER']
+MYSQL_XGD_PASSWORD= json_data['MYSQL_XGD_PASSWORD']
+MYSQL_XGD_PORT= json_data['MYSQL_XGD_PORT']
 
 
 def get_engine(db, local=True):
@@ -102,23 +107,56 @@ def sendmail(content, subject):
         print(e)
 
 
-class LLogger:
+class ClsLogger:
     def __init__(self, file_name):
-        self.logger = logging.getLogger('mylogger')
+        self.logger = logging.getLogger()
         self.logger.setLevel(logging.DEBUG)
-        file_path = os.path.join(os.path.dirname(__file__), file_name)
+        profix=os.path.splitext(file_name)[0]
+        file_path = os.path.join(os.path.dirname(__file__), profix+'.log')
         f_handler = logging.FileHandler(file_path)
+
         f_handler.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('[%(asctime)s][%(filename)s][line: %(lineno)d]\[%(levelname)s] ## %(message)s')
+        formatter = logging.Formatter('[%(asctime)s][%(filename)s][line: %(lineno)d] [%(levelname)s] ## %(message)s')
+
         f_handler.setFormatter(formatter)
         self.logger.addHandler(f_handler)
 
-    def log(self, content):
-        try:
-            self.logger.debug(content)
-        except Exception as e:
-            self.logger.debug(e)
+    def debug(self, content):
+        self.logger.debug(content)
 
+    def info(self, content):
+        self.logger.info(content)
+
+    def warning(self, content):
+        self.logger.warning(content)
+
+    def error(self, content):
+        self.logger.error(content)
+
+def llogger(filename):
+    pre_fix = os.path.splitext(filename)[0]
+    # 创建一个logger
+    logger = logging.getLogger('mylogger')
+    logger.setLevel(logging.DEBUG)
+
+    # 创建一个handler，用于写入日志文件
+    fh = logging.FileHandler(pre_fix+'.log')
+
+    # 再创建一个handler，用于输出到控制台
+    ch = logging.StreamHandler()
+
+    # # 定义handler的输出格式
+    formatter = logging.Formatter(
+        '[%(asctime)s][%(filename)s][line: %(lineno)d][%(levelname)s] :: %(message)s')
+
+    fh.setFormatter(formatter)
+    ch.setFormatter(formatter)
+
+    # 给logger添加handler
+    logger.addHandler(fh)
+    logger.addHandler(ch)
+
+    return logger
 
 def trading_time():
     current = datetime.datetime.now()
@@ -135,9 +173,13 @@ def trading_time():
 
     elif current > end:
         return 1
+
     elif current < start:
         return -1
 
+def is_holiday():
+    current=datetime.datetime.now().strftime('%Y-%m-%d')
+    return ts.is_holiday(current)
 
 if __name__ == '__main__':
     # msg=MsgSend(u'wei')
@@ -145,4 +187,4 @@ if __name__ == '__main__':
     # print(FROM_MAIL)
     # mylogger('test.log','just for test')
     # trading_time()
-    sendmail('content--------','subject------')
+    sendmail('content--------', 'subject------')

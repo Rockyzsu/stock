@@ -5,7 +5,12 @@ import requests
 import pandas as pd
 from setting import get_engine
 import six
+
+
 engine = get_engine('db_stock')
+from setting import llogger
+
+logger=llogger(__file__)
 
 class Jisilu:
     def __init__(self):
@@ -33,7 +38,7 @@ class Jisilu:
                 else:
                     return r
             except Exception as e:
-                print(e)
+                logger.info(e)
                 continue
         return None
 
@@ -45,7 +50,6 @@ class Jisilu:
         bond_list = ret.get('rows')
         cell_list = []
         for item in bond_list:
-            # cell_list.append(item.get('cell'))
             cell_list.append(pd.Series(item.get('cell')))
         df = pd.DataFrame(cell_list)
         if adjust_no_use:
@@ -62,7 +66,6 @@ class Jisilu:
             del df['stock_id']
             del df['full_price']
             del df['pre_bond_id']
-            # del df['convert_cd']
             del df['ytm_rt']
             del df['ytm_rt_tax']
             del df['repo_cd']
@@ -78,7 +81,6 @@ class Jisilu:
             del df['adjust_tc']
             del df['cpn_desc']
             del df['market']
-            # del df['market']
             del df['stock_net_value']
 
             df['premium_rt'] = df['premium_rt'].map(lambda x: float(x.replace('%', '')))
@@ -100,11 +102,14 @@ class Jisilu:
             # df = df[[u'可转债代码', u'可转债名称', u'可转债涨幅', u'可转债价格', u'正股名称', u'正股现价', u'正股涨跌幅', u'最新转股价', u'溢价率', u'回售 触发价',
             #          u'到期时间']]
             df[u'更新日期'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
-        dfx=df[['可转债代码','可转债名称','可转债涨幅','可转债价格','正股名称','正股涨跌幅','正股现价','最新转股价','溢价率','转股起始日','剩余时间']]
-        dfx.to_sql('tb_bond_jisilu', engine, if_exists='replace')
-
+        dfx=df[['可转债代码','可转债名称','可转债涨幅','可转债价格','正股名称','正股涨跌幅','正股现价','最新转股价','溢价率','转股起始日','剩余时间','更新日期']]
+        try:
+            dfx.to_sql('tb_bond_jisilu', engine, if_exists='replace')
+        except Exception as e:
+            logger.info(e)
 
 def main():
+    logger.info('Start')
     obj = Jisilu()
     obj.dataframe()
 
