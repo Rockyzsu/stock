@@ -16,18 +16,24 @@ cfg_file = os.path.join(os.path.dirname(__file__), 'data.cfg')
 with open(cfg_file, 'r') as f:
     json_data = json.load(f)
 
+# 本地用户
+MYSQL_HOST = json_data['MYSQL_HOST']
+MYSQL_PORT = json_data['MYSQL_PORT']
 MYSQL_USER = json_data['MYSQL_USER']
-MYSQL_USER_Ali = json_data['MYSQL_USER_Ali']
-MYSQL_REMOTE_USER = json_data['MYSQL_REMOTE_USER']
 MYSQL_PASSWORD = json_data['MYSQL_PASSWORD']
+
+MYSQL_USER_Ali = json_data['MYSQL_USER_Ali']
+
+
 MYSQL_PASSWORD_Ali = json_data['MYSQL_PASSWORD_Ali']
 MYSQL_HOST_Ali = json_data['MYSQL_HOST_Ali']
-MYSQL_HOST = json_data['MYSQL_HOST']
+
+MYSQL_REMOTE_USER = json_data['MYSQL_REMOTE_USER']
 MYSQL_REMOTE = json_data['MYSQL_REMOTE']
-MYSQL_PORT = json_data['MYSQL_PORT']
+
 REDIS_HOST = 'localhost'
-EMAIL_USER = json_data['EMAIL_USER']
-EMAIL_PASS = json_data['EMAIL_PASSWORD']
+LOGIN_EMAIL_USER = json_data['LOGIN_EMAIL_USER']
+LOGIN_EMAIL_PASS = json_data['LOGIN_EMAIL_PASSWORD']
 SMTP_HOST = json_data['SMTP_HOST']
 FROM_MAIL = json_data['FROM_MAIL']
 TO_MAIL = json_data['TO_MAIL']
@@ -35,13 +41,12 @@ Ali_DB = json_data['Ali_DB']
 
 MYSQL_XGD_HOST = json_data['MYSQL_XGD_HOST']
 MYSQL_XGD_USER = json_data['MYSQL_XGD_USER']
-MYSQL_XGD_PASSWORD= json_data['MYSQL_XGD_PASSWORD']
-MYSQL_XGD_PORT= json_data['MYSQL_XGD_PORT']
+MYSQL_XGD_PASSWORD = json_data['MYSQL_XGD_PASSWORD']
+MYSQL_XGD_PORT = json_data['MYSQL_XGD_PORT']
 
 
 def get_engine(db, local=True):
     if local:
-        # engine = create_engine('mysql+pymysql://{}:{}@{}:{}/{}?charset=utf8'.format(MYSQL_USER, MYSQL_PASSWORD, MYSQL_HOST, MYSQL_PORT, db))
         engine = create_engine(
             'mysql+pymysql://{}:{}@{}:{}/{}?charset=utf8'.format(MYSQL_USER, MYSQL_PASSWORD, MYSQL_HOST,
                                                                  MYSQL_PORT, db))
@@ -53,9 +58,20 @@ def get_engine(db, local=True):
     return engine
 
 
-def get_mysql_conn(db, local=True):
-    if local:
-        conn = pymysql.connect(MYSQL_REMOTE, MYSQL_USER, MYSQL_PASSWORD, db, charset='utf8')
+def get_mysql_conn(db, local):
+    '''
+
+    :param db: 数据库名字
+    :param local: 本地还是远程还是xgd
+    :return:返回conn
+    '''
+    if local=='local':
+        conn = pymysql.connect(MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, db, charset='utf8')
+
+    elif local == 'XGD':
+        conn = pymysql.connect(host=MYSQL_XGD_HOST, port=int(MYSQL_XGD_PORT), user=MYSQL_XGD_USER,
+                               password=MYSQL_XGD_PASSWORD, db=db, charset='utf8')
+
     else:
         db = Ali_DB
         conn = pymysql.connect(MYSQL_HOST_Ali, MYSQL_USER_Ali, MYSQL_PASSWORD_Ali, db, charset='utf8')
@@ -90,8 +106,10 @@ def sendmail(content, subject):
     '''
     发送邮件
     '''
-    username = EMAIL_USER
-    password = EMAIL_PASS
+    obj = ClsLogger(__file__)
+
+    username = LOGIN_EMAIL_USER
+    password = LOGIN_EMAIL_PASS
     smtp_host = SMTP_HOST
     smtp = smtplib.SMTP(smtp_host)
 
@@ -104,15 +122,14 @@ def sendmail(content, subject):
         smtp.sendmail(msg['from'], msg['to'], msg.as_string())
         smtp.quit()
     except Exception as e:
-        print(e)
-
+        obj.error(e)
 
 class ClsLogger:
     def __init__(self, file_name):
-        self.logger = logging.getLogger()
+        self.logger = logging.getLogger('default')
         self.logger.setLevel(logging.DEBUG)
-        profix=os.path.splitext(file_name)[0]
-        file_path = os.path.join(os.path.dirname(__file__), profix+'.log')
+        profix = os.path.splitext(file_name)[0]
+        file_path = os.path.join(os.path.dirname(__file__), profix + '.log')
         f_handler = logging.FileHandler(file_path)
 
         f_handler.setLevel(logging.DEBUG)
@@ -133,6 +150,7 @@ class ClsLogger:
     def error(self, content):
         self.logger.error(content)
 
+
 def llogger(filename):
     pre_fix = os.path.splitext(filename)[0]
     # 创建一个logger
@@ -147,7 +165,7 @@ def llogger(filename):
 
     # # 定义handler的输出格式
     formatter = logging.Formatter(
-        '[%(asctime)s][%(filename)s][line: %(lineno)d][%(levelname)s] :: %(message)s')
+        '[%(asctime)s][Filename: %(filename)s][line: %(lineno)d][%(levelname)s] :: %(message)s')
 
     fh.setFormatter(formatter)
     ch.setFormatter(formatter)
@@ -157,6 +175,8 @@ def llogger(filename):
     logger.addHandler(ch)
 
     return logger
+
+
 
 def trading_time():
     current = datetime.datetime.now()
@@ -177,9 +197,11 @@ def trading_time():
     elif current < start:
         return -1
 
+
 def is_holiday():
-    current=datetime.datetime.now().strftime('%Y-%m-%d')
+    current = datetime.datetime.now().strftime('%Y-%m-%d')
     return ts.is_holiday(current)
+
 
 if __name__ == '__main__':
     # msg=MsgSend(u'wei')

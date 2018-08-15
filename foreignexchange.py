@@ -3,12 +3,13 @@
 # @File : foreignexchange.py
 # 实时获取外汇
 import re
-
 import datetime
 import requests
-import json
-from setting import sendmail,get_mysql_conn
+from setting import sendmail,get_mysql_conn,llogger
+logger = llogger(__file__)
+
 class ForeighExchange(object):
+
     def __init__(self):
         self.url = 'http://data.bank.hexun.com/other/cms/foreignexchangejson.ashx?callback=ShowDatalist'
         self.update_req = 10
@@ -26,13 +27,13 @@ class ForeighExchange(object):
             sell=re.search('sellPrice1:\'([0-9.]+)\'',ret_str).group(1)
             return (buy,sell)
 
-    def sendmail(self):
-
+    def notice(self):
             buy,sell=self.run()
             sub = '{}: 美元汇率{}'.format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),buy)
+            logger.info(sub)
             sendmail('',sub)
 
-            conn=get_mysql_conn('db_stock')
+            conn=get_mysql_conn('db_stock','local')
             cursor = conn.cursor()
             cmd = 'insert into `usd_ratio` (`price`,`date`) VALUES ({},{!r})'.format(buy,datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
@@ -40,7 +41,7 @@ class ForeighExchange(object):
                 cursor.execute(cmd)
                 conn.commit()
             except Exception as e:
-                print(e)
+                logger.error(e)
                 conn.rollback()
 
             conn.close()
@@ -57,9 +58,10 @@ class ForeighExchange(object):
                     continue
 
             except Exception as e:
-                print(e)
+                logger.error(e)
 
         return None
 
+logger.info('Start')
 obj = ForeighExchange()
-obj.sendmail()
+obj.notice()
