@@ -1,19 +1,19 @@
 # -*-coding=utf-8-*-
 # 估价达到自己的设定值,发邮件通知, 每天2.45发邮件
 import tushare as ts
-from setting import sendmail, get_engine, trading_time, LLogger
+from setting import sendmail, get_engine, trading_time, llogger,is_holiday
 import datetime
 import time
 import pandas as pd
 import tushare as ts
-import config
-logger = LLogger('alert.log')
+# import config
+logger = llogger(__file__)
 
 # 5秒循环检测一次
 LOOP__TIME = 60
 EXECEPTION_TIME = 2* LOOP__TIME
 
-
+# 可转债市场的监控
 class ReachTarget():
     
     def __init__(self):
@@ -93,10 +93,9 @@ class ReachTarget():
 
 if __name__ == '__main__':
 
-    today =  datetime.datetime.now().strftime('%Y-%m-%d')
 
-    if ts.is_holiday(today):
-        logger.log('{} holiday'.format(today))
+    if is_holiday():
+        logger.info('Holiday')
         exit(0)
 
     obj = ReachTarget()
