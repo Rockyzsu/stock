@@ -14,9 +14,9 @@ from setting import get_engine,llogger,is_holiday
 
 logger = llogger(__file__)
 
-class FetchDaily:
+class FetchDaily(object):
     def __init__(self):
-
+        self.today=datetime.datetime.now().strftime('%Y-%m-%d')
         self.path = os.path.join(os.path.dirname(__file__), 'data')
         if not os.path.exists(self.path):
             os.mkdir(self.path)

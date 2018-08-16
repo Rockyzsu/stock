@@ -17,10 +17,10 @@ import os, sys
 # import itchat
 # import MySQLdb
 # import setting
-from setting import sendmail, LLogger
+from setting import sendmail, llogger
 from setting import get_mysql_conn
 
-logger = LLogger('news.log')
+logger = llogger(__file__)
 
 
 def create_tb(conn):
@@ -32,12 +32,12 @@ def create_tb(conn):
         # conn.close()
         return True
     except Exception as e:
-        logger.log(e)
+        logger.info(e)
         conn.rollback()
         return False
 
 
-def getinfo(max_index_user=3, days=-2):
+def getinfo(max_index_use=100, days=-30):
     last_day = datetime.datetime.now() + datetime.timedelta(days=days)
     stock_news_site = "http://ggjd.cnstock.com/gglist/search/ggkx/"
 
@@ -57,7 +57,7 @@ def getinfo(max_index_user=3, days=-2):
         'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; 360SE)',
         'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; SE 2.X MetaSr 1.0; SE 2.X MetaSr 1.0; .NET CLR 2.0.50727; SE 2.X MetaSr 1.0)']
     index = 0
-    max_index = max_index_user
+    max_index = max_index_use
     num = 1
     temp_time = time.strftime("[%Y-%m-%d]-[%H-%M]", time.localtime())
 
@@ -83,9 +83,9 @@ def getinfo(max_index_user=3, days=-2):
 
             except Exception as e:
                 if hasattr(e, 'code'):
-                    logger.log("error code %d" % e.code)
+                    logger.info("error code %d" % e.code)
                 elif hasattr(e, 'reason'):
-                    logger.log("error reason %s " % e.reason)
+                    logger.info("error reason %s " % e.reason)
             finally:
                 if req:
                     raw_content = req.text
@@ -94,7 +94,7 @@ def getinfo(max_index_user=3, days=-2):
             soup = BeautifulSoup(raw_content, "html.parser")
             all_content = soup.find_all("span", "time")
         except Exception as e:
-            logger.log(e)
+            logger.info(e)
             return None
         # cmd_list = []
         for i in all_content:
@@ -140,34 +140,41 @@ def getinfo(max_index_user=3, days=-2):
         sendmail(''.join(all_contents), temp_time)
 
     db_name = 'db_stock'
-    conn = get_mysql_conn(db_name, local=True)
+    conn = get_mysql_conn(db_name, local='local')
+    create_tb(conn)
     # create_tb(conn)
     cur = conn.cursor()
     for i in cmd_list:
+        logger.info(i)
+
         try:
             cur.execute(i)
             conn.commit()
 
         except Exception as e:
-            logger.log(e)
+            logger.info(e)
             conn.rollback()
-
-    conn.commit()
+            continue
+    # conn.commit()
     # conn.close()
 
     db_name = 'qdm225205669_db'
-    conn2 = get_mysql_conn(db_name, local=False)
+    conn2 = get_mysql_conn(db_name, local='ali')
+    create_tb(conn2)
     # create_tb(conn2)
     cur2 = conn2.cursor()
     for i in cmd_list:
+
         try:
             cur2.execute(i)
             conn2.commit()
 
         except Exception as e:
-            print(e)
+            # print(e)
+            logger.warning(e)
             conn2.rollback()
-    conn2.commit()
+            continue
+    # conn2.commit()
     conn2.close()
 
     conn.close()
@@ -188,6 +195,6 @@ if __name__ == "__main__":
         if re.match('-\d+', sys.argv[1]):
             day = int(sys.argv[1])
     else:
-        day = -2
+        day = -100
     # create_tb()
     getinfo(days=day)

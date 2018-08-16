@@ -46,6 +46,12 @@ MYSQL_XGD_PORT = json_data['MYSQL_XGD_PORT']
 
 
 def get_engine(db, local=True):
+    '''
+
+    :param db:
+    :param local:
+    :return:
+    '''
     if local:
         engine = create_engine(
             'mysql+pymysql://{}:{}@{}:{}/{}?charset=utf8'.format(MYSQL_USER, MYSQL_PASSWORD, MYSQL_HOST,
@@ -72,7 +78,7 @@ def get_mysql_conn(db, local):
         conn = pymysql.connect(host=MYSQL_XGD_HOST, port=int(MYSQL_XGD_PORT), user=MYSQL_XGD_USER,
                                password=MYSQL_XGD_PASSWORD, db=db, charset='utf8')
 
-    else:
+    elif local=='ali':
         db = Ali_DB
         conn = pymysql.connect(MYSQL_HOST_Ali, MYSQL_USER_Ali, MYSQL_PASSWORD_Ali, db, charset='utf8')
 

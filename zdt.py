@@ -55,10 +55,10 @@ class GetZDT:
                     return content
                 else:
                     time.sleep(60)
-                    logger.log('failed to get content, retry: {}'.format(i))
+                    logger.info('failed to get content, retry: {}'.format(i))
                     continue
             except Exception as e:
-                logger.log(e)
+                logger.info(e)
                 time.sleep(60)
                 continue
         return None
@@ -66,7 +66,7 @@ class GetZDT:
     def convert_json(self, content):
         p = re.compile(r'"Data":(.*)};', re.S)
         if len(content)<=0:
-            logger.log('Content\'s length is 0')
+            logger.info('Content\'s length is 0')
             exit(0)
         result = p.findall(content)
         if result:
@@ -76,7 +76,7 @@ class GetZDT:
                 t2 = list(eval(t1))
                 return t2
             except Exception as e:
-                logger.log(e)
+                logger.info(e)
                 return None
         else:
             return None
@@ -142,7 +142,7 @@ class GetZDT:
             try:
                 df.to_sql(self.today + post_fix, engine, if_exists='fail')
             except Exception as e:
-                logger.log(e)
+                logger.info(e)
 
         if choice == 2:
             df = df.set_index(u'序号')
@@ -154,17 +154,17 @@ class GetZDT:
             try:
                 df.to_sql(self.today + post_fix, engine, if_exists='fail')
             except Exception as e:
-                logger.log(e)
+                logger.info(e)
 
     # 昨日涨停今日的状态，今日涨停
     def storedata(self):
         zdt_content = self.getdata(self.zdt_url, headers=self.header_zdt)
-        logger.log('zdt Content'+zdt_content)
+        logger.info('zdt Content'+zdt_content)
         zdt_js = self.convert_json(zdt_content)
         self.save_to_dataframe(zdt_js, self.zdt_indexx, 1, 'zdt')
-        time.sleep(2)
+        time.sleep(0.5)
         zrzt_content = self.getdata(self.zrzt_url, headers=self.header_zrzt)
-        logger.log('zrzt Content'+zdt_content)
+        logger.info('zrzt Content'+zdt_content)
 
         zrzt_js = self.convert_json(zrzt_content)
         self.save_to_dataframe(zrzt_js, self.zrzt_indexx, 2, 'zrzt')
