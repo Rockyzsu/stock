@@ -37,7 +37,7 @@ def create_tb(conn):
         return False
 
 
-def getinfo(max_index_use=100, days=-30):
+def getinfo(max_index_use=4, days=-30):
     last_day = datetime.datetime.now() + datetime.timedelta(days=days)
     stock_news_site = "http://ggjd.cnstock.com/gglist/search/ggkx/"
 
@@ -195,6 +195,6 @@ if __name__ == "__main__":
         if re.match('-\d+', sys.argv[1]):
             day = int(sys.argv[1])
     else:
-        day = -100
+        day = -2
     # create_tb()
     getinfo(days=day)
