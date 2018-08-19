@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from setting import DATA_PATH
 
+# 分析年度的数据
 def stock_analysis():
     df=pd.read_excel('2017-year.xls',encoding='gbk')
     print('mean:\n',df['price_change'].mean())
