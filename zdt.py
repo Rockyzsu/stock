@@ -7,23 +7,25 @@ http://30daydo.com
 Contact: weigesysu@qq.com
 '''
 # 每天的涨跌停
-import  re, time, xlrd, xlwt, sys, os
+import re, time, xlrd, xlwt, sys, os
 import setting
-from setting import is_holiday
+from setting import is_holiday, DATA_PATH
 import pandas as pd
 import tushare as ts
 from setting import llogger
 import requests
+
 # reload(sys)
 # sys.setdefaultencoding('gbk')
 
 logger = llogger(__file__)
 
+
 class GetZDT:
     def __init__(self):
         self.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/64.0.3282.167 Chrome/64.0.3282.167 Safari/537.36"
         self.today = time.strftime("%Y%m%d")
-        self.path = os.path.join(os.path.dirname(__file__), 'data')
+        self.path = DATA_PATH
         self.zdt_url = 'http://home.flashdata2.jrj.com.cn/limitStatistic/ztForce/' + self.today + ".js"
         self.zrzt_url = 'http://hqdata.jrj.com.cn/zrztjrbx/limitup.js'
 
@@ -50,8 +52,8 @@ class GetZDT:
             try:
                 resp = requests.get(url=url, headers=headers)
                 content = resp.text
-                md_check = re.findall('summary|lasttradedate',content)
-                if content and len(md_check)>0:
+                md_check = re.findall('summary|lasttradedate', content)
+                if content and len(md_check) > 0:
                     return content
                 else:
                     time.sleep(60)
@@ -65,13 +67,13 @@ class GetZDT:
 
     def convert_json(self, content):
         p = re.compile(r'"Data":(.*)};', re.S)
-        if len(content)<=0:
+        if len(content) <= 0:
             logger.info('Content\'s length is 0')
             exit(0)
         result = p.findall(content)
         if result:
             try:
-            # print(result)
+                # print(result)
                 t1 = result[0]
                 t2 = list(eval(t1))
                 return t2
@@ -134,10 +136,9 @@ class GetZDT:
 
         df = pd.DataFrame(data, columns=indexx)
 
-
         filename = os.path.join(self.path, self.today + "_" + post_fix + ".xls")
         if choice == 1:
-            df[u'今天的日期']=self.today
+            df[u'今天的日期'] = self.today
             df.to_excel(filename, encoding='gbk')
             try:
                 df.to_sql(self.today + post_fix, engine, if_exists='fail')
@@ -159,15 +160,16 @@ class GetZDT:
     # 昨日涨停今日的状态，今日涨停
     def storedata(self):
         zdt_content = self.getdata(self.zdt_url, headers=self.header_zdt)
-        logger.info('zdt Content'+zdt_content)
+        logger.info('zdt Content' + zdt_content)
         zdt_js = self.convert_json(zdt_content)
         self.save_to_dataframe(zdt_js, self.zdt_indexx, 1, 'zdt')
         time.sleep(0.5)
         zrzt_content = self.getdata(self.zrzt_url, headers=self.header_zrzt)
-        logger.info('zrzt Content'+zdt_content)
+        logger.info('zrzt Content' + zdt_content)
 
         zrzt_js = self.convert_json(zrzt_content)
         self.save_to_dataframe(zrzt_js, self.zrzt_indexx, 2, 'zrzt')
+
 
 if __name__ == '__main__':
     # today='2018-04-16'
@@ -181,4 +183,3 @@ if __name__ == '__main__':
     logger.info("start")
     obj = GetZDT()
     obj.storedata()
-

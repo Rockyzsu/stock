@@ -5,17 +5,16 @@ import datetime
 __author__ = 'Rocky'
 import tushare as ts
 import os
-from setting import get_engine,LLogger
+from setting import get_engine,llogger,is_holiday,DATA_PATH
 import pandas as pd
-logger=LLogger('collect_data.log')
+logger=llogger('collect_data.log')
 
 class SaveData():
     today = datetime.datetime.now().strftime("%Y-%m-%d")
     daily_engine = get_engine('daily')
 
     def __init__(self):
-        current=os.getcwd()
-        work_space=os.path.join(current,'data')
+        work_space=DATA_PATH
         if os.path.exists(work_space) ==False:
             os.mkdir(work_space)
         os.chdir(work_space)
@@ -27,8 +26,8 @@ class SaveData():
         try:
             df.to_sql(SaveData.today,SaveData.daily_engine,if_exists='replace')
         except Exception as e:
-            print(e)
-        print("Save {} data to MySQL".format(SaveData.today))
+            logger.info(e)
+        logger.info("Save {} data to MySQL".format(SaveData.today))
 
     #获取解禁股
     def get_classified_stock(self,year=None,month=None):
@@ -42,10 +41,10 @@ class SaveData():
         if df is not None:
             try:
                 df=df.reset_index()
-                df[u'更新日期']=datetime.datetime.now().strftime('%Y-%m-%d')
+                df[u'更新日期']=datetime.datetime.now()
                 df.to_sql('tb_basic_info',engine,if_exists='replace')
             except Exception as e:
-                print(e)
+                logger.info(e)
 
     def save_to_excel(self,df,filename,encoding='gbk'):
         try:
@@ -54,8 +53,8 @@ class SaveData():
             df.to_excel(filename,encoding=encoding)
             return True
         except Exception as e:
-            print("Save to excel faile")
-            print(e)
+            logger.info("Save to excel faile")
+            logger.info(e)
             return None
 
 
@@ -64,10 +63,9 @@ def main():
     obj.basic_info()
 
 if __name__=='__main__':
-    today =  datetime.datetime.now().strftime('%Y-%m-%d')
-    if ts.is_holiday(today):
-        logger.log('{} holiday'.format(today))
-        exit(0)
+    if is_holiday():
+        logger.info("Holidy")
+        exit()
     main()
     # SaveData.daily_market()
     # obj.get_classified_stock(2018,1)

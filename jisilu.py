@@ -3,14 +3,12 @@ import time
 import datetime
 import requests
 import pandas as pd
-from setting import get_engine
+from setting import get_engine, llogger, is_holiday
 import six
 
-
 engine = get_engine('db_stock')
-from setting import llogger
+logger = llogger(__file__)
 
-logger=llogger(__file__)
 
 class Jisilu:
     def __init__(self):
@@ -24,7 +22,7 @@ class Jisilu:
             'X-Requested-With': 'XMLHttpRequest'}
         self.post_data = {
             'btype': 'C',
-            'listed': 'Y',
+            # 'listed': 'Y',
             'rp': '50'
         }
         self.url = 'https://www.jisilu.cn/data/cbnew/cb_list/?___jsl=LST___t={}'.format(self.timestamp)
@@ -32,7 +30,7 @@ class Jisilu:
     def download(self, url, retry=5):
         for i in range(retry):
             try:
-                r = requests.post(url, data=self.post_data)
+                r = requests.post(url, headers=self.headers,data=self.post_data)
                 if not r.text or r.status_code != 200:
                     continue
                 else:
@@ -102,11 +100,13 @@ class Jisilu:
             # df = df[[u'可转债代码', u'可转债名称', u'可转债涨幅', u'可转债价格', u'正股名称', u'正股现价', u'正股涨跌幅', u'最新转股价', u'溢价率', u'回售 触发价',
             #          u'到期时间']]
             df[u'更新日期'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
-        dfx=df[['可转债代码','可转债名称','可转债涨幅','可转债价格','正股名称','正股涨跌幅','正股现价','最新转股价','溢价率','转股起始日','剩余时间','更新日期']]
+        dfx = df[['可转债代码', '可转债名称', '可转债涨幅', '可转债价格', '正股名称', '正股代码', '正股涨跌幅', '正股现价', '最新转股价', '溢价率', '转股起始日', '剩余时间',
+                  '更新日期']]
         try:
             dfx.to_sql('tb_bond_jisilu', engine, if_exists='replace')
         except Exception as e:
             logger.info(e)
+
 
 def main():
     logger.info('Start')
@@ -115,4 +115,7 @@ def main():
 
 
 if __name__ == '__main__':
+    if is_holiday():
+        logger.info("Holidy")
+        exit()
     main()

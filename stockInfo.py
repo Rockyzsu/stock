@@ -17,8 +17,7 @@ import os, sys
 # import itchat
 # import MySQLdb
 # import setting
-from setting import sendmail, llogger
-from setting import get_mysql_conn
+from setting import sendmail, llogger,get_mysql_conn,DATA_PATH
 
 logger = llogger(__file__)
 
@@ -29,7 +28,6 @@ def create_tb(conn):
     try:
         cur.execute(cmd)
         conn.commit()
-        # conn.close()
         return True
     except Exception as e:
         logger.info(e)
@@ -182,7 +180,7 @@ def getinfo(max_index_use=4, days=-30):
 
 if __name__ == "__main__":
 
-    sub_folder = os.path.join(os.path.dirname(__file__), "data")
+    sub_folder = DATA_PATH
     if not os.path.exists(sub_folder):
         os.mkdir(sub_folder)
     os.chdir(sub_folder)

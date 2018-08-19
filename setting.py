@@ -24,7 +24,6 @@ MYSQL_PASSWORD = json_data['MYSQL_PASSWORD']
 
 MYSQL_USER_Ali = json_data['MYSQL_USER_Ali']
 
-
 MYSQL_PASSWORD_Ali = json_data['MYSQL_PASSWORD_Ali']
 MYSQL_HOST_Ali = json_data['MYSQL_HOST_Ali']
 
@@ -43,6 +42,7 @@ MYSQL_XGD_HOST = json_data['MYSQL_XGD_HOST']
 MYSQL_XGD_USER = json_data['MYSQL_XGD_USER']
 MYSQL_XGD_PASSWORD = json_data['MYSQL_XGD_PASSWORD']
 MYSQL_XGD_PORT = json_data['MYSQL_XGD_PORT']
+DATA_PATH = json_data['DATA_PATH']
 
 
 def get_engine(db, local=True):
@@ -71,14 +71,14 @@ def get_mysql_conn(db, local):
     :param local: 本地还是远程还是xgd
     :return:返回conn
     '''
-    if local=='local':
+    if local == 'local':
         conn = pymysql.connect(MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, db, charset='utf8')
 
     elif local == 'XGD':
         conn = pymysql.connect(host=MYSQL_XGD_HOST, port=int(MYSQL_XGD_PORT), user=MYSQL_XGD_USER,
                                password=MYSQL_XGD_PASSWORD, db=db, charset='utf8')
 
-    elif local=='ali':
+    elif local == 'ali':
         db = Ali_DB
         conn = pymysql.connect(MYSQL_HOST_Ali, MYSQL_USER_Ali, MYSQL_PASSWORD_Ali, db, charset='utf8')
 
@@ -130,6 +130,7 @@ def sendmail(content, subject):
     except Exception as e:
         obj.error(e)
 
+
 class ClsLogger:
     def __init__(self, file_name):
         self.logger = logging.getLogger('default')
@@ -164,7 +165,7 @@ def llogger(filename):
     logger.setLevel(logging.DEBUG)
 
     # 创建一个handler，用于写入日志文件
-    fh = logging.FileHandler(pre_fix+'.log')
+    fh = logging.FileHandler(pre_fix + '.log')
 
     # 再创建一个handler，用于输出到控制台
     ch = logging.StreamHandler()
@@ -183,8 +184,11 @@ def llogger(filename):
     return logger
 
 
-
 def trading_time():
+    '''
+
+    :return:
+    '''
     current = datetime.datetime.now()
     start = datetime.datetime(current.year, current.month, current.day, 9, 23, 0)
     noon_start = datetime.datetime(current.year, current.month, current.day, 12, 58, 0)

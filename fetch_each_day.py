@@ -10,14 +10,16 @@ import pandas as pd
 import time
 import datetime
 import os
-from setting import get_engine,llogger,is_holiday
+from setting import get_engine, llogger, is_holiday, DATA_PATH
 
 logger = llogger(__file__)
 
+
 class FetchDaily(object):
     def __init__(self):
-        self.today=datetime.datetime.now().strftime('%Y-%m-%d')
-        self.path = os.path.join(os.path.dirname(__file__), 'data')
+        self.today = datetime.datetime.now().strftime('%Y-%m-%d')
+
+        self.path = DATA_PATH
         if not os.path.exists(self.path):
             os.mkdir(self.path)
 
