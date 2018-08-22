@@ -94,10 +94,9 @@ def getinfo(max_index_use=4, days=-30):
         except Exception as e:
             logger.info(e)
             return None
-        # cmd_list = []
+
         for i in all_content:
             news_time = i.string
-            # print(news_time)
             node = i.next_sibling
 
             url = node['href']
@@ -108,21 +107,11 @@ def getinfo(max_index_use=4, days=-30):
             news_time_f = datetime.datetime.strptime(year + '-' + news_time, '%Y-%m-%d %H:%M')
 
             if news_time_f >= last_day:
-                # news_time_f=news_time_f.replace(2018)
-                # print(news_time_f)
                 str_temp = "No.%s \n%s\t%s\n---> %s \n\n" % (str(num), news_time, node['title'], node['href'])
-                # print("inside %d" %num)
-                # print(str_temp)
+
                 cmd = '''INSERT INTO tb_cnstock (Date,Title,URL ) VALUES(\'%s\',\'%s\',\'%s\');''' % (
                     news_time_f, node['title'].strip(), node['href'].strip())
-                # print(cmd)
                 cmd_list.append(cmd)
-                # try:
-                #     cur.execute(cmd)
-                #     conn.commit()
-                # except Exception as e:
-                #     print(e)
-                #     conn.rollback()
 
                 all_contents.append(str_temp)
 
@@ -153,13 +142,10 @@ def getinfo(max_index_use=4, days=-30):
             logger.info(e)
             conn.rollback()
             continue
-    # conn.commit()
-    # conn.close()
 
     db_name = 'qdm225205669_db'
     conn2 = get_mysql_conn(db_name, local='ali')
     create_tb(conn2)
-    # create_tb(conn2)
     cur2 = conn2.cursor()
     for i in cmd_list:
 
@@ -172,9 +158,8 @@ def getinfo(max_index_use=4, days=-30):
             logger.warning(e)
             conn2.rollback()
             continue
-    # conn2.commit()
-    conn2.close()
 
+    conn2.close()
     conn.close()
 
 
@@ -184,15 +169,11 @@ if __name__ == "__main__":
     if not os.path.exists(sub_folder):
         os.mkdir(sub_folder)
     os.chdir(sub_folder)
-    # itchat.auto_login(hotReload=True)
-    # account = itchat.get_friends()
-    # for i in account:
-    #     if i[u'PYQuanPin'] == u'wei':
-    #         username = i['UserName']
+
     if len(sys.argv) > 1:
         if re.match('-\d+', sys.argv[1]):
             day = int(sys.argv[1])
     else:
         day = -2
-    # create_tb()
+
     getinfo(days=day)

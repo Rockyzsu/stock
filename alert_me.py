@@ -22,7 +22,9 @@ class ReachTarget():
         self.stocks = dict(zip(self.cb_code, self.name))
         self.stocks_yjl = dict(zip(self.cb_code, self.yjl))
         self.api = ts.get_apis()
-        self.code_list = self.stocks.keys()
+        # python3 这个返回的不是list,需要手工转换
+        self.code_list = list(self.stocks.keys())
+
 
     def bond(self):
         engine = get_engine('db_stock')
@@ -41,7 +43,6 @@ class ReachTarget():
 
         while 1:
             current = trading_time()
-            # current=0
             if current == MARKET_OPENING:
                 try:
                     price_df = ts.quotes(self.code_list, conn=self.api)
@@ -67,7 +68,6 @@ class ReachTarget():
                             yjl_list.append(self.stocks_yjl[i])
                             self.code_list.remove(i)
 
-                        # name_list =[self.stocks[i] for i in ret_dt['code'] ]
                         ret_dt['name'] = name_list
                         ret_dt[u'溢价率'] = yjl_list
                         ret_dt = ret_dt.sort_values(by='percent', ascending=False)
