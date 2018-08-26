@@ -31,7 +31,7 @@ class ForeighExchange(object):
             buy,sell=self.run()
             sub = '{}: 美元汇率{}'.format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),buy)
             logger.info(sub)
-            sendmail('',sub)
+            # sendmail('',sub)
 
             conn=get_mysql_conn('db_stock','local')
             cursor = conn.cursor()
