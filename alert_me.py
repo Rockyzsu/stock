@@ -5,6 +5,7 @@ from setting import sendmail, get_engine, trading_time, llogger, is_holiday
 import datetime
 import time
 import pandas as pd
+from setting import WechatSend
 
 logger = llogger(__file__)
 
@@ -13,6 +14,7 @@ LOOP__TIME = 60
 EXECEPTION_TIME = 2 * LOOP__TIME
 MARKET_OPENING = 0
 
+wechat = WechatSend('wei')
 
 # 可转债市场的监控
 class ReachTarget():
@@ -74,11 +76,12 @@ class ReachTarget():
                         ret_dt = ret_dt.reset_index(drop=True)
 
                         try:
-                            sendmail(ret_dt.to_string(), '波动的可转债')
-                            logger.info("Send mail successfully at {}".format(datetime.datetime.now()))
+                            wechat.send_content(ret_dt.to_string())
+                            # sendmail(ret_dt.to_string(), '波动的可转债')
+                            # logger.info("Send mail successfully at {}".format(datetime.datetime.now()))
 
                         except Exception as e:
-                            logger.info('sending mail failed')
+                            logger.info('sending wechat failed')
                             logger.info(e)
 
                     time.sleep(LOOP__TIME)

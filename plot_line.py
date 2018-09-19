@@ -37,8 +37,8 @@ def plot_stock_line(code, name, table_name, current, start='2017-10-01', save=Fa
     fig = plt.figure(figsize=(10, 8))
     base_info = pd.read_sql('tb_basic_info', engine, index_col='index')
     # fig,(ax,ax2)=plt.subplots(2,1,sharex=True,figsize=(16,10))
-    ax = fig.add_axes([0, 0.3, 1, 0.55])
-    ax2 = fig.add_axes([0, 0.1, 1, 0.25])
+    ax = fig.add_axes([0, 0.3, 1, 0.50])
+    ax2 = fig.add_axes([0, 0.1, 1, 0.20])
     if code is None and name is not None:
         code = base_info[base_info['name'] == name]['code'].values[0]
     df = None
@@ -82,7 +82,7 @@ def plot_stock_line(code, name, table_name, current, start='2017-10-01', save=Fa
     ax2.set_xticklabels(df['datetime'][::5])
     plt.setp(ax2.get_xticklabels(), rotation=30, horizontalalignment='right')
     ax2.grid(True)
-    # plt.subplots_adjust(hspace=0)
+    plt.subplots_adjust(hspace=0.3)
     if save:
         # path = os.path.join(os.path.dirname(__file__),'data',today)
         fig.savefig(title + '.png')
@@ -110,5 +110,5 @@ if __name__ == '__main__':
     else:
         code = None
         name = u'泰永长征'
-    plot_stock_line(code=code, name=name, table_name='zdt', current='20180423', start='2018-02-01', save=False)
+    plot_stock_line(code=code, name=name, table_name='zdt', current='20180912', start='2018-02-01', save=False)
     # ts.close_apis(api)
