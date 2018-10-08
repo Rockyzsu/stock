@@ -24,7 +24,7 @@ logger = llogger(__file__)
 
 def create_tb(conn):
     cur = conn.cursor()
-    cmd = '''CREATE TABLE IF NOT EXISTS tb_cnstock(Date DATETIME ,Title VARCHAR (80),URL VARCHAR (80),PRIMARY KEY (URL)) charset=utf8;'''
+    cmd = '''CREATE TABLE IF NOT EXISTS tb_cnstock(Date DATETIME ,Title VARCHAR (800),URL VARCHAR (100),PRIMARY KEY (URL)) charset=utf8;'''
     try:
         cur.execute(cmd)
         conn.commit()
@@ -66,13 +66,10 @@ def getinfo(max_index_use=4, days=-30):
     cmd_list = []
     while index <= max_index:
         user_agent = random.choice(my_useragent)
-        # print(user_agent)
         company_news_site = stock_news_site + str(index)
-        # content = urllib2.urlopen(company_news_site)
         headers = {'User-Agent': user_agent, 'Host': "ggjd.cnstock.com", 'DNT': '1',
                    'Accept': 'text/html, application/xhtml+xml, */*', }
 
-        resp = None
         raw_content = ""
         retry = 6
         for _ in range(retry):
@@ -84,10 +81,11 @@ def getinfo(max_index_use=4, days=-30):
                     logger.info("error code %d" % e.code)
                 elif hasattr(e, 'reason'):
                     logger.info("error reason %s " % e.reason)
-            finally:
+            else:
                 if req:
                     raw_content = req.text
                     break
+
         try:
             soup = BeautifulSoup(raw_content, "html.parser")
             all_content = soup.find_all("span", "time")
@@ -123,8 +121,8 @@ def getinfo(max_index_use=4, days=-30):
         index = index + 1
 
     f_open.close()
-    if len(all_contents) > 0:
-        sendmail(''.join(all_contents), temp_time)
+    # if len(all_contents) > 0:
+    #     sendmail(''.join(all_contents), temp_time)
 
     db_name = 'db_stock'
     conn = get_mysql_conn(db_name, local='local')

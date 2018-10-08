@@ -5,7 +5,6 @@ from setting import sendmail, get_engine, trading_time, llogger, is_holiday
 import datetime
 import time
 import pandas as pd
-from setting import WechatSend
 
 logger = llogger(__file__)
 
@@ -14,7 +13,6 @@ LOOP__TIME = 60
 EXECEPTION_TIME = 2 * LOOP__TIME
 MARKET_OPENING = 0
 
-wechat = WechatSend('wei')
 
 # 可转债市场的监控
 class ReachTarget():
@@ -105,6 +103,10 @@ if __name__ == '__main__':
     if is_holiday():
         logger.info('Holiday')
         exit(0)
+
+    from setting import WechatSend
+
+    wechat = WechatSend('wei')
 
     obj = ReachTarget()
     obj.monitor()
