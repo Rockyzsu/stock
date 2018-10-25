@@ -11,6 +11,7 @@ import itchat
 import json
 import pymysql
 import tushare as ts
+import config
 
 cfg_file = os.path.join(os.path.dirname(__file__), 'data.cfg')
 with open(cfg_file, 'r') as f:

@@ -26,7 +26,7 @@ class FetchDaily(object):
         self.df_today_all = pd.DataFrame()
         self.TIMEOUT = 10
 
-    def gettodaymarket(self, re_try=5):
+    def gettodaymarket(self, re_try=100):
         while re_try > 0:
             try:
                 df = ts.get_today_all()
@@ -34,8 +34,11 @@ class FetchDaily(object):
                     return df
             except Exception as  e:
                 logger.error(e)
+
                 re_try = re_try - 1
                 time.sleep(self.TIMEOUT)
+                # import tushare as ts
+
         return None
 
     def store(self):
