@@ -89,18 +89,28 @@ class Jisilu:
             # df['increase_rt']=df['increase_rt'].astype('float64')
             # df['put_convert_price']=df['put_convert_price'].astype('float64')
             df['redeem_price'] = df['redeem_price'].astype('float64')
+            def convert_float(x):
+                try:
+                    ret_float = float(x)
+                except:
+                    ret_float=None
+                return ret_float
+
+            df['put_convert_price']=df['put_convert_price'].map(convert_float)
+
 
             df = df.rename(columns={'bond_id': u'可转债代码', 'bond_nm': u'可转债名称', 'stock_nm': u'正股名称', 'stock_cd': u'正股代码',
                                     'sprice': u'正股现价',
                                     'sincrease_rt': u'正股涨跌幅',
                                     'convert_price': u'最新转股价', 'premium_rt': u'溢价率', 'increase_rt': u'可转债涨幅',
-                                    'put_convert_price': u'回售 触发价', 'convert_dt': u'转股起始日',
+                                    'put_convert_price': u'回售触发价', 'convert_dt': u'转股起始日',
                                     'short_maturity_dt': u'到期时间', 'volume': u'成交额(万元)',
-                                    'price': u'可转债价格', 'redeem_price': u'强赎价格', 'year_left': u'剩余时间'})
+                                    'price': u'可转债价格', 'redeem_price': u'强赎价格', 'year_left': u'剩余时间',
+                                    'next_put_dt':'回售起始日'})
             # df = df[[u'可转债代码', u'可转债名称', u'可转债涨幅', u'可转债价格', u'正股名称', u'正股现价', u'正股涨跌幅', u'最新转股价', u'溢价率', u'回售 触发价',
             #          u'到期时间']]
             df[u'更新日期'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
-        dfx = df[['可转债代码', '可转债名称', '可转债涨幅', '可转债价格', '正股名称', '正股代码', '正股涨跌幅', '正股现价', '最新转股价', '溢价率', '转股起始日', '剩余时间',
+        dfx = df[['可转债代码', '可转债名称', '可转债涨幅', '可转债价格', '正股名称', '正股代码', '正股涨跌幅', '正股现价', '最新转股价', '溢价率', '转股起始日', '回售起始日','回售触发价','剩余时间',
                   '更新日期']]
         try:
             dfx.to_sql('tb_bond_jisilu', engine, if_exists='replace')

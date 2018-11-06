@@ -23,6 +23,7 @@ class ReachTarget():
         self.stocks_yjl = dict(zip(self.cb_code, self.yjl))
         self.api = ts.get_apis()
         # python3 这个返回的不是list,需要手工转换
+
         self.code_list = list(self.stocks.keys())
 
 
