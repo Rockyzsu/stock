@@ -10,7 +10,7 @@ def get_content(url,retry=5):
 			r = requests.get(url,headers=headers)
 			if r.status_code == 200 and len(r.text) >0:
 				return r.text
-		except Exception ,e:
+		except Exception as e:
 			print(e)
 			retry-=1
 
