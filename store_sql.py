@@ -49,7 +49,7 @@ class StoreDB():
 class DeliveryOrder():
     def __init__(self):
         self.data_folder = os.path.join(os.getcwd(),'data')
-        self.engine = create_engine('mysql+pymysql://root:123456z@localhost:3306/stock?charset=utf8')
+        self.engine = create_engine('mysql+pymysql://root:123456@localhost:3306/stock?charset=utf8')
 
 
     def store_data(self,month):
@@ -68,7 +68,7 @@ def save_baseinfo():
 #删除已存在的股票代码数据库
 def del_db():
     r=redis.StrictRedis(HOSTNAME,6379,db=0)
-    db = MySQLdb.connect('localhost','root','123456z','stock')
+    db = MySQLdb.connect('localhost','root','123456','stock')
     cursor =db.cursor()
     for i in r.keys():
         #print(i)

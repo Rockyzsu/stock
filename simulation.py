@@ -10,7 +10,7 @@ import pandas as pd
 import datetime
 import numpy as np
 import tushare as ts
-
+from send_mail import sender_139
 from setting import get_engine, get_mysql_conn, is_holiday, llogger, DATA_PATH
 
 logger = llogger(__file__)
@@ -25,12 +25,12 @@ class Simulation():
         if os.path.exists(path) == False:
             os.mkdir(path)
         os.chdir(path)
+
         self.name = 'simulation.xls'
         self.df = pd.read_excel(self.name)
         self.df[u'代码'] = self.df[u'代码'].map(lambda x: str(x).zfill(6))
         self.engine = get_engine('db_stock')
         self.base = pd.read_sql('tb_basic_info', self.engine, index_col='index')
-        # self.base=pd.read_csv('bases.csv',dtype={'code':np.str})
         self.money = 10000
         self.today = datetime.datetime.now().strftime('%Y-%m-%d')
 
@@ -54,6 +54,8 @@ class Simulation():
         self.df.to_sql('tb_simulation',self.engine,if_exists='replace')
         ali_engine = get_engine('',False)
         self.df.to_sql('tb_simulation',ali_engine,if_exists='replace')
+        df_str = self.df.to_html()
+        sender_139('模拟盘 {}'.format(self.today),df_str,types='html')
 
 
 def main():
@@ -65,4 +67,5 @@ if __name__ == '__main__':
         logger.info("Holidy")
         exit()
     logger.info("Start")
+
     main()

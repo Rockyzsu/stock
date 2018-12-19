@@ -2,7 +2,7 @@ import re
 
 import requests
 
-__author__ = 'rocchen'
+__author__ = 'rocky'
 '''
 http://30daydo.com
 Contact: weigesysu@qq.com

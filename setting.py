@@ -194,12 +194,16 @@ def trading_time():
     '''
 
     :return:
+    收盘：1
+    盘中：0
+    未开盘：-1
     '''
     current = datetime.datetime.now()
     start = datetime.datetime(current.year, current.month, current.day, 9, 23, 0)
     noon_start = datetime.datetime(current.year, current.month, current.day, 12, 58, 0)
 
     morning_end = datetime.datetime(current.year, current.month, current.day, 11, 31, 0)
+    # 收盘
     end = datetime.datetime(current.year, current.month, current.day, 15, 2, 5)
     if current > start and current < morning_end:
         return 0
@@ -211,6 +215,9 @@ def trading_time():
         return 1
 
     elif current < start:
+        return -1
+
+    elif current >= morning_end and current <= noon_start:
         return -1
 
 

@@ -11,13 +11,16 @@ import pandas as pd
 import numpy as np
 from collections import OrderedDict
 import matplotlib
+
 matplotlib.use("Pdf")
 pd.set_option('display.max_rows', None)
 import matplotlib.pyplot as plt
-
+ 
 
 # daily_engine = get_engine('daily')
 # history_engine = get_engine('history')
+
+# 过滤器，剔除不想要的个股
 
 class Filter_Stock():
     def __init__(self):
@@ -78,7 +81,7 @@ class Filter_Stock():
             if not mins_date:
                 continue
             if mins and float(cur_low) <= float(mins) and float(cur_low) != 0.0:
-                print(code,)
+                print(code, )
                 print(df.loc[i]['name'])
                 print('year mins {} at {}'.format(mins, mins_date))
                 print('curent mins ', cur_low)
@@ -183,7 +186,7 @@ class Filter_Stock():
         print(df_bpvs[df_bpvs['bvps'] < 0][['code', 'name']])
 
     # 返回新股信息
-    def get_new_stock(self, start, end):
+    def get_new_stock(self, start='2010', end='2011'):
         '''
 
         :param start: 开始年份 如 '2010'
@@ -234,7 +237,7 @@ def main():
     # obj.store_data()
     # obj.to_be_ST()
     # obj.get_location()
-    obj.get_new_stock()
+    print(obj.get_new_stock())
 
 
 if __name__ == '__main__':

@@ -1,6 +1,7 @@
 #-*-coding=utf-8-*-
 # 每天收盘收运行
 import datetime
+import time
 
 __author__ = 'Rocky'
 import tushare as ts
@@ -11,7 +12,7 @@ logger=llogger('collect_data.log')
 
 class SaveData():
     today = datetime.datetime.now().strftime("%Y-%m-%d")
-    daily_engine = get_engine('daily')
+    daily_engine = get_engine('db_daily')
 
     def __init__(self):
         work_space=DATA_PATH
@@ -35,16 +36,33 @@ class SaveData():
         filename='{}-{}-classified_stock.xls'.format(year,month)
         self.save_to_excel(df,filename)
 
-    def basic_info(self):
+    def basic_info(self,retry=5):
         engine = get_engine('db_stock')
-        df = ts.get_stock_basics()
-        if df is not None:
+
+        # 需要添加异常处理 重试次数
+        count = 0
+
+        while count < retry:
             try:
-                df=df.reset_index()
-                df[u'更新日期']=datetime.datetime.now()
-                df.to_sql('tb_basic_info',engine,if_exists='replace')
+                df = ts.get_stock_basics()
+
             except Exception as e:
                 logger.info(e)
+                time.sleep(10)
+                count+=1
+                continue
+            else:
+                if df is not None:
+                    df=df.reset_index()
+                    df['更新日期']=datetime.datetime.now()
+                    df.to_sql('tb_basic_info',engine,if_exists='replace')
+                    break
+                else:
+                    count+=1
+                    time.sleep(10)
+                    continue
+
+
 
     def save_to_excel(self,df,filename,encoding='gbk'):
         try:
@@ -57,7 +75,6 @@ class SaveData():
             logger.info(e)
             return None
 
-
 def main():
     obj=SaveData()
     obj.basic_info()
@@ -67,5 +84,3 @@ if __name__=='__main__':
         logger.info("Holidy")
         exit()
     main()
-    # SaveData.daily_market()
-    # obj.get_classified_stock(2018,1)
