@@ -1,20 +1,24 @@
 # -*- coding=utf-8 -*-
-import datetime
-
 __author__ = 'Rocky'
 '''
 http://30daydo.com
 Contact: weigesysu@qq.com
 '''
 # 每天的涨跌停
-import re, time, xlrd, xlwt, sys, os
+import re
+import time
+import xlrd
+import xlwt
+import sys
+import os
 import setting
 from setting import is_holiday, DATA_PATH
 import pandas as pd
 import tushare as ts
 from setting import llogger
 import requests
-
+from send_mail import sender_139
+import datetime
 # reload(sys)
 # sys.setdefaultencoding('gbk')
 
@@ -26,7 +30,8 @@ class GetZDT:
         self.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/64.0.3282.167 Chrome/64.0.3282.167 Safari/537.36"
         self.today = time.strftime("%Y%m%d")
         self.path = DATA_PATH
-        self.zdt_url = 'http://home.flashdata2.jrj.com.cn/limitStatistic/ztForce/' + self.today + ".js"
+        self.zdt_url = 'http://home.flashdata2.jrj.com.cn/limitStatistic/ztForce/' + \
+            self.today + ".js"
         self.zrzt_url = 'http://hqdata.jrj.com.cn/zrztjrbx/limitup.js'
 
         self.host = "home.flashdata2.jrj.com.cn"
@@ -136,15 +141,18 @@ class GetZDT:
 
         df = pd.DataFrame(data, columns=indexx)
 
-        filename = os.path.join(self.path, self.today + "_" + post_fix + ".xls")
+        filename = os.path.join(
+            self.path, self.today + "_" + post_fix + ".xls")
+
+        # 今日涨停
         if choice == 1:
-            df[u'今天的日期'] = self.today
+            df['今天的日期'] = self.today
             df.to_excel(filename, encoding='gbk')
             try:
                 df.to_sql(self.today + post_fix, engine, if_exists='fail')
             except Exception as e:
                 logger.info(e)
-
+        # 昨日涨停
         if choice == 2:
             df = df.set_index(u'序号')
             df[u'最大涨幅'] = df[u'最大涨幅'].map(lambda x: round(x * 100, 3))
@@ -157,7 +165,16 @@ class GetZDT:
             except Exception as e:
                 logger.info(e)
 
+            avg = round(df['今日涨幅'].mean(), 2)
+            current = datetime.datetime.now().strftime('%Y-%m-%d')
+            title = '昨天涨停个股今天{}\n的平均涨幅{}\n'.format(current, avg)
+            try:
+                sender_139(title, title)
+            except Exception as e:
+                print(e)
+
     # 昨日涨停今日的状态，今日涨停
+
     def storedata(self):
         zdt_content = self.getdata(self.zdt_url, headers=self.header_zdt)
         logger.info('zdt Content' + zdt_content)

@@ -1,12 +1,3 @@
-import re
-
-import requests
-
-__author__ = 'rocky'
-'''
-http://30daydo.com
-Contact: weigesysu@qq.com
-'''
 # working v1.0
 from bs4 import BeautifulSoup
 import datetime
@@ -14,12 +5,29 @@ import time
 import codecs
 import random
 import os, sys
-# import itchat
-# import MySQLdb
-# import setting
-from setting import sendmail, llogger,get_mysql_conn,DATA_PATH
+import requests
+import re
+from lxml import etree
+from setting import llogger, get_mysql_conn, DATA_PATH
 
 logger = llogger(__file__)
+# headers={'User-Agent': 'Mozilla/5.0 (6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'}
+my_useragent = [
+    'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_8; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50',
+    'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50',
+    'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0',
+    'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0)',
+    'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)',
+    'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1',
+    'Mozilla/5.0 (Windows NT 6.1; rv:2.0.1) Gecko/20100101 Firefox/4.0.1',
+    'Opera/9.80 (Macintosh; Intel Mac OS X 10.6.8; U; en) Presto/2.8.131 Version/11.11',
+    'Opera/9.80 (Windows NT 6.1; U; en) Presto/2.8.131 Version/11.11',
+    'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Maxthon 2.0)',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_0) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.56 Safari/535.11',
+    'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; 360SE)',
+    'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; SE 2.X MetaSr 1.0; SE 2.X MetaSr 1.0; .NET CLR 2.0.50727; SE 2.X MetaSr 1.0)'
+]
 
 
 def create_tb(conn):
@@ -35,25 +43,60 @@ def create_tb(conn):
         return False
 
 
+# 把以前的内容抓取下来
+def fetch_detail():
+    db_name = 'db_stock'
+    conn = get_mysql_conn(db_name, local='local')
+    cursor = conn.cursor()
+    query_sql = '''
+    select * from tb_cnstock where Content is null;
+    '''
+    user_agent = random.choice(my_useragent)
+    headers = {'User-Agent': user_agent, 'Host': "ggjd.cnstock.com", 'DNT': '1',
+               'Accept': 'text/html, application/xhtml+xml, */*', }
+
+    cursor.execute(query_sql)
+    ret = cursor.fetchall()
+    for item in ret:
+        url = item[2]
+        if url:
+            url = url.strip()
+            try:
+                r = requests.get(url=url, headers=headers)
+            except Exception as e:
+                logger.error(e)
+                continue
+
+            else:
+                root = etree.HTML(r.text)
+                try:
+                    string_list = root.xpath('//div[@class="main-content text-large"]')[0].xpath('string(.)')
+                except Exception as e:
+                    print(url)
+                    print(e)
+                    continue
+                # content = ' '.join(string_list)
+                content = string_list.strip()
+                content = re.sub('缩小文字', '', content)
+                content = re.sub('放大文字', '', content)
+                content = content.strip()
+
+                update_sql = '''
+                                update tb_cnstock set Content = %s where URL = %s    
+                            '''
+                try:
+                    cursor.execute(update_sql, (content, url))
+                    conn.commit()
+                except Exception as e:
+                    print(e)
+                    logger.error(e)
+                    conn.rollback()
+
+
 def getinfo(max_index_use=4, days=-30):
     last_day = datetime.datetime.now() + datetime.timedelta(days=days)
     stock_news_site = "http://ggjd.cnstock.com/gglist/search/ggkx/"
 
-    my_useragent = [
-        'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_8; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50',
-        'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50',
-        'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0',
-        'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0)',
-        'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)',
-        'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)',
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1',
-        'Mozilla/5.0 (Windows NT 6.1; rv:2.0.1) Gecko/20100101 Firefox/4.0.1',
-        'Opera/9.80 (Macintosh; Intel Mac OS X 10.6.8; U; en) Presto/2.8.131 Version/11.11',
-        'Opera/9.80 (Windows NT 6.1; U; en) Presto/2.8.131 Version/11.11',
-        'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Maxthon 2.0)',
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_0) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.56 Safari/535.11',
-        'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; 360SE)',
-        'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; SE 2.X MetaSr 1.0; SE 2.X MetaSr 1.0; .NET CLR 2.0.50727; SE 2.X MetaSr 1.0)']
     index = 0
     max_index = max_index_use
     num = 1
@@ -64,6 +107,12 @@ def getinfo(max_index_use=4, days=-30):
     f_open = codecs.open(store_filename, 'w', 'utf-8')
     all_contents = []
     cmd_list = []
+    db_name = 'db_stock'
+
+    conn = get_mysql_conn(db_name, local='local')
+
+    cur = conn.cursor()
+
     while index <= max_index:
         user_agent = random.choice(my_useragent)
         company_news_site = stock_news_site + str(index)
@@ -86,6 +135,9 @@ def getinfo(max_index_use=4, days=-30):
                     raw_content = req.text
                     break
 
+        if raw_content is None:
+            return
+
         try:
             soup = BeautifulSoup(raw_content, "html.parser")
             all_content = soup.find_all("span", "time")
@@ -107,13 +159,38 @@ def getinfo(max_index_use=4, days=-30):
             if news_time_f >= last_day:
                 str_temp = "No.%s \n%s\t%s\n---> %s \n\n" % (str(num), news_time, node['title'], node['href'])
 
-                cmd = '''INSERT INTO tb_cnstock (Date,Title,URL ) VALUES(\'%s\',\'%s\',\'%s\');''' % (
-                    news_time_f, node['title'].strip(), node['href'].strip())
-                cmd_list.append(cmd)
+
 
                 all_contents.append(str_temp)
 
                 f_open.write(str_temp)
+
+                url = url.strip()
+                try:
+                    r = requests.get(url=url, headers=headers)
+                except Exception as e:
+                    logger.error(e)
+                    continue
+
+                root = etree.HTML(r.text)
+                try:
+                    string_list = root.xpath('//div[@class="main-content text-large"]')[0].xpath('string(.)')
+                except Exception as e:
+                    print(url)
+                    print(e)
+                    string_list=''
+
+                # content = ' '.join(string_list)
+                content = string_list.strip()
+                content = re.sub('缩小文字', '', content)
+                content = re.sub('放大文字', '', content)
+                content = content.strip()
+
+
+                cmd = '''INSERT INTO tb_cnstock (Date,Title,URL,Content) VALUES(\'%s\',\'%s\',\'%s\',\'%s\');''' % (
+                    news_time_f, node['title'].strip(), node['href'].strip(),content)
+                cmd_list.append(cmd)
+
             num = num + 1
             # itchat.send(str_temp,toUserName=username)
             # time.sleep(1)
@@ -124,11 +201,7 @@ def getinfo(max_index_use=4, days=-30):
     # if len(all_contents) > 0:
     #     sendmail(''.join(all_contents), temp_time)
 
-    db_name = 'db_stock'
-    conn = get_mysql_conn(db_name, local='local')
-    create_tb(conn)
-    # create_tb(conn)
-    cur = conn.cursor()
+
     for i in cmd_list:
         logger.info(i)
 
@@ -141,23 +214,6 @@ def getinfo(max_index_use=4, days=-30):
             conn.rollback()
             continue
 
-    db_name = 'qdm225205669_db'
-    conn2 = get_mysql_conn(db_name, local='ali')
-    create_tb(conn2)
-    cur2 = conn2.cursor()
-    for i in cmd_list:
-
-        try:
-            cur2.execute(i)
-            conn2.commit()
-
-        except Exception as e:
-            # print(e)
-            logger.warning(e)
-            conn2.rollback()
-            continue
-
-    conn2.close()
     conn.close()
 
 
@@ -171,7 +227,10 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         if re.match('-\d+', sys.argv[1]):
             day = int(sys.argv[1])
+        else:
+            day = -2
     else:
         day = -2
 
     getinfo(days=day)
+    # fetch_detail()

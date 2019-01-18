@@ -76,9 +76,9 @@ def plot_yesterday_zt(type_name='zrzt', current=datetime.datetime.now().strftime
         return
 
     for i in range(len(df)):
-        code = df.iloc[i][u'代码']
-        name = df.iloc[i][u'名称']
-        plot_stock_line(code, name, table_name=table_name, current=current, start='2018-01-01', save=True)
+        code = df.iloc[i]['代码']
+        name = df.iloc[i]['名称']
+        plot_stock_line(code, name, table_name=table_name, current=current, start='2018-02-01', save=True)
 
 
 if __name__ == '__main__':

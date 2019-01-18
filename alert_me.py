@@ -9,7 +9,7 @@ import numpy as np
 
 logger = llogger(__file__)
 
-# 5秒循环检测一次
+# 循环检测时间
 LOOP_TIME = 60
 EXECEPTION_TIME = 1
 MARKET_OPENING = 0
@@ -78,6 +78,7 @@ class ReachTarget():
                     price_df = ts.quotes(self.code_lists, conn=self.api)
                 except Exception as e:
                     logger.error('获取持仓数据异常>>> {}'.format(e))
+
                     try:
                         self.api=ts.get_apis()
                     except Exception as e:
@@ -105,9 +106,9 @@ class ReachTarget():
                         ret = ret_df[list(rename_column.values())]
                         ret = ret.reset_index(drop=True)
 
-                        # 推送
+                        content = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')+'\n'+ret.to_string()
                         try:
-                            wechat.send_content(ret.to_string())
+                            wechat.send_content(content)
                         except Exception as e:
                             logger.error('微信发送失败 {}'.format(e))
 
@@ -150,11 +151,12 @@ class ReachTarget():
                             ret_dt['name'] = name_list
                             ret_dt[u'溢价率'] = yjl_list
                             ret_dt = ret_dt.sort_values(by='percent', ascending=False)
-                            ret_dt = ret_dt.reset_index(drop=True)
+                            ret_dt1 = ret_dt.reset_index(drop=True)
 
-
+                            content0 = datetime.datetime.now().strftime(
+                                '%Y-%m-%d %H:%M:%S') + '\n' + ret_dt1.to_string()
                             try:
-                                wechat.send_content(ret_dt.to_string())
+                                wechat.send_content(content0)
                             except Exception as e:
                                 logger.info('发送微信失败')
                                 logger.info(e)
@@ -196,9 +198,9 @@ class ReachTarget():
                         ret_dt_pool['name'] = name_list_pool
                         ret_dt_pool = ret_dt_pool.sort_values(by='percent', ascending=False)
                         ret_dt_pool = ret_dt_pool.reset_index(drop=True)
-
+                        content1 = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')+'\n'+ret_dt_pool.to_string()
                         try:
-                            wechat.send_content(ret_dt_pool.to_string())
+                            wechat.send_content(content1)
 
                         except Exception as e:
                             logger.error('微信发送异常{}'.format(e))

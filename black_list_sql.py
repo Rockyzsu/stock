@@ -36,7 +36,7 @@ def update_data(filename,conn):
             conn.commit()
 
         except Exception as e:
-            logger.error(e)
+            logger.info(e)
             logger.info('dup code {}'.format(code))
             conn.rollback()
             continue

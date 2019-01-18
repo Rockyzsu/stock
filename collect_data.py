@@ -84,3 +84,4 @@ if __name__=='__main__':
         logger.info("Holidy")
         exit()
     main()
+    logger.info('完成')

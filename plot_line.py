@@ -25,7 +25,7 @@ mpl.rcParams['axes.unicode_minus'] = False
 from setting import llogger
 
 logger = llogger(__file__)
-
+engine = get_engine('db_stock', local=True)
 
 def plot_stock_line(code, name, table_name, current, start='2017-10-01', save=False):
     title = u'{} {} {} {}'.format(current, code, name, table_name)
@@ -33,7 +33,7 @@ def plot_stock_line(code, name, table_name, current, start='2017-10-01', save=Fa
     if os.path.exists(title + '.png'):
         return
 
-    engine = get_engine('db_stock', local=True)
+
     fig = plt.figure(figsize=(10, 8))
     base_info = pd.read_sql('tb_basic_info', engine, index_col='index')
     # fig,(ax,ax2)=plt.subplots(2,1,sharex=True,figsize=(16,10))
@@ -89,7 +89,11 @@ def plot_stock_line(code, name, table_name, current, start='2017-10-01', save=Fa
     else:
         plt.show()
     plt.close()
-    ts.close_apis(api)
+    try:
+        ts.close_apis(api)
+    except Exception as e:
+        logger.error(e)
+        return None
 
 
 if __name__ == '__main__':

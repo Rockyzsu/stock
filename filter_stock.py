@@ -237,8 +237,8 @@ def main():
     # obj.store_data()
     # obj.to_be_ST()
     # obj.get_location()
-    print(obj.get_new_stock())
-
+    # print(obj.get_new_stock())
+    obj.get_location()
 
 if __name__ == '__main__':
     main()

@@ -46,7 +46,7 @@ class BreakMonitor():
             self.smtp.sendmail(self.msg['from'], self.msg['to'], self.msg.as_string())
             self.smtp.quit()
             print("sent")
-        except smtplib.SMTPException, e:
+        except smtplib.SMTPException as e:
             print(e)
             return 0
 
