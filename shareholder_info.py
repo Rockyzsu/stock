@@ -20,13 +20,9 @@ ts.set_token(token)
 pro = ts.pro_api()
 
 
-# df = pro.top10_holders(ts_code='600000.SH', start_date='20170101', end_date='20171231')
-# print(df.head())
-
-
 def get_stock_list():
     df = pro.stock_basic(exchange='', list_status='L', fields='ts_code,symbol,name,area,industry,list_date')
-    return dict(zip(list(df['ts_code'].values),list(df['name'].values)))
+    return dict(zip(list(df['ts_code'].values), list(df['name'].values)))
 
 
 # 生产日期 2000到2018
@@ -57,7 +53,7 @@ def get_stockholder(code, start, end):
 
 
 # 十大 股东 流动
-def insert_db(df, name,float_holder=True):
+def insert_db(df, name, float_holder=True):
     if float_holder:
         insert_cmd = '''
         insert into tb_sharesholder (code,name,ann_date,end_date,holder_name,hold_amount,hold_ratio)VALUES (%s,%s,%s,%s,%s,%s,%s)'''
@@ -67,11 +63,15 @@ def insert_db(df, name,float_holder=True):
             #       row['hold_ratio'])
             try:
                 cursor.execute(insert_cmd, (
-                row['ts_code'].split('.')[0], row['ann_date'], name,row['end_date'], row['holder_name'], row['hold_amount'],row['hold_ratio']))
+                    row['ts_code'].split('.')[0], name, row['ann_date'], row['end_date'], row['holder_name'],
+                    row['hold_amount'], row['hold_ratio']))
+                conn.commit()
+
             except pymysql.err.IntegrityError:
                 print('dup item')
                 conn.rollback()
                 continue
+
     else:
         insert_cmd = '''
         insert into tb_sharesholder_float (code,name,ann_date,end_date,holder_name,hold_amount)VALUES (%s,%s,%s,%s,%s,%s)'''
@@ -80,8 +80,11 @@ def insert_db(df, name,float_holder=True):
             # print(index, row['ts_code'], row['ann_date'], row['end_date'], row['holder_name'], row['hold_amount'])
             try:
                 cursor.execute(insert_cmd, (
-                row['ts_code'].split('.')[0], name,row['ann_date'], row['end_date'], row['holder_name'], row['hold_amount']))
+                    row['ts_code'].split('.')[0], name, row['ann_date'], row['end_date'], row['holder_name'],
+                    row['hold_amount']))
+                conn.commit()
             except pymysql.err.IntegrityError:
+
                 print('dup')
                 conn.rollback()
                 continue
@@ -92,7 +95,7 @@ def insert_db(df, name,float_holder=True):
 
 def main():
     code_dict = get_stock_list()
-    for code,name in code_dict.items():
+    for code, name in code_dict.items():
         start_date = '20{}0101'
         end_date = '20{}1231'
         for i in range(18, 0, -1):
@@ -100,8 +103,8 @@ def main():
             end = end_date.format(str(i).zfill(2))
             df0, df1 = get_stockholder(code, start, end)
             if not df0.empty and not df1.empty:
-                insert_db(df0,name,True)
-                insert_db(df1,name,False)
+                insert_db(df0, name, True)
+                insert_db(df1, name, False)
 
 
 # create_date()
