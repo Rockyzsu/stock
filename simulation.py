@@ -52,8 +52,9 @@ class Simulation():
 
         self.df.to_excel(self.name, encoding='utf-8')
         self.df.to_sql('tb_simulation',self.engine,if_exists='replace')
-        ali_engine = get_engine('',False)
-        self.df.to_sql('tb_simulation',ali_engine,if_exists='replace')
+        # ali_engine = get_engine('',False)
+        # self.df.to_sql('tb_simulation',ali_engine,if_exists='replace')
+        del self.df['买入理由']
         df_str = self.df.to_html()
         sender_139('模拟盘 {}'.format(self.today),df_str,types='html')
 
