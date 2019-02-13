@@ -65,12 +65,14 @@ def insert_db(df, name, float_holder=True):
                 cursor.execute(insert_cmd, (
                     row['ts_code'].split('.')[0], name, row['ann_date'], row['end_date'], row['holder_name'],
                     row['hold_amount'], row['hold_ratio']))
-                conn.commit()
 
             except pymysql.err.IntegrityError:
                 print('dup item')
                 conn.rollback()
                 continue
+            else:
+                conn.commit()
+
 
     else:
         insert_cmd = '''
@@ -82,12 +84,13 @@ def insert_db(df, name, float_holder=True):
                 cursor.execute(insert_cmd, (
                     row['ts_code'].split('.')[0], name, row['ann_date'], row['end_date'], row['holder_name'],
                     row['hold_amount']))
-                conn.commit()
             except pymysql.err.IntegrityError:
 
                 print('dup')
                 conn.rollback()
                 continue
+            else:
+                conn.commit()
 
     conn.commit()
     print('save successful')
@@ -95,18 +98,47 @@ def insert_db(df, name, float_holder=True):
 
 def main():
     code_dict = get_stock_list()
+    next_stock = True
+    check_sql = '''
+    SELECT code FROM `tb_sharesholder_float` GROUP BY code'''
+
+    cursor.execute(check_sql)
+    ret = cursor.fetchall()
+    result = []
+    for i in ret:
+        result.append(i[0])
+
     for code, name in code_dict.items():
+        # if next_stock:
+        print('name ：',name)
+        temp_code = code.split('.')[0]
+        if temp_code in result:
+            continue
+
         start_date = '20{}0101'
         end_date = '20{}1231'
-        for i in range(18, 0, -1):
+        for i in range(18, 0,-1):
             start = start_date.format(str(i).zfill(2))
             end = end_date.format(str(i).zfill(2))
             df0, df1 = get_stockholder(code, start, end)
             if not df0.empty and not df1.empty:
                 insert_db(df0, name, True)
                 insert_db(df1, name, False)
+            else:
+                # 换一个个股
+                # next_stock=False
+                break
 
 
+def test():
+    #过了时间还是有数据
+    code='603259.SH'
+    start='2010-01-01'
+    end='2012-02-02'
+    stockholder = pro.top10_holders(ts_code=code, start_date=start, end_date=end)
+    print(stockholder)
+
+# test()
 # create_date()
 # df0, df1 = get_stockholder('300333.SZ', '20180101', '20181231')
 # insert_db(df0)
