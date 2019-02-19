@@ -15,8 +15,10 @@ EXECEPTION_TIME = 1
 MARKET_OPENING = 0
 ALERT_PERCENTAGE = 2
 
-ALERT_PERCENT = 5
+ZG_ALERT_PERCENT = 5
+ZZ_ALERT_PERCENT = 2
 ALERT_PERCENT_POOL = 2
+DIFF_V = 10 # quote 接口以千为单位
 file = 'D:\OneDrive\Stock\gj_hold.xls'
 
 
@@ -92,12 +94,14 @@ class ReachTarget():
 
         while 1:
 
-            current = trading_time()
-
+            # current = trading_time()
+            current=0
             if current == MARKET_OPENING:
 
-                self.get_realtime_info(self.kzz_code, self.has_sent_kzz, '转债', self.kzz_stocks, self.kzz_stocks_yjl)
-                self.get_realtime_info(self.zg_code, self.has_sent_zg, '正股', self.zg_stocks, self.zg_stocks_yjl)
+                # self.get_realtime_info(self.kzz_code, self.has_sent_kzz, '转债', self.kzz_stocks, self.kzz_stocks_yjl,
+                #                        ZZ_ALERT_PERCENT)
+                # self.get_realtime_info(self.zg_code, self.has_sent_zg, '正股', self.zg_stocks, self.zg_stocks_yjl,
+                #                        ZG_ALERT_PERCENT)
                 self.get_price_diff(self.kzz_code, self.has_sent_diff, '差价')
                 time.sleep(LOOP_TIME)
 
@@ -114,7 +118,7 @@ class ReachTarget():
                 exit(0)
 
     # 获取实时报价
-    def get_realtime_info(self, codes, has_sent, types, stock, yjl):
+    def get_realtime_info(self, codes, has_sent, types, stock, yjl, percent):
 
         try:
             price_df = ts.quotes(codes, conn=self.api)
@@ -137,80 +141,93 @@ class ReachTarget():
                 price_df['percent'] = price_df['percent'].map(lambda x: round(x, 2))
                 ret_dt = \
                     price_df[
-                        (price_df['percent'] > ALERT_PERCENT) | (price_df['percent'] < -1 * ALERT_PERCENT)][
+                        (price_df['percent'] > percent) | (price_df['percent'] < -1 * percent)][
                         ['code', 'price', 'percent']]
 
                 if len(ret_dt) > 0:
-                    name_list = []
-                    yjl_list = []
 
                     # 提醒一次后，下一次的间隔为5分钟后
                     sent_list = []
                     for i in ret_dt['code']:
 
                         if has_sent[i] <= datetime.datetime.now():
+                            name_list = []
+                            yjl_list = []
                             name_list.append(stock[i])
                             yjl_list.append(yjl[i])
                             has_sent[i] = has_sent[i] + datetime.timedelta(minutes=5)
                             sent_list.append(ret_dt[ret_dt['code'] == i])
+                            print(has_sent[i])
 
-                    if sent_list:
-                        send_df = pd.concat(sent_list)
-                        send_df['名称'] = name_list
-                        send_df['溢价率'] = yjl_list
-                        send_df = send_df.sort_values(by='percent', ascending=False)
-                        ret_dt1 = send_df.set_index('code', drop=True)
+                            ret_dt1 = ret_dt[ret_dt['code'] == i]
+                            ret_dt1['名称'] = name_list
+                            ret_dt1['溢价率'] = yjl_list
+                            ret_dt1 = ret_dt1.set_index('code', drop=True)
+                            content0 = datetime.datetime.now().strftime(
+                                '%Y-%m-%d %H:%M:%S') + '\n' + '{}\n'.format(types) + ret_dt1.to_string()
+
+                            try:
+                                wechat.send_content(content0)
+
+                            except Exception as e:
+                                logger.info('发送微信失败')
+                                logger.info(e)
+
+    # 获取差价 可转债
+    def get_price_diff(self, codes, has_sent_, types):
+        # 针对可转债
+        try:
+            df = ts.quotes(codes, conn=self.api)
+
+        except Exception as  e:
+            logger.error('获取可转债异常 >>>> {}'.format(e))
+            try:
+                self.api = ts.get_apis()
+            except Exception as e:
+                logger.error('异常中存在异常{}'.format(e))
+
+            time.sleep(EXECEPTION_TIME)
+
+        else:
+            print(df)
+            df['bid1'] = df['bid1'].astype(float)
+            df['ask1'] = df['ask1'].astype(float)
+            df['diff'] = np.abs(df['bid1'] - df['ask1'])
+            result = df[df['diff'] >= DIFF_V]
+            if result.empty:
+                # continue
+                return
+            else:
+                for j in result['code']:
+
+                    if has_sent_[j] <= datetime.datetime.now():
+                        has_sent_[j] = has_sent_[j] + datetime.timedelta(minutes=5)
+                        name_list = []
+                        yjl_list = []
+                        name_list.append(self.kzz_stocks[j])
+                        yjl_list.append(self.kzz_stocks_yjl[j])
+                        ret_dt1 = result[result['code'] == j]
+                        ret_dt1['名称']=name_list
+                        ret_dt1['溢价率']=yjl_list
+                        ret_dt1 = ret_dt1.set_index('code', drop=True)
+
+                        ret_dt1 = ret_dt1[['名称', 'code', 'bid1', 'ask1', 'bid_vol1', 'ask_vol1', 'diff']]
+
                         content0 = datetime.datetime.now().strftime(
                             '%Y-%m-%d %H:%M:%S') + '\n' + '{}\n'.format(types) + ret_dt1.to_string()
 
                         try:
                             wechat.send_content(content0)
-
                         except Exception as e:
                             logger.info('发送微信失败')
                             logger.info(e)
 
-    # 获取差价 可转债
-    def get_price_diff(self, codes,has_sent_, types):
-        # 针对可转债
-        batch = 25
-        total = len(codes)
-        step = int(total / batch)
-        for i in range(0, step + 1):
-            code = codes[i * batch:(i + 1) * batch]
-            df = ts.get_realtime_quotes(code)  # 一次不超过30个
-            df['b1_p'] = df['b1_p'].astype(float)
-            df['a1_p'] = df['a1_p'].astype(float)
-            result = df[np.abs(df['b1_p'] - df['a1_p']) > 0.5]
-            if result.empty:
-                continue
-            else:
-                sent_list = []
-                for i in result['code']:
-
-                    if has_sent_[i] <= datetime.datetime.now():
-                        has_sent_[i] = has_sent_[i] + datetime.timedelta(minutes=5)
-                        sent_list.append(result[result['code'] == i])
-
-                if sent_list:
-                    send_df = pd.concat(sent_list)
-                    ret_dt1 = send_df.set_index('code', drop=True)
-                    ret_dt1 = ret_dt1[['name', 'price', 'bid', 'ask', 'b1_v', 'a1_v']]
-                    content0 = datetime.datetime.now().strftime(
-                        '%Y-%m-%d %H:%M:%S') + '\n' + '{}\n'.format(types) + ret_dt1.to_string()
-
-                    try:
-                        wechat.send_content(content0)
-                    except Exception as e:
-                        logger.info('发送微信失败')
-                        logger.info(e)
-
 
 if __name__ == '__main__':
 
-    if is_holiday():
-        logger.info('Holiday')
-        exit(0)
+    # if is_holiday():
+    #     logger.info('Holiday')
+    #     exit(0)
 
     # 周末的时候不登录微信
 
