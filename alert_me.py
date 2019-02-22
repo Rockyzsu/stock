@@ -94,14 +94,14 @@ class ReachTarget():
 
         while 1:
 
-            # current = trading_time()
-            current=0
+            current = trading_time()
+            # current=0
             if current == MARKET_OPENING:
 
-                # self.get_realtime_info(self.kzz_code, self.has_sent_kzz, '转债', self.kzz_stocks, self.kzz_stocks_yjl,
-                #                        ZZ_ALERT_PERCENT)
-                # self.get_realtime_info(self.zg_code, self.has_sent_zg, '正股', self.zg_stocks, self.zg_stocks_yjl,
-                #                        ZG_ALERT_PERCENT)
+                self.get_realtime_info(self.kzz_code, self.has_sent_kzz, '转债', self.kzz_stocks, self.kzz_stocks_yjl,
+                                       ZZ_ALERT_PERCENT)
+                self.get_realtime_info(self.zg_code, self.has_sent_zg, '正股', self.zg_stocks, self.zg_stocks_yjl,
+                                       ZG_ALERT_PERCENT)
                 self.get_price_diff(self.kzz_code, self.has_sent_diff, '差价')
                 time.sleep(LOOP_TIME)
 
@@ -147,17 +147,18 @@ class ReachTarget():
                 if len(ret_dt) > 0:
 
                     # 提醒一次后，下一次的间隔为5分钟后
-                    sent_list = []
+                    # sent_list = []
                     for i in ret_dt['code']:
 
                         if has_sent[i] <= datetime.datetime.now():
+                            print('整股时间',i,has_sent[i])
                             name_list = []
                             yjl_list = []
                             name_list.append(stock[i])
                             yjl_list.append(yjl[i])
-                            has_sent[i] = has_sent[i] + datetime.timedelta(minutes=5)
-                            sent_list.append(ret_dt[ret_dt['code'] == i])
-                            print(has_sent[i])
+                            has_sent[i] = datetime.datetime.now() + datetime.timedelta(minutes=5)
+                            # sent_list.append(ret_dt[ret_dt['code'] == i])
+                            # print(has_sent[i])
 
                             ret_dt1 = ret_dt[ret_dt['code'] == i]
                             ret_dt1['名称'] = name_list
@@ -189,7 +190,7 @@ class ReachTarget():
             time.sleep(EXECEPTION_TIME)
 
         else:
-            print(df)
+            # print(df)
             df['bid1'] = df['bid1'].astype(float)
             df['ask1'] = df['ask1'].astype(float)
             df['diff'] = np.abs(df['bid1'] - df['ask1'])
@@ -201,7 +202,8 @@ class ReachTarget():
                 for j in result['code']:
 
                     if has_sent_[j] <= datetime.datetime.now():
-                        has_sent_[j] = has_sent_[j] + datetime.timedelta(minutes=5)
+                        print('差价时间',j,has_sent_[j])
+                        has_sent_[j] = datetime.datetime.now()+ datetime.timedelta(minutes=5)
                         name_list = []
                         yjl_list = []
                         name_list.append(self.kzz_stocks[j])
@@ -209,7 +211,7 @@ class ReachTarget():
                         ret_dt1 = result[result['code'] == j]
                         ret_dt1['名称']=name_list
                         ret_dt1['溢价率']=yjl_list
-                        ret_dt1 = ret_dt1.set_index('code', drop=True)
+                        # ret_dt1 = ret_dt1.set_index('code', drop=True)
 
                         ret_dt1 = ret_dt1[['名称', 'code', 'bid1', 'ask1', 'bid_vol1', 'ask_vol1', 'diff']]
 
@@ -225,9 +227,9 @@ class ReachTarget():
 
 if __name__ == '__main__':
 
-    # if is_holiday():
-    #     logger.info('Holiday')
-    #     exit(0)
+    if is_holiday():
+        logger.info('Holiday')
+        exit(0)
 
     # 周末的时候不登录微信
 

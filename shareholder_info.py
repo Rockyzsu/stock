@@ -40,16 +40,25 @@ def create_date():
 # 十大和十大流通
 def get_stockholder(code, start, end):
     # 十大非流通
-    stockholder = pro.top10_holders(ts_code=code, start_date=start, end_date=end)
-    time.sleep(1)
-    # 十大流通
-    stockfloat = pro.top10_floatholders(ts_code=code, start_date=start, end_date=end)
-    time.sleep(1)
-    if stockholder.empty and stockfloat.empty:
-        return pd.DataFrame(), pd.DataFrame()
+    global pro
+    try:
+        stockholder = pro.top10_holders(ts_code=code, start_date=start, end_date=end)
+        time.sleep(1)
+        stockfloat = pro.top10_floatholders(ts_code=code, start_date=start, end_date=end)
+        time.sleep(1)
+
+    except Exception as e:
+        print(e)
+        time.sleep(10)
+        ts.set_token(token)
+        pro = ts.pro_api()
 
     else:
-        return stockholder, stockfloat
+        if stockholder.empty and stockfloat.empty:
+            return pd.DataFrame(), pd.DataFrame()
+
+        else:
+            return stockholder, stockfloat
 
 
 # 十大 股东 流动
