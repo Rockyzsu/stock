@@ -9,7 +9,7 @@ import six
 from send_mail import sender_139
 from sqlalchemy import VARCHAR
 
-engine = get_engine('db_stock')
+engine = get_engine('db_jisilu')
 logger = llogger(__file__)
 
 
@@ -138,6 +138,8 @@ class Jisilu(object):
             df['volume'] = df['volume'].map(convert_float)
             df['convert_amt_ratio'] = df['convert_amt_ratio'].map(remove_percent)
             df['ration_rt'] = df['ration_rt'].map(convert_float)
+            df['increase_rt']=df['increase_rt'].map(remove_percent)
+            df['sincrease_rt']=df['sincrease_rt'].map(remove_percent)
 
             rename_columns = {'bond_id': '可转债代码', 'bond_nm': '可转债名称', 'price': '可转债价格', 'stock_nm': '正股名称',
                               'stock_cd': '正股代码',
@@ -166,7 +168,7 @@ class Jisilu(object):
 
         df = df.set_index('可转债代码', drop=True)
         try:
-            df.to_sql('tb_bond_jisilu', engine, if_exists='replace', dtype={'可转债代码': VARCHAR(10)})
+            df.to_sql('tb_jsl_{}'.format(datetime.datetime.now().strftime('%Y-%m-%d')), engine, if_exists='replace', dtype={'可转债代码': VARCHAR(10)})
         except Exception as e:
             logger.info(e)
 
@@ -299,15 +301,15 @@ class Jisilu(object):
         return ret
 
 #
-# def main():
-#     logger.info('Start')
-#     obj = Jisilu()
-#     # obj.current_data()
-#     obj.history_data()
-#
-#
-# if __name__ == '__main__':
-#     if is_holiday():
-#         logger.info("Holidy")
-#         exit()
-#     main()
+def main():
+    logger.info('Start')
+    obj = Jisilu()
+    obj.current_data()
+    # obj.history_data()
+
+
+if __name__ == '__main__':
+    if is_holiday():
+        logger.info("Holidy")
+        exit()
+    main()

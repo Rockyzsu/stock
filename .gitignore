@@ -14,3 +14,4 @@ bases.csv
 *.png
 config.py
 conf.py
+send_mail.py
