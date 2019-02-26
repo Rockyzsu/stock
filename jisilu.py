@@ -169,6 +169,8 @@ class Jisilu(object):
         df = df.set_index('可转债代码', drop=True)
         try:
             df.to_sql('tb_jsl_{}'.format(datetime.datetime.now().strftime('%Y-%m-%d')), engine, if_exists='replace', dtype={'可转债代码': VARCHAR(10)})
+            engine2=get_engine('db_stock')
+            df.to_sql('tb_bond_jisilu'.format(datetime.datetime.now().strftime('%Y-%m-%d')), engine2, if_exists='replace', dtype={'可转债代码': VARCHAR(10)})
         except Exception as e:
             logger.info(e)
 
