@@ -6,18 +6,20 @@ import datetime
 import time
 import pandas as pd
 import numpy as np
-
-logger = llogger(__file__)
+import os
+dirname=os.path.dirname(__file__)
+full_name = os.path.join(dirname,'alter_me_{}.log'.format(datetime.date.today()))
+logger = llogger(full_name)
 
 # 循环检测时间
 LOOP_TIME = 60
-EXECEPTION_TIME = 1
+EXECEPTION_TIME = 20
 MARKET_OPENING = 0
-ALERT_PERCENTAGE = 2
-
+# ALERT_PERCENTAGE = 3
+DELTA_TIME = 10
 ZG_ALERT_PERCENT = 5
-ZZ_ALERT_PERCENT = 2
-ALERT_PERCENT_POOL = 2
+ZZ_ALERT_PERCENT = 3
+# ALERT_PERCENT_POOL = 3
 DIFF_V = 10 # quote 接口以千为单位
 file = 'D:\OneDrive\Stock\gj_hold.xls'
 
@@ -151,21 +153,26 @@ class ReachTarget():
                     for i in ret_dt['code']:
 
                         if has_sent[i] <= datetime.datetime.now():
-                            print('整股时间',i,has_sent[i])
                             name_list = []
                             yjl_list = []
                             name_list.append(stock[i])
                             yjl_list.append(yjl[i])
-                            has_sent[i] = datetime.datetime.now() + datetime.timedelta(minutes=5)
-                            # sent_list.append(ret_dt[ret_dt['code'] == i])
-                            # print(has_sent[i])
+                            has_sent[i] = datetime.datetime.now() + datetime.timedelta(minutes=DELTA_TIME)
 
                             ret_dt1 = ret_dt[ret_dt['code'] == i]
                             ret_dt1['名称'] = name_list
                             ret_dt1['溢价率'] = yjl_list
-                            ret_dt1 = ret_dt1.set_index('code', drop=True)
-                            content0 = datetime.datetime.now().strftime(
-                                '%Y-%m-%d %H:%M:%S') + '\n' + '{}\n'.format(types) + ret_dt1.to_string()
+
+                            name=ret_dt1['名称'].values[0]
+                            price=ret_dt1['price'].values[0]
+                            percent=ret_dt1['percent'].values[0]
+                            yjl_v = ret_dt1['溢价率'].values[0]
+                            now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+                            content0='{t}\n{name}:价格:{price} 涨幅:{percent},溢价率:{yjl}'.format(name=name,price=price,percent=percent,yjl=yjl_v,t=now)
+
+                            logger.info(content0)
+
 
                             try:
                                 wechat.send_content(content0)
@@ -190,7 +197,6 @@ class ReachTarget():
             time.sleep(EXECEPTION_TIME)
 
         else:
-            # print(df)
             df['bid1'] = df['bid1'].astype(float)
             df['ask1'] = df['ask1'].astype(float)
             df['diff'] = np.abs(df['bid1'] - df['ask1'])
@@ -202,8 +208,7 @@ class ReachTarget():
                 for j in result['code']:
 
                     if has_sent_[j] <= datetime.datetime.now():
-                        print('差价时间',j,has_sent_[j])
-                        has_sent_[j] = datetime.datetime.now()+ datetime.timedelta(minutes=5)
+                        has_sent_[j] = datetime.datetime.now()+ datetime.timedelta(minutes=DELTA_TIME)
                         name_list = []
                         yjl_list = []
                         name_list.append(self.kzz_stocks[j])
@@ -213,11 +218,17 @@ class ReachTarget():
                         ret_dt1['溢价率']=yjl_list
                         # ret_dt1 = ret_dt1.set_index('code', drop=True)
 
-                        ret_dt1 = ret_dt1[['名称', 'code', 'bid1', 'ask1', 'bid_vol1', 'ask_vol1', 'diff']]
 
-                        content0 = datetime.datetime.now().strftime(
-                            '%Y-%m-%d %H:%M:%S') + '\n' + '{}\n'.format(types) + ret_dt1.to_string()
-
+                        name = ret_dt1['名称'].values[0]
+                        price = ret_dt1['price'].values[0]
+                        bid = ret_dt1['bid1'].values[0]
+                        ask = ret_dt1['ask1'].values[0]
+                        diff = round(ret_dt1['diff'].values[0],2)
+                        now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                        content0 = '{t}\n{name}:价格:{price} 买1:{bid} 卖1:{ask}差价:{diff}'.format(name=name, price=price,
+                                                                                              bid=bid, ask=ask,
+                                                                                              diff=diff, t=now)
+                        logger.info(content0)
                         try:
                             wechat.send_content(content0)
                         except Exception as e:
@@ -236,6 +247,6 @@ if __name__ == '__main__':
     from setting import WechatSend
 
     wechat = WechatSend('wei')
-
+    logger.info('{} 开始实时行情爬取'.format(datetime.date.today()))
     obj = ReachTarget()
     obj.monitor()
