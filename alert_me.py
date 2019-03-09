@@ -8,19 +8,20 @@ import pandas as pd
 import numpy as np
 import os
 dirname=os.path.dirname(__file__)
-full_name = os.path.join(dirname,'alter_me_{}.log'.format(datetime.date.today()))
+full_name = os.path.join(dirname,'alert_me_{}.log'.format(datetime.date.today()))
 logger = llogger(full_name)
 
 # 循环检测时间
-LOOP_TIME = 60
+LOOP_TIME = 80
 EXECEPTION_TIME = 20
 MARKET_OPENING = 0
 # ALERT_PERCENTAGE = 3
-DELTA_TIME = 10
+DELTA_TIME = 30
 ZG_ALERT_PERCENT = 5
 ZZ_ALERT_PERCENT = 3
+DIFF_DELTA_TIME=5
 # ALERT_PERCENT_POOL = 3
-DIFF_V = 10 # quote 接口以千为单位
+DIFF_V = 20 # quote 接口以千为单位
 file = 'D:\OneDrive\Stock\gj_hold.xls'
 
 
@@ -208,7 +209,7 @@ class ReachTarget():
                 for j in result['code']:
 
                     if has_sent_[j] <= datetime.datetime.now():
-                        has_sent_[j] = datetime.datetime.now()+ datetime.timedelta(minutes=DELTA_TIME)
+                        has_sent_[j] = datetime.datetime.now()+ datetime.timedelta(minutes=DIFF_DELTA_TIME)
                         name_list = []
                         yjl_list = []
                         name_list.append(self.kzz_stocks[j])
