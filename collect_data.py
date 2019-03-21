@@ -55,7 +55,9 @@ class SaveData():
                 if df is not None:
                     df=df.reset_index()
                     df['更新日期']=datetime.datetime.now()
+
                     df.to_sql('tb_basic_info',engine,if_exists='replace')
+                    logger.info('入库成功')
                     break
                 else:
                     count+=1
