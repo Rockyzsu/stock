@@ -16,10 +16,10 @@ LOOP_TIME = 60
 EXECEPTION_TIME = 20
 MARKET_OPENING = 0
 # ALERT_PERCENTAGE = 3
-DELTA_TIME = 30
+DELTA_TIME = 20
 ZG_ALERT_PERCENT = 5
 ZZ_ALERT_PERCENT = 3
-DIFF_DELTA_TIME=5
+DIFF_DELTA_TIME=10
 # ALERT_PERCENT_POOL = 3
 DIFF_V = 20 # quote 接口以千为单位
 file = 'D:\OneDrive\Stock\gj_hold.xls'
@@ -81,13 +81,11 @@ class ReachTarget():
 
         except Exception as e:
             logger.info(e)
-            return [], [], []
+            return [], [], [],[],[]
 
         else:
             return list(jsl_df['可转债代码']), list(jsl_df['可转债名称']), list(jsl_df['正股代码'].values), \
-                   list(
-                       jsl_df['正股名称'].values), list(
-                jsl_df['溢价率'].values)
+                   list(jsl_df['正股名称'].values), list(jsl_df['溢价率'].values)
 
     # 可转债的监测
     def monitor(self):
