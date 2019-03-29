@@ -2,17 +2,15 @@
 import datetime
 import os
 import matplotlib
-
+'''
+昨日涨停的今日的实时情况
+'''
 matplotlib.use("Pdf")
 from setting import get_engine, is_holiday, DATA_PATH
 import pandas as pd
 import tushare as ts
 import numpy as np
 from plot_line import plot_stock_line
-
-'''
-昨日涨停的今日的实时情况
-'''
 from setting import llogger
 
 logger = llogger(__file__)
@@ -23,7 +21,6 @@ def monitor():
     table = '20180409zdt'
     api = ts.get_apis()
     df = pd.read_sql(table, engine, index_col='index')
-    # print(df)
     price_list = []
     percent_list = []
     amplitude_list = []
@@ -39,8 +36,11 @@ def monitor():
             # print(df[df[u'代码']==i][u'名称'].values[0],)
             # print( percent)
         except Exception as e:
+            print('this point')
             print(e)
+            api=ts.get_apis()
             curr_price = 0
+
         if last_close == 0:
             percent = np.nan
         percent = round((curr_price - last_close) * 100.00 / last_close, 2)
@@ -78,7 +78,7 @@ def plot_yesterday_zt(type_name='zrzt', current=datetime.datetime.now().strftime
     for i in range(len(df)):
         code = df.iloc[i]['代码']
         name = df.iloc[i]['名称']
-        plot_stock_line(code, name, table_name=table_name, current=current, start='2018-07-01', save=True)
+        plot_stock_line(api,code, name, table_name=table_name, current=current, start='2018-07-01', save=True)
 
 
 if __name__ == '__main__':
@@ -86,12 +86,21 @@ if __name__ == '__main__':
     if is_holiday():
         logger.info('Holiday')
         exit()
+
     logger.info("Start")
+    api = ts.get_apis()
+
     current = datetime.datetime.now().strftime('%Y%m%d')
     data_path = DATA_PATH
+
     path = os.path.join(DATA_PATH, current)
     if not os.path.exists(path):
         os.mkdir(path)
     os.chdir(path)
+
     for plot_type in ['zrzt', 'zdt']:
-        plot_yesterday_zt(plot_type, current=current)
+        try:
+            plot_yesterday_zt(plot_type, current=current)
+        except Exception as e:
+            continue
+    ts.close_apis(api)
