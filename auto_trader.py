@@ -4,7 +4,7 @@
 # @File : auto_trader.py
 import datetime
 import logging
-
+import easyquotation
 import easytrader
 import pandas as pd
 
@@ -20,14 +20,13 @@ class AutoTrader():
         self.stock_candidates = self.get_candidates()
         self.logger = self.llogger('auto_trader_{}'.format(self.today))
         self.logger.info('程序启动')
-
+        input('请运行下单程序，按Enter\n')
         self.user = easytrader.use('ths')
         # self.user.prepare('user.json')
-        self.user.connect(r'C:\全能行证券交易终端\xiadan.exe')
+        self.user.connect(r'C:\Tool\gjzq\xiadan.exe')
         self.position = self.get_position()
         self.blacklist_bond = self.get_blacklist()
-
-        print(self.position)
+        self.q=easyquotation.use('qq')
 
     # 获取候选股票池数据
     def get_candidates(self):
@@ -45,7 +44,7 @@ class AutoTrader():
         return black_list_df['code'].values
 
     # 开盘前统一下单
-    def morning_start(self):
+    def morning_start(self,p):
         # print(self.user.balance)
         codes = self.stock_candidates['code']
         prices = self.stock_candidates['price']
@@ -53,19 +52,21 @@ class AutoTrader():
         for code, price in code_price_dict.items():
             # 价格设定为昨天收盘价的-2%
             if code not in self.blacklist_bond:
-                buy_price=round(price*0.98,2)
-                self.logger.info('代码{}, 当前价格{},设置-2%后的价格为{}'.format(code,price,buy_price))
+                # buy_price=round(price*0.98,2)
+                deal_detail = self.q.stocks(code)
+                close=deal_detail.get(code,{}).get('close') # 昨日收盘
+                ask=deal_detail.get(code,{}).get('ask1') # 卖一
+                current_percent = (ask-close)/close*100
+                if current_percent <= p:
+                    self.logger.info('>>>>代码{}, 当前价格{}, 开盘跌幅{}'.format(code,ask,current_percent))
                 try:
-                    self.user.buy(code,price=buy_price,amount=10)
+                    self.user.buy(code,price=ask,amount=10)
                 except Exception as e:
-                    self.logger.error('买入{}出错'.format(code))
+                    self.logger.error('>>>>买入{}出错'.format(code))
                     self.logger.error(e)
 
-            # self.user.buy(code,price=,amount=10)
-        # print('start')
 
     def get_position(self):
-        print(self.user.position)
         return self.user.position
 
     def llogger(self, filename):
@@ -87,9 +88,13 @@ class AutoTrader():
         logger.addHandler(fh)
         return logger
 
+    def end(self):
+        self.logger.info('程序退出')
+
+
 
 if __name__ == '__main__':
     trader = AutoTrader()
     trader.get_position()
-    # trader.morning_start()
-    print('end')
+    trader.end()
+
