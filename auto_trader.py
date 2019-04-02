@@ -7,7 +7,7 @@ import logging
 import easyquotation
 import easytrader
 import pandas as pd
-
+from config import PROGRAM_PATH
 from setting import get_engine
 
 
@@ -24,7 +24,7 @@ class AutoTrader():
         input('请运行下单程序，按Enter\n')
         self.user = easytrader.use('ths')
         # self.user.prepare('user.json')
-        self.user.connect(r'C:\Tool\gjzq\xiadan.exe')
+        self.user.connect(PROGRAM_PATH)
         self.position = self.get_position()
         self.blacklist_bond = self.get_blacklist()
         self.q=easyquotation.use('qq')
@@ -33,6 +33,7 @@ class AutoTrader():
     def get_candidates(self):
         stock_candidate_df = pd.read_sql(
             'tb_stock_candidates', con=self.engine)
+        stock_candidate_df=stock_candidate_df.sort_values(by='可转债价格')
         return stock_candidate_df
 
     def get_market_data(self):
@@ -47,13 +48,14 @@ class AutoTrader():
     # 开盘前统一下单
     def morning_start(self,p):
         # print(self.user.balance)
-        codes = self.stock_candidates['code']
-        prices = self.stock_candidates['price']
+        codes = self.stock_candidates['可转债代码']
+        prices = self.stock_candidates['可转债价格']
         code_price_dict = dict(zip(codes, prices))
         count=0
         while 1:
             count+=1
             logging.info('Looping {}'.format(count))
+            
             for code, price in code_price_dict.copy().items():
                 # 价格设定为昨天收盘价的-2%
                 if code not in self.blacklist_bond:

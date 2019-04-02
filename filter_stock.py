@@ -221,9 +221,27 @@ class Filter_Stock():
     def show(self):
         df = self.get_new_stock('2017', '2018')
 
+# 可转债过滤
+class Filter_CB(object):
+    def __init__(self):
+        self.engine = get_engine('db_stock','local')
+
+    def run(self):
+        df = pd.read_sql('tb_bond_jisilu',con=self.engine)
+        want_cb_df = df[((df['可转债价格']<=125) & (df['溢价率']<=15))]
+        want_cb_df=want_cb_df[['可转债代码','可转债名称','可转债价格','溢价率']]
+        # want_cb_df.rename(columns={'可转债代码':''})
+        want_cb_df.loc[:,'优先级']=0 # 默认都为0
+
+        want_cb_df.loc[:,'当前日期']=datetime.date.today()
+
+        try:
+            want_cb_df.to_sql('tb_stock_candidates',con=self.engine,if_exists='replace')
+        except Exception as e:
+            print(e)
 
 def main():
-    obj = Filter_Stock()
+    # obj = Filter_Stock()
     # obj.get_ST()
     # obj.get_achievement()
     # obj.get_location(u'深圳')
@@ -238,7 +256,10 @@ def main():
     # obj.to_be_ST()
     # obj.get_location()
     # print(obj.get_new_stock())
-    obj.get_location()
+    # obj.get_location()
+
+    obj = Filter_CB()
+    obj.run()
 
 if __name__ == '__main__':
     main()
