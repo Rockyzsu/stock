@@ -18,6 +18,7 @@ class AutoTrader():
         self.engine = get_engine('db_stock', True)
 
         self.stock_candidates = self.get_candidates()
+        # self.stock_candidates = self.get_candidates()
         self.logger = self.llogger('auto_trader_{}'.format(self.today))
         self.logger.info('程序启动')
         input('请运行下单程序，按Enter\n')
@@ -49,21 +50,35 @@ class AutoTrader():
         codes = self.stock_candidates['code']
         prices = self.stock_candidates['price']
         code_price_dict = dict(zip(codes, prices))
-        for code, price in code_price_dict.items():
-            # 价格设定为昨天收盘价的-2%
-            if code not in self.blacklist_bond:
-                # buy_price=round(price*0.98,2)
-                deal_detail = self.q.stocks(code)
-                close=deal_detail.get(code,{}).get('close') # 昨日收盘
-                ask=deal_detail.get(code,{}).get('ask1') # 卖一
-                current_percent = (ask-close)/close*100
-                if current_percent <= p:
-                    self.logger.info('>>>>代码{}, 当前价格{}, 开盘跌幅{}'.format(code,ask,current_percent))
-                try:
-                    self.user.buy(code,price=ask,amount=10)
-                except Exception as e:
-                    self.logger.error('>>>>买入{}出错'.format(code))
-                    self.logger.error(e)
+        count=0
+        while 1:
+            count+=1
+            logging.info('Looping {}'.format(count))
+            for code, price in code_price_dict.copy().items():
+                # 价格设定为昨天收盘价的-2%
+                if code not in self.blacklist_bond:
+                    # buy_price=round(price*0.98,2)
+                    deal_detail = self.q.stocks(code)
+                    close=deal_detail.get(code,{}).get('close') # 昨日收盘
+                    ask=deal_detail.get(code,{}).get('ask1') # 卖一
+                    bid=deal_detail.get(code,{}).get('bid1') # 买一价
+                    current_percent = (ask-close)/close*100
+                    # print(current_percent)
+                    if current_percent <= p:
+                        self.logger.info('>>>>代码{}, 当前价格{}, 开盘跌幅{}'.format(code,bid,current_percent))
+
+                        try:
+                            print('code {} buy price {}'.format(code,ask))
+                            # self.user.buy(code,price=ask,amount=10)
+                        except Exception as e:
+                            self.logger.error('>>>>买入{}出错'.format(code))
+                            self.logger.error(e)
+                        else:
+                            del code_price_dict[code]
+
+            # 空的时候退出
+            if not code_price_dict:
+                break
 
 
     def get_position(self):
@@ -95,6 +110,9 @@ class AutoTrader():
 
 if __name__ == '__main__':
     trader = AutoTrader()
-    trader.get_position()
+    # 开盘挂单
+    kaipan_percent = -2
+    trader.morning_start(kaipan_percent)
+    # trader.get_position()
     trader.end()
 
