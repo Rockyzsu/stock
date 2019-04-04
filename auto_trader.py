@@ -4,6 +4,8 @@
 # @File : auto_trader.py
 import datetime
 import logging
+import time
+
 import easyquotation
 import easytrader
 import pandas as pd
@@ -25,7 +27,7 @@ class AutoTrader():
         self.user = easytrader.use('ths')
         # self.user.prepare('user.json')
         self.user.connect(PROGRAM_PATH)
-        self.position = self.get_position()
+        # self.position = self.get_position()
         self.blacklist_bond = self.get_blacklist()
         self.q=easyquotation.use('qq')
 
@@ -71,7 +73,7 @@ class AutoTrader():
 
                         try:
                             print('code {} buy price {}'.format(code,ask))
-                            # self.user.buy(code,price=ask,amount=10)
+                            self.user.buy(code,price=ask+0.1,amount=10)
                         except Exception as e:
                             self.logger.error('>>>>买入{}出错'.format(code))
                             self.logger.error(e)
@@ -81,6 +83,7 @@ class AutoTrader():
             # 空的时候退出
             if not code_price_dict:
                 break
+            time.sleep(20)
 
 
     def get_position(self):
