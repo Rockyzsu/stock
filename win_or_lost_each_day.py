@@ -16,8 +16,8 @@ def getCodeFromExcel(filename):
     #从excel表中获取代码, 并且补充前面几位000
     #获取股票数目
     df=pd.read_excel(filename)
-    code_list = df[u'证券代码'].values
-    quantity_list=df[u'股票余额'].values
+    code_list = df['证券代码'].values
+    quantity_list=df['股票余额'].values
     code=[]
     quantity=[]
     for i in range(len(code_list)):
@@ -57,24 +57,24 @@ def today_win_lost(filename_path):
     return result,code,percentage_list,trade_list
 
 def join_dataframe(filename,today):
-    current_profile=today+u'当天贡献'
+    current_profile=today+'当天贡献'
     result,code,percentage_list,trade_list=today_win_lost()
     s1=pd.DataFrame({current_profile:result})
-    #s2=pd.DataFrame({u'当天涨幅':percentage_list})
-    #s3=pd.DataFrame({u'当天价钱':trade_list})
+    #s2=pd.DataFrame({'当天涨幅':percentage_list})
+    #s3=pd.DataFrame({'当天价钱':trade_list})
     #print(s)
     df=pd.read_excel(filename)
-    #del df[u'交易市场']
-    #del df[u'股东帐户']
-    #del df[u'盈亏比(%)']
-    #del df[u'在途数量']
-    #del df[u'当天贡献']
-    #del df[u'']
-    #del df[u'']
-    df[u'证券代码']=code
+    #del df['交易市场']
+    #del df['股东帐户']
+    #del df['盈亏比(%)']
+    #del df['在途数量']
+    #del df['当天贡献']
+    #del df['']
+    #del df['']
+    df['证券代码']=code
     #print(code)
-    df[u'市价']=trade_list
-    df[u'当天涨幅']=percentage_list
+    df['市价']=trade_list
+    df['当天涨幅']=percentage_list
     #可以这样直接替换某一列的值
     #df=df.join(s2,how='right')
     df=df.join(s1,how='right')

@@ -70,11 +70,11 @@ class ReachTarget():
         pool_table = 'tb_current_hold'
         pool_df = pd.read_sql(pool_table, self.engine, index_col='index')
 
-        return list(pool_df[u'代码'].values), list(pool_df[u'名字'].values)
+        return list(pool_df['代码'].values), list(pool_df['名字'].values)
 
     # 获取市场所有可转债数据个股代码 正股
     def zg_bond(self):
-        bond_table = 'tb_bond_jisilu'
+        bond_table = 'tb_bond_jisil'
 
         try:
             jsl_df = pd.read_sql(bond_table, self.engine)

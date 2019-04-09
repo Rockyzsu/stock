@@ -27,8 +27,8 @@ def clone_database():
                 # d= datetime.datetime.strptime(current,'%Y%m%d').strftime('%Y-%m-%d')
                 # print(d)
                 df =pd.read_sql(table[0],local_engine,index_col='index')
-                # df[u'涨停日期']=d
-                df=df.rename(columns={u'最后一次涨停时间A':u'最后一次涨停时间',u'第一次涨停时间A':u'第一次涨停时间'})
+                # df['涨停日期']=d
+                df=df.rename(columns={'最后一次涨停时间A':'最后一次涨停时间','第一次涨停时间A':'第一次涨停时间'})
                 try:
                     print(df.head())
                     df.to_sql(table[0],local_engine,if_exists='replace')

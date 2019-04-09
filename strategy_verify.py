@@ -98,7 +98,7 @@ class Strategy():
                 print(tree.xpath('//title/text()')[0])
                 content_str=[]
                 temp=[]
-                p=re.compile(u'待定')
+                p=re.compile('待定')
                 for j in all_contnet:
                     s= j.xpath('string(.)')
                     temp.append(s)
@@ -165,7 +165,7 @@ class Strategy():
     def dataFilter(self,strategy,page):
         json_data=self.getStock(strategy,page)
         items=json_data['items']
-        colums_dict={u'current': '', u'name': '', u'trigger_price': '', u'symbol': '', u'status_id': '', u'trigger_time': '', u'is_new': '', u'change_percent': '', u'flag': '', u'reply_count': '', u'target': '', u'desc': ''}
+        colums_dict={'current': '', 'name': '', 'trigger_price': '', 'symbol': '', 'status_id': '', 'trigger_time': '', 'is_new': '', 'change_percent': '', 'flag': '', 'reply_count': '', 'target': '', 'desc': ''}
 
         df_total=DataFrame(colums_dict,index=['0'])
         for item in items:
@@ -225,12 +225,12 @@ class Strategy():
                 print('\n\n')
                 d_time=datetime.datetime.fromtimestamp(item['trigger_time']*1.00/1000)
                 str_time=d_time.strftime('%Y-%m-%d %H:%M')
-                print(u'买入时间 ',str_time)
-                #print(u'买入时间 ',time.ctime(item['trigger_time']*1.00/1000))
-                print(u'当前价格 ',item['current'])
+                print('买入时间 ',str_time)
+                #print('买入时间 ',time.ctime(item['trigger_time']*1.00/1000))
+                print('当前价格 ',item['current'])
                 print(item['name'])
-                print(u'买入价格 ',item['trigger_price'])
-                print(u'目前盈亏 ',float(item['change_percent'])*100.0)
+                print('买入价格 ',item['trigger_price'])
+                print('目前盈亏 ',float(item['change_percent'])*100.0)
                 print(item['desc'])
 
             time.sleep(1)

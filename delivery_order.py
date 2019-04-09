@@ -38,47 +38,47 @@ class Delivery_Order():
             print(filename)
             try:
                 t = pd.read_table(filename, encoding='gbk',
-                                  dtype={u'证券代码': np.str})
+                                  dtype={'证券代码': np.str})
             except Exception as e:
                 print(e)
                 continue
-            # fee=t[u'手续费'].sum()+t[u'印花税'].sum()+t[u'其他杂费'].sum()
+            # fee=t['手续费'].sum()+t['印花税'].sum()+t['其他杂费'].sum()
             # print(i," fee: ")
             # print(fee)
             df_list.append(t)
             # result.append(fee)
         df = pd.concat(df_list)
         df = df.reset_index()
-        # df[u'xxxx']=df[u'成交日期']+df[u'成交时间']
-        # df[u'成交日期']=pd.to_datetime(df[u'xxxx'],format='%Y%m%d %H:%M:%S')
-        df[u'成交日期'] = map(lambda x: datetime.datetime.strptime(
-            str(x), "%Y%m%d"), df[u'成交日期'])
-        df = df[df[u'摘要'] != u'申购配号']
-        df = df[df[u'摘要'] != u'质押回购拆出']
-        df = df[df[u'摘要'] != u'拆出质押购回']
+        # df['xxxx']=df['成交日期']+df['成交时间']
+        # df['成交日期']=pd.to_datetime(df['xxxx'],format='%Y%m%d %H:%M:%S')
+        df['成交日期'] = map(lambda x: datetime.datetime.strptime(
+            str(x), "%Y%m%d"), df['成交日期'])
+        df = df[df['摘要'] != '申购配号']
+        df = df[df['摘要'] != '质押回购拆出']
+        df = df[df['摘要'] != '拆出质押购回']
         # print(df.info())
         # print(df)
         # print(df['2017-01'])
-        del df[u'合同编号']
-        del df[u'备注']
-        del df[u'股东帐户']
-        del df[u'结算汇率']
+        del df['合同编号']
+        del df['备注']
+        del df['股东帐户']
+        del df['结算汇率']
 
-        del df[u'Unnamed: 16']
-        df = df.sort_values(by=u'成交日期')
-        df = df.set_index(u'成交日期')
+        del df['Unnamed: 16']
+        df = df.sort_values(by='成交日期')
+        df = df.set_index('成交日期')
 
         df.to_sql('tb_delivery_HT', engine, if_exists='append')
-        # df=df[(df[u'摘要']==u'证券卖出') | (df[u'摘要']==u'证券买入')]
-        # df= df.groupby(df[u'证券名称'])
+        # df=df[(df['摘要']=='证券卖出') | (df['摘要']=='证券买入')]
+        # df= df.groupby(df['证券名称'])
         # print(df.describe())
-        # print(df[u'手续费'].sum())
-        # print(df[u'印花税'].sum())
-        # df1=df[[u'证券名称',u'证券代码',u'成交数量',	u'成交均价'	,u'成交金额',u'手续费',	u'印花税',u'发生金额',u'操作']]
-        # print(df1[u'证券名称'].value_counts())
-        # print(df.groupby(by=[u'证券名称'])[u'发生金额'].sum())
+        # print(df['手续费'].sum())
+        # print(df['印花税'].sum())
+        # df1=df[['证券名称','证券代码','成交数量',	'成交均价'	,'成交金额','手续费',	'印花税','发生金额','操作']]
+        # print(df1['证券名称'].value_counts())
+        # print(df.groupby(by=['证券名称'])['发生金额'].sum())
         # df1.to_excel('2017-all.xls')
-        # print(df1.groupby(df1[u'证券名称']).describe())
+        # print(df1.groupby(df1['证券名称']).describe())
         # print(df1['2017-02'])
         # df.to_excel('2016_delivery_order.xls')
         # self.caculation(df)
@@ -86,7 +86,7 @@ class Delivery_Order():
         # plt.show()
 
     def caculation(self, df):
-        fee = df[u'手续费'].sum() + df[u'印花税'].sum() + df[u'其他杂费'].sum()
+        fee = df['手续费'].sum() + df['印花税'].sum() + df['其他杂费'].sum()
         print(fee)
 
     # 计算每个月的费用
@@ -107,22 +107,22 @@ class Delivery_Order():
             # filename='GJ_2018_%s.xls' %str(i).zfill(2)
             print(filename)
             try:
-                # t=pd.read_table(filename,encoding='gbk',dtype={u'证券代码':np.str})
-                t = pd.read_csv(filename, encoding='gbk', dtype={u'证券代码': np.str})
-                # t = pd.read_excel(filename, encoding='gbk',dtype={u'证券代码': np.str})
+                # t=pd.read_table(filename,encoding='gbk',dtype={'证券代码':np.str})
+                t = pd.read_csv(filename, encoding='gbk', dtype={'证券代码': np.str})
+                # t = pd.read_excel(filename, encoding='gbk',dtype={'证券代码': np.str})
             except Exception as e:
                 print(e)
                 # return
                 # continue
-            # fee=t[u'手续费'].sum()+t[u'印花税'].sum()+t[u'其他杂费'].sum()
+            # fee=t['手续费'].sum()+t['印花税'].sum()+t['其他杂费'].sum()
             df_list.append(t)
             # result.append(fee)
         df = pd.concat(df_list)
         df = df.reset_index(drop='True')
 
-        # df[u'成交时间'] = df[u'成交时间'].map(lambda x: x.zfill(8))
-        df[u'成交日期'] = df[u'成交日期'].astype(np.str) + df[u'成交时间']
-        # for i in df[u'成交日期'].values:
+        # df['成交时间'] = df['成交时间'].map(lambda x: x.zfill(8))
+        df['成交日期'] = df['成交日期'].astype(np.str) + df['成交时间']
+        # for i in df['成交日期'].values:
         #     try:
         #         x = datetime.datetime.strptime(
         #             i, "%Y%m%d%H:%M:%S").strftime('%Y-%m-%d %H:%M:%S')
@@ -135,20 +135,20 @@ class Delivery_Order():
             df['成交日期'] = pd.to_datetime(df['成交日期'])
         except Exception as e:
             print(e)
-        # df=df[df[u'摘要']!=u'申购配号']
-        # df=df[df[u'摘要']!=u'质押回购拆出']
-        # df=df[df[u'摘要']!=u'拆出质押购回']
+        # df=df[df['摘要']!='申购配号']
+        # df=df[df['摘要']!='质押回购拆出']
+        # df=df[df['摘要']!='拆出质押购回']
         # print(df.info())
         # print(df)
         # print(df['2017-01'])
-        # del df[u'合同编号']
-        # del df[u'备注']
+        # del df['合同编号']
+        # del df['备注']
 
         del df['股东帐户']
         del df['成交时间']
 
-        # del df[u'结算汇率']
-        # del df[u'Unnamed: 17']
+        # del df['结算汇率']
+        # del df['Unnamed: 17']
 
         df = df.sort_values(by='成交日期', ascending=False)
         df = df.set_index('成交日期')
@@ -156,16 +156,16 @@ class Delivery_Order():
         # print(df)
         #
         df.to_sql('tb_delivery_gj', engine, if_exists='replace')
-        # df=df[(df[u'摘要']==u'证券卖出') | (df[u'摘要']==u'证券买入')]
-        # df= df.groupby(df[u'证券名称'])
+        # df=df[(df['摘要']=='证券卖出') | (df['摘要']=='证券买入')]
+        # df= df.groupby(df['证券名称'])
         # print(df.describe())
-        # print(df[u'手续费'].sum())
-        # print(df[u'印花税'].sum())
-        # df1=df[[u'证券名称',u'证券代码',u'成交数量',	u'成交均价'	,u'成交金额',u'手续费',	u'印花税',u'发生金额',u'操作']]
-        # print(df1[u'证券名称'].value_counts())
-        # print(df.groupby(by=[u'证券名称'])[u'发生金额'].sum())
+        # print(df['手续费'].sum())
+        # print(df['印花税'].sum())
+        # df1=df[['证券名称','证券代码','成交数量',	'成交均价'	,'成交金额','手续费',	'印花税','发生金额','操作']]
+        # print(df1['证券名称'].value_counts())
+        # print(df.groupby(by=['证券名称'])['发生金额'].sum())
         # df1.to_excel('2017-all.xls')
-        # print(df1.groupby(df1[u'证券名称']).describe())
+        # print(df1.groupby(df1['证券名称']).describe())
         # print(df1['2017-02'])
         # df.to_excel('2016_delivery_order.xls')
         # self.caculation(df)
@@ -175,16 +175,16 @@ class Delivery_Order():
 
     # 单独处理某个文件（单独一个月的数据） 文件格式：国金-保存为xls，然后另存为csv 或者按照天也可以
     def years_gj_each_month_day(self):
-        filename = 'GJ_2019-03-27-28.csv'
+        filename = 'GJ_2019-03-30-04-05.csv'
         try:
             # 根据不同的格式选用不同的函数
-            # t=pd.read_table(filename,encoding='gbk',dtype={u'证券代码':np.str})
+            # t=pd.read_table(filename,encoding='gbk',dtype={'证券代码':np.str})
             t = pd.read_csv(filename, encoding='gbk', dtype={'证券代码': np.str})
-            # t = pd.read_excel(filename, encoding='gbk',dtype={u'证券代码': np.str})
+            # t = pd.read_excel(filename, encoding='gbk',dtype={'证券代码': np.str})
         except Exception as e:
             print(e)
             # continue
-        # fee=t[u'手续费'].sum()+t[u'印花税'].sum()+t[u'其他杂费'].sum()
+        # fee=t['手续费'].sum()+t['印花税'].sum()+t['其他杂费'].sum()
         else:
             # df_list.append(t)
             # result.append(fee)
@@ -192,9 +192,9 @@ class Delivery_Order():
         # df = pd.concat(df_list)
         df = df.reset_index(drop='True')
 
-        # df[u'成交时间'] = df[u'成交时间'].map(lambda x: x.zfill(8))
-        df[u'成交日期'] = df[u'成交日期'].astype(np.str) + df[u'成交时间']
-        # for i in df[u'成交日期'].values:
+        # df['成交时间'] = df['成交时间'].map(lambda x: x.zfill(8))
+        df['成交日期'] = df['成交日期'].astype(np.str) + df['成交时间']
+        # for i in df['成交日期'].values:
         #     try:
         #         x = datetime.datetime.strptime(
         #             i, "%Y%m%d%H:%M:%S").strftime('%Y-%m-%d %H:%M:%S')
@@ -207,20 +207,20 @@ class Delivery_Order():
             df['成交日期'] = pd.to_datetime(df['成交日期'])
         except Exception as e:
             print(e)
-        # df=df[df[u'摘要']!=u'申购配号']
-        # df=df[df[u'摘要']!=u'质押回购拆出']
-        # df=df[df[u'摘要']!=u'拆出质押购回']
+        # df=df[df['摘要']!='申购配号']
+        # df=df[df['摘要']!='质押回购拆出']
+        # df=df[df['摘要']!='拆出质押购回']
         # print(df.info())
         # print(df)
         # print(df['2017-01'])
-        # del df[u'合同编号']
-        # del df[u'备注']
+        # del df['合同编号']
+        # del df['备注']
 
         del df['股东帐户']
         del df['成交时间']
 
-        # del df[u'结算汇率']
-        # del df[u'Unnamed: 17']
+        # del df['结算汇率']
+        # del df['Unnamed: 17']
 
         df = df.sort_values(by='成交日期', ascending=False)
         conn = get_mysql_conn('db_stock', 'local')
@@ -248,16 +248,16 @@ class Delivery_Order():
         conn.commit()
         conn.close()
         # df.to_sql('tb_delivery_gj', engine, if_exists='append')
-        # df=df[(df[u'摘要']==u'证券卖出') | (df[u'摘要']==u'证券买入')]
-        # df= df.groupby(df[u'证券名称'])
+        # df=df[(df['摘要']=='证券卖出') | (df['摘要']=='证券买入')]
+        # df= df.groupby(df['证券名称'])
         # print(df.describe())
-        # print(df[u'手续费'].sum())
-        # print(df[u'印花税'].sum())
-        # df1=df[[u'证券名称',u'证券代码',u'成交数量',	u'成交均价'	,u'成交金额',u'手续费',	u'印花税',u'发生金额',u'操作']]
-        # print(df1[u'证券名称'].value_counts())
-        # print(df.groupby(by=[u'证券名称'])[u'发生金额'].sum())
+        # print(df['手续费'].sum())
+        # print(df['印花税'].sum())
+        # df1=df[['证券名称','证券代码','成交数量',	'成交均价'	,'成交金额','手续费',	'印花税','发生金额','操作']]
+        # print(df1['证券名称'].value_counts())
+        # print(df.groupby(by=['证券名称'])['发生金额'].sum())
         # df1.to_excel('2017-all.xls')
-        # print(df1.groupby(df1[u'证券名称']).describe())
+        # print(df1.groupby(df1['证券名称']).describe())
         # print(df1['2017-02'])
         # df.to_excel('2016_delivery_order.xls')
         # self.caculation(df)
@@ -265,9 +265,9 @@ class Delivery_Order():
         # plt.show()
 
     def pretty(self):
-        df = pd.read_sql('tb_delivery_GJ', engine, index_col=u'成交日期')
+        df = pd.read_sql('tb_delivery_GJ', engine, index_col='成交日期')
         # print(df)
-        # del df[u'Unnamed: 17']
+        # del df['Unnamed: 17']
         del df['index']
         df.to_sql('tb_delivery_GJ', engine, if_exists='replace')
 
@@ -320,39 +320,39 @@ def bank_account():
             df = pd.read_table(file, encoding='gbk')
             # df[df['']]
             # print(df)
-            # df_list.append(df[[u'日期',u'操作',u'发生金额']])
+            # df_list.append(df[['日期','操作','发生金额']])
             df_list.append(df)
     total_df = pd.concat(df_list)
     # total_df=total_df.reset_index()
-    # del total_df[u'level_0']
-    del total_df[u'货币单位']
-    del total_df[u'合同编号']
-    del total_df[u'Unnamed: 8']
-    del total_df[u'银行名称']
+    # del total_df['level_0']
+    del total_df['货币单位']
+    del total_df['合同编号']
+    del total_df['Unnamed: 8']
+    del total_df['银行名称']
     # print(total_df)
-    # f=total_df[total_df[u'操作']==u'证券转银行'][u'发生金额']*-1
-    total_df[u'发生金额'] = map(lambda x, y: x * -1 if y ==
-                                                   u'证券转银行' else x, total_df[u'发生金额'], total_df[u'操作'])
+    # f=total_df[total_df['操作']=='证券转银行']['发生金额']*-1
+    total_df['发生金额'] = map(lambda x, y: x * -1 if y ==
+                                                   '证券转银行' else x, total_df['发生金额'], total_df['操作'])
     # print(total_df.columns)
     # print(total_df5)
     # total_df=total_df.reset_index()
     # total_df=total_df.set_index('index')
     # total_df=total_df.reset_index(drop=True)
-    total_df[u'委托时间'] = map(lambda x: str(x).zfill(6), total_df[u'委托时间'])
+    total_df['委托时间'] = map(lambda x: str(x).zfill(6), total_df['委托时间'])
 
-    total_df[u'日期'] = map(lambda x, y: str(x) + " " + y,
-                          total_df[u'日期'], total_df[u'委托时间'])
-    total_df[u'日期'] = pd.to_datetime(total_df[u'日期'], format='%Y%m%d %H%M%S')
-    total_df = total_df.set_index(u'日期')
+    total_df['日期'] = map(lambda x, y: str(x) + " " + y,
+                          total_df['日期'], total_df['委托时间'])
+    total_df['日期'] = pd.to_datetime(total_df['日期'], format='%Y%m%d %H%M%S')
+    total_df = total_df.set_index('日期')
 
-    df = total_df[total_df[u'备注'] == u'成功[[0000]交易成功]']
+    df = total_df[total_df['备注'] == '成功[[0000]交易成功]']
     # print(df)
     # print(total_df.iloc[131])
-    # print(total_df[u'备注'].values)
-    print(df[u'发生金额'].sum())
+    # print(total_df['备注'].values)
+    print(df['发生金额'].sum())
     # df.dropna('')
-    del df[u'备注']
-    del df[u'委托时间']
+    del df['备注']
+    del df['委托时间']
     df.to_sql('tb_bank_cash', engine, if_exists='replace')
     # print(df['2018'])
 

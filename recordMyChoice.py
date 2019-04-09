@@ -84,7 +84,7 @@ class StockRecord:
         if not os.path.exists(path):
             return
 
-        create_table_cmd = u'CREATE TABLE IF NOT EXISTS `tb_profit` (`证券代码` CHAR (6),`证券名称` VARCHAR (16), `保本价` FLOAT,`股票余额` INT,`盈亏比例` FLOAT,`盈亏` FLOAT, `市值` FLOAT);'
+        create_table_cmd = 'CREATE TABLE IF NOT EXISTS `tb_profit` (`证券代码` CHAR (6),`证券名称` VARCHAR (16), `保本价` FLOAT,`股票余额` INT,`盈亏比例` FLOAT,`盈亏` FLOAT, `市值` FLOAT);'
         try:
             self.cur.execute(create_table_cmd)
             self.conn.commit()
@@ -98,7 +98,7 @@ class StockRecord:
         for i in range(1, len(content)):
             code, name, safe_price, count = content[i].strip().split(',')[:4]
             print(code, name, safe_price, count)
-            insert_cmd = u'INSERT INTO `tb_profit`  (`证券代码`,`证券名称`,`保本价`,`股票余额`) VALUES(\"%s\",\"%s\",\"%s\",\"%s\");' % (
+            insert_cmd = 'INSERT INTO `tb_profit`  (`证券代码`,`证券名称`,`保本价`,`股票余额`) VALUES(\"%s\",\"%s\",\"%s\",\"%s\");' % (
             code.zfill(6), name, safe_price, count)
             self._exe(insert_cmd)
 
@@ -116,7 +116,7 @@ class StockRecord:
         :param count: 股票数目
         :return: None
         '''
-        insert_cmd = u'INSERT INTO `tb_profit`  (`证券代码`,`证券名称`,`保本价`,`股票余额`) VALUES(\"%s\",\"%s\",\"%s\",\"%s\");' % (
+        insert_cmd = 'INSERT INTO `tb_profit`  (`证券代码`,`证券名称`,`保本价`,`股票余额`) VALUES(\"%s\",\"%s\",\"%s\",\"%s\");' % (
         code.zfill(6), name, safe_price, count)
         self._exe(insert_cmd)
 
@@ -135,7 +135,7 @@ class StockRecord:
     # 更新每天的盈亏情况
     def update_daily(self):
 
-        add_cols = u'ALTER TABLE `{}` ADD `{}` FLOAT;'.format(self.table_name, self.today)
+        add_cols = 'ALTER TABLE `{}` ADD `{}` FLOAT;'.format(self.table_name, self.today)
         self._exe(add_cols)
         # self.conn.commit()
         api = ts.get_apis()
@@ -151,7 +151,7 @@ class StockRecord:
             profit = (current_price - safe_price) * count
             profit_ratio = round(float(current_price - safe_price) / safe_price * 100, 2)
 
-            update_cmd = u'UPDATE {} SET `盈亏比例`={} ,`盈亏`={}, `市值` ={}, `现价` = {},`{}`={} where `证券代码`= {};'.format(
+            update_cmd = 'UPDATE {} SET `盈亏比例`={} ,`盈亏`={}, `市值` ={}, `现价` = {},`{}`={} where `证券代码`= {};'.format(
                 self.table_name, profit_ratio, profit, values, current_price, self.today, earn,code)
             # print(update_cmd)
             self._exe(update_cmd)
@@ -159,7 +159,7 @@ class StockRecord:
 
     # 删除某行
     def update_item(self, code, content):
-        cmd = u'UPDATE `{}` SET `保本价`={} where `证券代码`={};'.format(self.table_name, content, code)
+        cmd = 'UPDATE `{}` SET `保本价`={} where `证券代码`={};'.format(self.table_name, content, code)
         self._exe(cmd)
 
     def update_sold(self):
@@ -178,7 +178,7 @@ class StockRecord:
             ret = db_cursor.fetchone()
             sold_price = i[3]
             percentange =round(float(ret[0]- sold_price)/sold_price*100,2)
-            update_cmd = u'update  `{}` set `当前价`={} ,`卖出后涨跌幅`= {} where `代码`=\'{}\''.format(tb_name,ret[0],percentange,i[0])
+            update_cmd = 'update  `{}` set `当前价`={} ,`卖出后涨跌幅`= {} where `代码`=\'{}\''.format(tb_name,ret[0],percentange,i[0])
             print(update_cmd)
             cur.execute(update_cmd)
             self.conn.commit()
@@ -191,8 +191,8 @@ if __name__ == "__main__":
     # obj.first_recode()
     # holding_stock_sql()
     obj = StockRecord()
-    # obj.delete(u'深F120')
-    # obj.insert('300580',u'贝斯特',19.88,200)
+    # obj.delete('深F120')
+    # obj.insert('300580','贝斯特',19.88,200)
     obj.update_daily()
     obj.update_sold()
     # obj.update_item('300580',32.568)

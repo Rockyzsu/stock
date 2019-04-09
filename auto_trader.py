@@ -39,7 +39,7 @@ class AutoTrader():
         return stock_candidate_df
 
     def get_market_data(self):
-        market_data_df = pd.read_sql('tb_bond_jisilu', con=self.engine)
+        market_data_df = pd.read_sql('tb_bond_jisil', con=self.engine)
         return market_data_df
 
     # 永远不买的

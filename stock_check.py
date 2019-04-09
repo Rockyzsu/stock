@@ -60,11 +60,11 @@ class CheckStock():
         print(min_p)
         #print(df)
         '''
-        buy= df[df['type']==u'买盘']['volume'].sum()
+        buy= df[df['type']=='买盘']['volume'].sum()
         #print('buy:',buy)
-        sell =df[df['type']==u'卖盘']['volume'].sum()
+        sell =df[df['type']=='卖盘']['volume'].sum()
         #print('sell: ',sell)
-        neutral= df[df['type']==u'中性盘']['volume'].sum()
+        neutral= df[df['type']=='中性盘']['volume'].sum()
         #print('neutral: ',neutral)
         #最后一个是开盘数据
         start=df[-1:]
@@ -198,11 +198,11 @@ def sub_process_ratio(i,q):
     print(min_p)
     #print(df)
     '''
-    buy= df[df['type']==u'买盘']['volume'].sum()
+    buy= df[df['type']=='买盘']['volume'].sum()
     #print('buy:',buy)
-    sell =df[df['type']==u'卖盘']['volume'].sum()
+    sell =df[df['type']=='卖盘']['volume'].sum()
     #print('sell: ',sell)
-    neutral= df[df['type']==u'中性盘']['volume'].sum()
+    neutral= df[df['type']=='中性盘']['volume'].sum()
     #print('neutral: ',neutral)
     #最后一个是开盘数据
     start=df[-1:]

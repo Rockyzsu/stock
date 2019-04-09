@@ -30,7 +30,7 @@ base_info = pd.read_sql('tb_basic_info', engine, index_col='index')
 
 
 def plot_stock_line(api,code, name, table_name, current, start='2017-10-01', save=False):
-    title = u'{} {} {} {}'.format(current, code, name, table_name)
+    title = '{} {} {} {}'.format(current, code, name, table_name)
     title = title.replace('*', '_')
 
 
@@ -127,6 +127,6 @@ if __name__ == '__main__':
         name = name.decode('utf-8')
     else:
         code = None
-        name = u'泰永长征'
+        name = '泰永长征'
     plot_stock_line(code=code, name=name, table_name='zdt', current='20180912', start='2018-02-01', save=False)
     # ts.close_apis(api)

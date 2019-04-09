@@ -94,7 +94,7 @@ class WechatSend:
         account = itchat.get_friends(self.name)
         self.toName = None
         for i in account:
-            if i[u'PYQuanPin'] == self.name:
+            if i['PYQuanPin'] == self.name:
                 self.toName = i['UserName']
         if not self.toName:
             print('please input the right person name')
@@ -227,7 +227,7 @@ def is_holiday():
 
 
 # if __name__ == '__main__':
-#     msg=WechatSend(u'wei')
+#     msg=WechatSend('wei')
 #     msg.send_price('hsdq',12,12,'sell')
     # print(FROM_MAIL)
     # mylogger('test.log','just for test')
