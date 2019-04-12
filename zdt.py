@@ -80,7 +80,8 @@ class GetZDT:
             try:
                 # print(result)
                 t1 = result[0]
-                t2 = list(eval(t1))
+                t2=re.sub('[\\r\\n]', '', t1)
+                t2 = list(eval(t2))
                 return t2
             except Exception as e:
                 logger.info(e)

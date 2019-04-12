@@ -61,7 +61,7 @@ def monitor():
 
 
 '''
-绘制k线图，今日暂停的k线图
+绘制k线图，今日涨停的k线图
 '''
 
 
@@ -72,6 +72,7 @@ def plot_yesterday_zt(type_name='zrzt', current=datetime.datetime.now().strftime
     try:
         df = pd.read_sql(table, engine)
     except Exception as e:
+        logger.error('table_name >>> {}{}'.format(current,table_name))
         logger.error(e)
         return
 
