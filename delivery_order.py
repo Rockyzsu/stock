@@ -175,7 +175,7 @@ class Delivery_Order():
 
     # 单独处理某个文件（单独一个月的数据） 文件格式：国金-保存为xls，然后另存为csv 或者按照天也可以
     def years_gj_each_month_day(self):
-        filename = 'GJ_2019-04-08-04-10.csv'
+        filename = 'GJ_2019-04-11-04-16.csv'
         try:
             # 根据不同的格式选用不同的函数
             # t=pd.read_table(filename,encoding='gbk',dtype={'证券代码':np.str})
@@ -221,7 +221,8 @@ class Delivery_Order():
 
         # del df['结算汇率']
         # del df['Unnamed: 17']
-
+        df=df.fillna(0)
+        df=df[(df['操作']!='申购配号') & (df['操作']!='拆出质押购回') & (df['操作']!='质押回购拆出')]
         df = df.sort_values(by='成交日期', ascending=False)
         conn = get_mysql_conn('db_stock', 'local')
         cursor = conn.cursor()
