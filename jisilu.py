@@ -9,7 +9,7 @@ import six
 from send_mail import sender_139
 from sqlalchemy import VARCHAR
 
-engine = get_engine('db_jisil')
+engine = get_engine('db_jisilu')
 logger = llogger(__file__)
 
 
@@ -17,7 +17,7 @@ logger = llogger(__file__)
 class Jisilu(object):
     def __init__(self):
 
-        self.check_holiday()
+        # self.check_holiday()
 
         # py2
         if six.PY2:
@@ -170,7 +170,7 @@ class Jisilu(object):
         try:
             df.to_sql('tb_jsl_{}'.format(datetime.datetime.now().strftime('%Y-%m-%d')), engine, if_exists='replace', dtype={'可转债代码': VARCHAR(10)})
             engine2=get_engine('db_stock')
-            df.to_sql('tb_bond_jisil'.format(datetime.datetime.now().strftime('%Y-%m-%d')), engine2, if_exists='replace', dtype={'可转债代码': VARCHAR(10)})
+            df.to_sql('tb_bond_jisilu'.format(datetime.datetime.now().strftime('%Y-%m-%d')), engine2, if_exists='replace', dtype={'可转债代码': VARCHAR(10)})
         except Exception as e:
             logger.info(e)
 
@@ -313,5 +313,5 @@ def main():
 if __name__ == '__main__':
     if is_holiday():
         logger.info("Holidy")
-        exit()
+        # exit()
     main()

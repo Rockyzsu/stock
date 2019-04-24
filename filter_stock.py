@@ -227,7 +227,7 @@ class Filter_CB(object):
         self.engine = get_engine('db_stock','local')
 
     def run(self):
-        df = pd.read_sql('tb_bond_jisil',con=self.engine)
+        df = pd.read_sql('tb_bond_jisilu',con=self.engine)
         want_cb_df = df[((df['可转债价格']<=125) & (df['溢价率']<=15))]
         want_cb_df=want_cb_df[['可转债代码','可转债名称','可转债价格','溢价率']]
         # want_cb_df.rename(columns={'可转债代码':''})
