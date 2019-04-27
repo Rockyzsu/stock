@@ -8,16 +8,16 @@ from setting import get_engine, llogger, is_holiday,get_mysql_conn
 import six
 from send_mail import sender_139
 from sqlalchemy import VARCHAR
-
+import os
 engine = get_engine('db_jisilu')
-logger = llogger(__file__)
+logger = llogger('log/'+'jisilu')
 
 
 # 爬取集思录 可转债的数据
 class Jisilu(object):
     def __init__(self):
 
-        # self.check_holiday()
+        self.check_holiday()
 
         # py2
         if six.PY2:

@@ -9,9 +9,9 @@ import requests
 import re
 from lxml import etree
 from setting import llogger, get_mysql_conn, DATA_PATH
+filename=os.path.basename(__file__)
+logger = llogger('log/'+filename)
 
-logger = llogger(__file__)
-# headers={'User-Agent': 'Mozilla/5.0 (6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'}
 my_useragent = [
     'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_8; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50',
     'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50',

@@ -13,8 +13,8 @@ import numpy as np
 from plot_line import plot_stock_line
 from setting import llogger
 
-logger = llogger(__file__)
-
+filename=os.path.basename(__file__)
+logger = llogger('log/'+filename)
 
 def monitor():
     engine = get_engine('db_zdt')

@@ -14,16 +14,13 @@ import os
 import setting
 from setting import is_holiday, DATA_PATH
 import pandas as pd
-import tushare as ts
 from setting import llogger
 import requests
 from send_mail import sender_139
 import datetime
-# reload(sys)
-# sys.setdefaultencoding('gbk')
 
-logger = llogger(__file__)
-
+filename=os.path.basename(__file__)
+logger = llogger('log/'+filename)
 
 class GetZDT:
     def __init__(self):
