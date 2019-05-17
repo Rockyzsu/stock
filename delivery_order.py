@@ -175,7 +175,7 @@ class Delivery_Order():
 
     # 单独处理某个文件（单独一个月的数据） 文件格式：国金-保存为xls，然后另存为csv 或者按照天也可以
     def years_gj_each_month_day(self):
-        filename = 'GJ_2019-04-22.csv'
+        filename = 'GJ_2019-05-9-05-10.csv'
         try:
             # 根据不同的格式选用不同的函数
             # t=pd.read_table(filename,encoding='gbk',dtype={'证券代码':np.str})

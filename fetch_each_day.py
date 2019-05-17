@@ -12,7 +12,8 @@ import datetime
 import os
 from setting import get_engine, llogger, is_holiday, DATA_PATH
 
-logger = llogger(__file__)
+filename=os.path.basename(__file__)
+logger = llogger('log/'+filename)
 
 
 class FetchDaily(object):
@@ -26,18 +27,22 @@ class FetchDaily(object):
         self.df_today_all = pd.DataFrame()
         self.TIMEOUT = 10
 
-    def gettodaymarket(self, re_try=100):
+    def gettodaymarket(self, re_try=10):
         while re_try > 0:
             try:
                 df = ts.get_today_all()
-                if len(df) != 0:
-                    return df
+                if df is None:
+                    continue
+                if len(df) == 0:
+                    continue
             except Exception as  e:
                 logger.error(e)
 
                 re_try = re_try - 1
                 time.sleep(self.TIMEOUT)
                 # import tushare as ts
+            else:
+                return df
 
         return None
 
