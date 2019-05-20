@@ -1,5 +1,6 @@
 # -*-coding=utf-8-*-
 import re
+import sys
 
 __author__ = 'Rocky'
 '''
@@ -174,8 +175,8 @@ class Delivery_Order():
         #
 
     # 单独处理某个文件（单独一个月的数据） 文件格式：国金-保存为xls，然后另存为csv 或者按照天也可以
-    def years_gj_each_month_day(self):
-        filename = 'GJ_2019-05-9-05-10.csv'
+    def years_gj_each_month_day(self,filename):
+        # filename = 'GJ_2019-05-11-05-16.csv'
         try:
             # 根据不同的格式选用不同的函数
             # t=pd.read_table(filename,encoding='gbk',dtype={'证券代码':np.str})
@@ -359,9 +360,10 @@ def bank_account():
 
 
 def main():
+    filename=sys.argv[1]
     obj = Delivery_Order()
     # obj.data_sync()
-    obj.years_gj_each_month_day()
+    obj.years_gj_each_month_day(filename=filename)
     # obj.years_gj_each_month()
     # obj.years_gj()
     # obj.years_ht()
