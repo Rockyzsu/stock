@@ -165,10 +165,14 @@ class GetZDT:
                 logger.info(e)
 
             avg = round(df['今日涨幅'].mean(), 2)
+            median = round(df['今日涨幅'].median(), 2)
+            min_v = round(df['今日涨幅'].min(), 2)
+
             current = datetime.datetime.now().strftime('%Y-%m-%d')
             title = '昨天涨停个股今天{}\n的平均涨幅{}\n'.format(current, avg)
+            content = '昨天涨停个股今天{}\n的平均涨幅{}\n涨幅中位数{}\n涨幅最小{}\n'.format(current,avg,median,min_v)
             try:
-                sender_139(title, title)
+                sender_139(title, content)
             except Exception as e:
                 print(e)
 
