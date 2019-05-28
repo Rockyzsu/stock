@@ -39,18 +39,18 @@ class Simulation():
         df_t = pd.read_sql(self.today,con=self.engine1)
         # df_t = ts.get_today_all()
         for i in self.df['代码'].values:
-            self.df.ix[self.df['代码'] == i, '当前日期'] = self.today
+            self.df.loc[self.df['代码'] == i, '当前日期'] = self.today
 
-            pchange = df_t.ix[df_t['code'] == i, 'changepercent'].values[0]
-            self.df.ix[self.df['代码'] == i, '今日涨幅'] = pchange
+            pchange = df_t.loc[df_t['code'] == i, 'changepercent'].values[0]
+            self.df.loc[self.df['代码'] == i, '今日涨幅'] = pchange
 
             trade = df_t[df_t['code'] == i]['trade'].values[0]
-            self.df.ix[self.df['代码'] == i, '当前价格'] = trade
+            self.df.loc[self.df['代码'] == i, '当前价格'] = trade
 
             current_profit = (trade - self.df[self.df['代码'] == i]['买入价格'].values[0]) / \
                              self.df[self.df['代码'] == i]['买入价格'].values[0]
 
-            self.df.ix[self.df['代码'] == i, '目前盈亏'] = round(current_profit * 100, 2)
+            self.df.loc[self.df['代码'] == i, '目前盈亏'] = round(current_profit * 100, 2)
 
         self.df.to_excel(self.name, encoding='utf-8',index=None)
         self.df.to_sql('tb_simulation',self.engine,if_exists='replace')

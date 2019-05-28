@@ -1,4 +1,9 @@
 # working v1.0
+__author__ = 'Rocky'
+'''
+http://30daydo.com
+Contact: weigesysu@qq.com
+'''
 import json
 import datetime
 import time
