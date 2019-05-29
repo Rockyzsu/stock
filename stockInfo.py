@@ -1,17 +1,22 @@
 # working v1.0
-from bs4 import BeautifulSoup
+__author__ = 'Rocky'
+'''
+http://30daydo.com
+Contact: weigesysu@qq.com
+'''
+import json
 import datetime
 import time
 import codecs
-import random
 import os, sys
 import requests
 import re
-from lxml import etree
+from scrapy.selector import Selector
 from setting import llogger, get_mysql_conn, DATA_PATH
 
-logger = llogger(__file__)
-# headers={'User-Agent': 'Mozilla/5.0 (6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'}
+filename = os.path.basename(__file__)
+logger = llogger('log/' + filename)
+
 my_useragent = [
     'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_8; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50',
     'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50',
@@ -43,178 +48,116 @@ def create_tb(conn):
         return False
 
 
-# 把以前的内容抓取下来
-def fetch_detail():
-    db_name = 'db_stock'
-    conn = get_mysql_conn(db_name, local='local')
-    cursor = conn.cursor()
-    query_sql = '''
-    select * from tb_cnstock where Content is null;
-    '''
-    user_agent = random.choice(my_useragent)
-    headers = {'User-Agent': user_agent, 'Host': "ggjd.cnstock.com", 'DNT': '1',
-               'Accept': 'text/html, application/xhtml+xml, */*', }
-
-    cursor.execute(query_sql)
-    ret = cursor.fetchall()
-    for item in ret:
-        url = item[2]
-        if url:
-            url = url.strip()
-            try:
-                r = requests.get(url=url, headers=headers)
-            except Exception as e:
-                logger.error(e)
-                continue
-
-            else:
-                root = etree.HTML(r.text)
-                try:
-                    string_list = root.xpath('//div[@class="main-content text-large"]')[0].xpath('string(.)')
-                except Exception as e:
-                    print(url)
-                    print(e)
-                    continue
-                # content = ' '.join(string_list)
-                content = string_list.strip()
-                content = re.sub('缩小文字', '', content)
-                content = re.sub('放大文字', '', content)
-                content = content.strip()
-
-                update_sql = '''
-                                update tb_cnstock set Content = %s where URL = %s    
-                            '''
-                try:
-                    cursor.execute(update_sql, (content, url))
-                    conn.commit()
-                except Exception as e:
-                    print(e)
-                    logger.error(e)
-                    conn.rollback()
-
-
-def getinfo(max_index_use=4, days=-30):
+def getinfo(days=-30):
     last_day = datetime.datetime.now() + datetime.timedelta(days=days)
-    stock_news_site = "http://ggjd.cnstock.com/gglist/search/ggkx/"
 
-    index = 0
-    max_index = max_index_use
-    num = 1
+    url = "http://app.cnstock.com/api/waterfall?callback=jQuery19107348148582372209_1557710326005&colunm=qmt-tjd_ggkx&page={}&num=20&showstock=0"
+
+    page = 1
     temp_time = time.strftime("[%Y-%m-%d]-[%H-%M]", time.localtime())
 
     store_filename = "StockNews-%s.log" % temp_time
 
     f_open = codecs.open(store_filename, 'w', 'utf-8')
-    all_contents = []
-    cmd_list = []
     db_name = 'db_stock'
 
     conn = get_mysql_conn(db_name, local='local')
 
     cur = conn.cursor()
 
-    while index <= max_index:
-        user_agent = random.choice(my_useragent)
-        company_news_site = stock_news_site + str(index)
-        headers = {'User-Agent': user_agent, 'Host': "ggjd.cnstock.com", 'DNT': '1',
-                   'Accept': 'text/html, application/xhtml+xml, */*', }
+    run_flag = True
 
-        raw_content = ""
-        retry = 6
+    while run_flag:
+        headers = {'Referer': 'http://ggjd.cnstock.com/company/scp_ggjd/tjd_ggkx',
+                   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.131 Safari/537.36', }
+
+        retry = 3
+        response = None
+
         for _ in range(retry):
             try:
-                req = requests.get(url=company_news_site, headers=headers)
-
+                response = requests.get(url=url.format(page), headers=headers)
+                response.encoding = 'utf8'
             except Exception as e:
                 if hasattr(e, 'code'):
                     logger.info("error code %d" % e.code)
                 elif hasattr(e, 'reason'):
                     logger.info("error reason %s " % e.reason)
+                time.sleep(5)
             else:
-                if req:
-                    raw_content = req.text
+                if response.status_code == 200:
                     break
 
-        if raw_content is None:
-            return
-
         try:
-            soup = BeautifulSoup(raw_content, "html.parser")
-            all_content = soup.find_all("span", "time")
+            text = response.text.encode('utf8').decode('unicode_escape')
+            js = re.search('jQuery19107348148582372209_1557710326005\((.*?)\)$', text, re.S).group(1)
+            js = re.sub('\r\n', '', js)
+            js_data = json.loads(js)
+
         except Exception as e:
-            logger.info(e)
+            logger.error(e)
             return None
 
-        for i in all_content:
-            news_time = i.string
-            node = i.next_sibling
+        content = js_data.get('data', {}).get('item', {})
 
-            url = node['href']
-            try:
-                year = re.findall('tjd_ggkx/(\d+)/', url)[0][:4]
-            except Exception as e:
+        if content is None:
+            continue
+
+        for item in content:
+            title = item.get('title')
+
+            if '晚间重要公告集锦' in title or '停复牌汇总' in title:
                 continue
-            news_time_f = datetime.datetime.strptime(year + '-' + news_time, '%Y-%m-%d %H:%M')
 
-            if news_time_f >= last_day:
-                str_temp = "No.%s \n%s\t%s\n---> %s \n\n" % (str(num), news_time, node['title'], node['href'])
+            link = item.get('link')
+            link = link.replace('\\', '')
+            pubdate = item.get('time')
+            pubdate_dtype = datetime.datetime.strptime(pubdate, '%Y-%m-%d %H:%M:%S')
 
+            if pubdate_dtype < last_day:
+                run_flag = False
 
+            keyword = item.get('keyword')
+            if keyword:
+                keyword = ' '.join(keyword)
 
-                all_contents.append(str_temp)
+            sub_content = None
 
-                f_open.write(str_temp)
-
-                url = url.strip()
+            for i in range(2):
                 try:
-                    r = requests.get(url=url, headers=headers)
+                    sub_content = requests.get(url=link, headers=headers)
+
                 except Exception as e:
                     logger.error(e)
                     continue
+                    # 重试
 
-                root = etree.HTML(r.text)
-                try:
-                    string_list = root.xpath('//div[@class="main-content text-large"]')[0].xpath('string(.)')
-                except Exception as e:
-                    print(url)
-                    print(e)
-                    string_list=''
+                else:
+                    if sub_content.status_code == 200:
+                        break
 
-                # content = ' '.join(string_list)
-                content = string_list.strip()
-                content = re.sub('缩小文字', '', content)
-                content = re.sub('放大文字', '', content)
-                content = content.strip()
+            root = Selector(text=sub_content.text)
+            detail_content = root.xpath('//div[@id="qmt_content_div"]')[0].xpath('string(.)').extract_first()
+            if detail_content:
+                detail_content = detail_content.strip()
+            temp_tuple = (pubdate, title, link, detail_content, keyword)
+            insert_sql = 'insert into tb_cnstock (Date,Title,URL,Content,keyword) values (%s,%s,%s,%s,%s)'
 
+            try:
+                cur.execute(insert_sql, temp_tuple)
+                conn.commit()
+            except Exception as e:
+                logger.error(e)
+                conn.rollback()
 
-                cmd = '''INSERT INTO tb_cnstock (Date,Title,URL,Content) VALUES(\'%s\',\'%s\',\'%s\',\'%s\');''' % (
-                    news_time_f, node['title'].strip(), node['href'].strip(),content)
-                cmd_list.append(cmd)
+            file_content = '{} ---- {}\n{}\n\n'.format(pubdate, title, link)
+            # print(file_content)
+            f_open.write(file_content)
+            # insert_data.append(temp_tuple)
 
-            num = num + 1
-            # itchat.send(str_temp,toUserName=username)
-            # time.sleep(1)
-            # print("index %d" %index)
-        index = index + 1
+        page += 1
 
     f_open.close()
-    # if len(all_contents) > 0:
-    #     sendmail(''.join(all_contents), temp_time)
-
-
-    for i in cmd_list:
-        logger.info(i)
-
-        try:
-            cur.execute(i)
-            conn.commit()
-
-        except Exception as e:
-            logger.info(e)
-            conn.rollback()
-            continue
-
-    conn.close()
 
 
 if __name__ == "__main__":
@@ -228,9 +171,9 @@ if __name__ == "__main__":
         if re.match('-\d+', sys.argv[1]):
             day = int(sys.argv[1])
         else:
-            day = -2
+            day = -3
     else:
-        day = -2
+        day = -3
 
     getinfo(days=day)
     # fetch_detail()

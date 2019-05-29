@@ -22,15 +22,15 @@ def main():
     code_list =df['code'].values
     engine = get_engine('db_zdt')
     zt_df = pd.read_sql(tb_name,engine,index_col='index')
-    zt_df[u'涨停强度']=map(lambda x:round(x,0),zt_df[u'涨停强度'])
-    ret_df = zt_df[zt_df[u'代码'].isin(code_list)]
+    zt_df['涨停强度']=map(lambda x:round(x,0),zt_df['涨停强度'])
+    ret_df = zt_df[zt_df['代码'].isin(code_list)]
     if not ret_df.empty:
         tb_name_save = today+'_cx'
         excel_name = today+'_cx.xls'
         ret_df.to_excel(excel_name,encoding='gbk')
         ret_df.to_sql(tb_name_save,engine)
-        s= ret_df[[u'代码',u'名称',u'涨停强度',u'打开次数',u'第一次涨停时间',u'最后一次涨停时间']].to_string()
-        sendmail(s,today+u'次新涨停')
+        s= ret_df[['代码','名称','涨停强度','打开次数','第一次涨停时间','最后一次涨停时间']].to_string()
+        sendmail(s,today+'次新涨停')
 
 if __name__ == '__main__':
     main()

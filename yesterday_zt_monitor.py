@@ -13,8 +13,8 @@ import numpy as np
 from plot_line import plot_stock_line
 from setting import llogger
 
-logger = llogger(__file__)
-
+filename=os.path.basename(__file__)
+logger = llogger('log/'+filename)
 
 def monitor():
     engine = get_engine('db_zdt')
@@ -25,7 +25,7 @@ def monitor():
     percent_list = []
     amplitude_list = []
     start = datetime.datetime.now()
-    for i in df[u'代码'].values:
+    for i in df['代码'].values:
         try:
             curr = ts.quotes(i, conn=api)
             last_close = curr['last_close'].values[0]
@@ -33,7 +33,7 @@ def monitor():
             amplitude = round(((curr['high'].values[0] - curr['low'].values[0]) * 1.00 / last_close) * 100, 2)
             # if last_close>=curr_price:
             # print(i,)
-            # print(df[df[u'代码']==i][u'名称'].values[0],)
+            # print(df[df['代码']==i]['名称'].values[0],)
             # print( percent)
         except Exception as e:
             print('this point')
@@ -48,10 +48,10 @@ def monitor():
         price_list.append(curr_price)
         amplitude_list.append(amplitude)
 
-    df[u'今日价格'] = price_list
-    df[u'今日涨幅'] = percent_list
-    df[u'今日振幅'] = amplitude_list
-    df[u'更新时间'] = datetime.datetime.now().strftime('%Y %m %d %H:%M%S')
+    df['今日价格'] = price_list
+    df['今日涨幅'] = percent_list
+    df['今日振幅'] = amplitude_list
+    df['更新时间'] = datetime.datetime.now().strftime('%Y %m %d %H:%M%S')
 
     end = datetime.datetime.now()
     print('time use {}'.format(end - start))
@@ -61,7 +61,7 @@ def monitor():
 
 
 '''
-绘制k线图，今日暂停的k线图
+绘制k线图，今日涨停的k线图
 '''
 
 
@@ -72,6 +72,7 @@ def plot_yesterday_zt(type_name='zrzt', current=datetime.datetime.now().strftime
     try:
         df = pd.read_sql(table, engine)
     except Exception as e:
+        logger.error('table_name >>> {}{}'.format(current,table_name))
         logger.error(e)
         return
 

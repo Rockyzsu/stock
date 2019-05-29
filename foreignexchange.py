@@ -2,11 +2,13 @@
 # @Time : 2018/8/7 13:45
 # @File : foreignexchange.py
 # 实时获取外汇
+import os
 import re
 import datetime
 import requests
 from setting import sendmail,get_mysql_conn,llogger
-logger = llogger(__file__)
+filename=os.path.basename(__file__)
+logger = llogger('log/'+filename)
 
 class ForeighExchange(object):
 

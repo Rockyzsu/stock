@@ -49,15 +49,15 @@ class Jubi_web():
                 return 0
 
         if send=='wechat':
-            self.w_name=u'wwwei'
-            self.w_name1=u'aiweichuangyi'
+            self.w_name='wwwei'
+            self.w_name1='aiweichuangyi'
             itchat.auto_login(hotReload=True)
             account=itchat.get_friends(self.w_name)
             for i in account:
-                if i[u'PYQuanPin']==self.w_name:
+                if i['PYQuanPin']==self.w_name:
                     self.toName= i['UserName']
                     #print(self.toName)
-                if i[u'PYQuanPin']==self.w_name1:
+                if i['PYQuanPin']==self.w_name1:
                     self.toName1= i['UserName']
                     #print(self.toName)
 
@@ -186,7 +186,7 @@ class Jubi_web():
             print(" price: ",)
             p=self.real_time_ticker(i.lower())
             if p is not None:
-                print(p[u'last'])
+                print(p['last'])
 
     def getOrder(self,coin):
         url='https://www.jubi.com/api/v1/orders/'
@@ -206,9 +206,9 @@ class Jubi_web():
         print(p)
         amount=0.00
         for j in p:
-            t= j[u'amount']
+            t= j['amount']
             amount=float(t)+amount
-        #current=float(self.real_time_ticker(i)[u'last'])
+        #current=float(self.real_time_ticker(i)['last'])
         turn_over=amount*1.00/total*100
 
         print(turn_over)

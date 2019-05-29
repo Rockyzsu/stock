@@ -14,16 +14,13 @@ import os
 import setting
 from setting import is_holiday, DATA_PATH
 import pandas as pd
-import tushare as ts
 from setting import llogger
 import requests
 from send_mail import sender_139
 import datetime
-# reload(sys)
-# sys.setdefaultencoding('gbk')
 
-logger = llogger(__file__)
-
+filename=os.path.basename(__file__)
+logger = llogger('log/'+filename)
 
 class GetZDT:
     def __init__(self):
@@ -41,12 +38,12 @@ class GetZDT:
                            "Host": self.host,
                            "Referer": self.reference}
 
-        self.zdt_indexx = [u'代码', u'名称', u'最新价格', u'涨跌幅', u'封成比', u'封流比', u'封单金额', u'最后一次涨停时间', u'第一次涨停时间', u'打开次数',
-                           u'振幅',
-                           u'涨停强度']
+        self.zdt_indexx = ['代码', '名称', '最新价格', '涨跌幅', '封成比', '封流比', '封单金额', '最后一次涨停时间', '第一次涨停时间', '打开次数',
+                           '振幅',
+                           '涨停强度']
 
-        self.zrzt_indexx = [u'序号', u'代码', u'名称', u'昨日涨停时间', u'最新价格', u'今日涨幅', u'最大涨幅', u'最大跌幅', u'是否连板', u'连续涨停次数',
-                            u'昨日涨停强度', u'今日涨停强度', u'是否停牌', u'昨天的日期', u'昨日涨停价', u'今日开盘价格', u'今日开盘涨幅']
+        self.zrzt_indexx = ['序号', '代码', '名称', '昨日涨停时间', '最新价格', '今日涨幅', '最大涨幅', '最大跌幅', '是否连板', '连续涨停次数',
+                            '昨日涨停强度', '今日涨停强度', '是否停牌', '昨天的日期', '昨日涨停价', '今日开盘价格', '今日开盘涨幅']
         self.header_zrzt = {"User-Agent": self.user_agent,
                             "Host": "hqdata.jrj.com.cn",
                             "Referer": "http://stock.jrj.com.cn/tzzs/zrztjrbx.shtml"
@@ -80,7 +77,9 @@ class GetZDT:
             try:
                 # print(result)
                 t1 = result[0]
-                t2 = list(eval(t1))
+                t2=re.sub('[\\r\\n]', '', t1)
+                t2=re.sub(',,',',0,0',t2)
+                t2 = list(eval(t2))
                 return t2
             except Exception as e:
                 logger.info(e)
@@ -101,18 +100,18 @@ class GetZDT:
         rows = len(data)
         point_x = 1
         point_y = 0
-        ws.write(0, 0, u'代码')
-        ws.write(0, 1, u'名称')
-        ws.write(0, 2, u'最新价格')
-        ws.write(0, 3, u'涨跌幅')
-        ws.write(0, 4, u'封成比')
-        ws.write(0, 5, u'封流比')
-        ws.write(0, 6, u'封单金额')
-        ws.write(0, 7, u'第一次涨停时间')
-        ws.write(0, 8, u'最后一次涨停时间')
-        ws.write(0, 9, u'打开次数')
-        ws.write(0, 10, u'振幅')
-        ws.write(0, 11, u'涨停强度')
+        ws.write(0, 0, '代码')
+        ws.write(0, 1, '名称')
+        ws.write(0, 2, '最新价格')
+        ws.write(0, 3, '涨跌幅')
+        ws.write(0, 4, '封成比')
+        ws.write(0, 5, '封流比')
+        ws.write(0, 6, '封单金额')
+        ws.write(0, 7, '第一次涨停时间')
+        ws.write(0, 8, '最后一次涨停时间')
+        ws.write(0, 9, '打开次数')
+        ws.write(0, 10, '振幅')
+        ws.write(0, 11, '涨停强度')
         print("Rows:%d" % rows)
         for row in data:
             rows = len(data)
@@ -154,22 +153,26 @@ class GetZDT:
                 logger.info(e)
         # 昨日涨停
         if choice == 2:
-            df = df.set_index(u'序号')
-            df[u'最大涨幅'] = df[u'最大涨幅'].map(lambda x: round(x * 100, 3))
-            df[u'最大跌幅'] = df[u'最大跌幅'].map(lambda x: round(x * 100, 3))
-            df[u'今日开盘涨幅'] = df[u'今日开盘涨幅'].map(lambda x: round(x * 100, 3))
-            df[u'昨日涨停强度'] = df[u'昨日涨停强度'].map(lambda x: round(x, 0))
-            df[u'今日涨停强度'] = df[u'今日涨停强度'].map(lambda x: round(x, 0))
+            df = df.set_index('序号')
+            df['最大涨幅'] = df['最大涨幅'].map(lambda x: round(x * 100, 3))
+            df['最大跌幅'] = df['最大跌幅'].map(lambda x: round(x * 100, 3))
+            df['今日开盘涨幅'] = df['今日开盘涨幅'].map(lambda x: round(x * 100, 3))
+            df['昨日涨停强度'] = df['昨日涨停强度'].map(lambda x: round(x, 0))
+            df['今日涨停强度'] = df['今日涨停强度'].map(lambda x: round(x, 0))
             try:
                 df.to_sql(self.today + post_fix, engine, if_exists='fail')
             except Exception as e:
                 logger.info(e)
 
             avg = round(df['今日涨幅'].mean(), 2)
+            median = round(df['今日涨幅'].median(), 2)
+            min_v = round(df['今日涨幅'].min(), 2)
+
             current = datetime.datetime.now().strftime('%Y-%m-%d')
             title = '昨天涨停个股今天{}\n的平均涨幅{}\n'.format(current, avg)
+            content = '昨天涨停个股今天{}\n的平均涨幅{}\n涨幅中位数{}\n涨幅最小{}\n'.format(current,avg,median,min_v)
             try:
-                sender_139(title, title)
+                sender_139(title, content)
             except Exception as e:
                 print(e)
 

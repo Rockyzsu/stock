@@ -19,7 +19,7 @@ import pandas as pd
 import threading
 from setting import  get_engine,sendmail
 # from setting import MsgSend
-# msg = MsgSend(u'wei')
+# msg = MsgSend('wei')
 
 EXCEPTION_TIME_OUT = 60
 NORMAL_TIME_OUT = 3

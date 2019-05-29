@@ -23,12 +23,12 @@ def today_tendency(today):
     p_25=stats.scoreatpercentile(df['changepercent'],25)
     p_50=stats.scoreatpercentile(df['changepercent'],50)
     p_75=stats.scoreatpercentile(df['changepercent'],75)
-    print(u'中位数: {}'.format(median))
-    print(u'平均数: {}'.format(mean))
-    print(u'方差: {}'.format(std))
-    print(u'25%: {}'.format(p_25))
-    print(u'50%: {}'.format(p_50))
-    print(u'75%: {}'.format(p_75))
+    print('中位数: {}'.format(median))
+    print('平均数: {}'.format(mean))
+    print('方差: {}'.format(std))
+    print('25%: {}'.format(p_25))
+    print('50%: {}'.format(p_50))
+    print('75%: {}'.format(p_75))
 
 '''
 分析昨天涨停的区域分布
@@ -40,7 +40,7 @@ def yesterday_zt_location(date='20180404'):
     df = pd.read_sql(date+'zdt',engine_zdt,index_col='index')
     df_basic = pd.read_sql('basic_info',engine_basic,index_col='index')
     result={}
-    for code in df[u'代码'].values:
+    for code in df['代码'].values:
         try:
             area=df_basic[df_basic['code']==code]['area'].values[0]
             result.setdefault(area,0)

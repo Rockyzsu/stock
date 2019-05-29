@@ -244,7 +244,7 @@ def main():
     # obj = Filter_Stock()
     # obj.get_ST()
     # obj.get_achievement()
-    # obj.get_location(u'深圳')
+    # obj.get_location('深圳')
     # obj.break_low()
     # obj.break_low('2017-11-17')
     # print(type(obj.get_lowest('300333','2017')))

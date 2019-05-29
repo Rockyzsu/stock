@@ -15,7 +15,7 @@ class ConvertBond():
 
     def __init__(self):
         self.conn=ts.get_apis()
-        self.available_bonds = pd.read_sql('tb_bond_jisilu', engine, index_col='index')[u'可转债代码'].values
+        self.available_bonds = pd.read_sql('tb_bond_jisilu', engine, index_col='index')['可转债代码'].values
         self.allBonds=ts.new_cbonds(default=0,pause=2)
         self.onSellBond=self.allBonds.dropna(subset=['marketprice'])
         self.today=datetime.datetime.now().strftime('%Y-%m-%d %H:%M')

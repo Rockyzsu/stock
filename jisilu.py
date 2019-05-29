@@ -1,4 +1,9 @@
 # -*-coding=utf-8-*-
+__author__ = 'Rocky'
+'''
+http://30daydo.com
+Contact: weigesysu@qq.com
+'''
 import re
 import time
 import datetime
@@ -8,9 +13,9 @@ from setting import get_engine, llogger, is_holiday,get_mysql_conn
 import six
 from send_mail import sender_139
 from sqlalchemy import VARCHAR
-
+import os
 engine = get_engine('db_jisilu')
-logger = llogger(__file__)
+logger = llogger('log/'+'jisilu')
 
 
 # 爬取集思录 可转债的数据
@@ -149,8 +154,13 @@ class Jisilu(object):
                               'put_convert_price': '回售触发价', 'convert_dt': '转股起始日',
                               'short_maturity_dt': '到期时间', 'volume': '成交额(万元)',
                               'redeem_price': '强赎价格', 'year_left': '剩余时间',
-                              'next_put_dt': '回售起始日', 'rating_cd': '评级', 'issue_dt': '发行时间', 'redeem_tc': '强制赎回条款',
-                              'adjust_tc': '下修条件', 'adjust_tip': '下修提示', 'put_tc': '回售', 'adj_cnt': '下调次数',
+                              'next_put_dt': '回售起始日', 'rating_cd': '评级',
+                              # 'issue_dt': '发行时间',
+                              # 'redeem_tc': '强制赎回条款',
+                              # 'adjust_tc': '下修条件',
+                              'adjust_tip': '下修提示',
+                              # 'put_tc': '回售',
+                              'adj_cnt': '下调次数',
                               #   'ration':'已转股比例'
                               'convert_amt_ratio': '转债剩余占总市值比',
                               'curr_iss_amt': '剩余规模', 'orig_iss_amt': '发行规模',
@@ -313,5 +323,5 @@ def main():
 if __name__ == '__main__':
     if is_holiday():
         logger.info("Holidy")
-        exit()
+        # exit()
     main()

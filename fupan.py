@@ -35,9 +35,9 @@ def save_industry():
     for name, group in basic_df.groupby('industry'):
         # print(name, group)
         d = dict()
-        d[u'板块名称'] = name
-        d[u'代码'] = group['code'].values.tolist()
-        d[u'更新日期'] = today
+        d['板块名称'] = name
+        d['代码'] = group['code'].values.tolist()
+        d['更新日期'] = today
         try:
             # pass
             doc.insert(d)
@@ -66,12 +66,12 @@ def hot_industry():
             # print(i,name,percent)
             mean = mean + float(percent)
         m = round(mean / len(v), 2)
-        # print(u'{} mean : {}'.format(k,m))
+        # print('{} mean : {}'.format(k,m))
         result[k] = m
 
     all_result = sorted(result.items(), key=lambda x: x[1], reverse=True)
 
-    kind = u'元器件'
+    kind = '元器件'
     select_detail = {}
     for code in industry_dict.get(kind):
         try:
@@ -83,7 +83,7 @@ def hot_industry():
         except:
             name = ''
         select_detail[name] = float(percent)
-    print(u'\n\n{} detail\n'.format(kind))
+    print('\n\n{} detail\n'.format(kind))
     select_detail = sorted(select_detail.items(), key=lambda x: x[1], reverse=True)
     for n, p in select_detail:
         print(n, p)
@@ -92,8 +92,8 @@ def hot_industry():
 def get_industry():
     industry = {}
     for i in doc.find({}, {'_id': 0}):
-        print(i.get(u'板块名称'))
-        industry[i.get(u'板块名称')] = i.get(u'代码')
+        print(i.get('板块名称'))
+        industry[i.get('板块名称')] = i.get('代码')
     return industry
 
 
@@ -125,9 +125,9 @@ def industry_hot_mongo():
     collection.drop()
     for item in result:
         d = {}
-        d[u'板块'] = item[0]
-        d[u'涨跌幅'] = item[1]
-        d[u'日期'] = today
+        d['板块'] = item[0]
+        d['涨跌幅'] = item[1]
+        d['日期'] = today
         try:
             collection.insert(d)
         except Exception as e:
@@ -147,7 +147,7 @@ def industry_detail(kind):
         except:
             name = ''
         select_detail[name] = float(percent)
-    print(u'\n\n{} detail\n'.format(kind))
+    print('\n\n{} detail\n'.format(kind))
     select_detail = sorted(select_detail.items(), key=lambda x: x[1], reverse=True)
     for n, p in select_detail:
         print(n, p)
@@ -159,4 +159,4 @@ if __name__ == "__main__":
     # get_industry()
     # daily_hot_industry()
     # industry_hot_mongo()
-    industry_detail(u'电器连锁')
+    industry_detail('电器连锁')

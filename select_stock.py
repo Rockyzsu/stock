@@ -81,7 +81,7 @@ class filter_stock():
         print(count)
         print(type(count))
         if writeable:
-            count.to_csv(u'各省的上市公司数目.csv')
+            count.to_csv('各省的上市公司数目.csv')
         return count
 
     # 显示你要的某个省的上市公司
@@ -114,7 +114,7 @@ class filter_stock():
         pe_av = df[df['pe'] != 0]['pe'].mean()
         pe_all_av = self.base[self.base['pe'] != 0]['pe'].mean()
         print(u"平均市盈率为 ", pe_av)
-        print(u'A股的平均市盈率为 ', pe_all_av)
+        print('A股的平均市盈率为 ', pe_all_av)
         return df
 
     # 获取成分股
@@ -334,7 +334,7 @@ class filter_stock():
                 ma_x = ma_dict[k_type]
                 # print(ma_x)
                 if current < ma_x:
-                    print(u'破位')
+                    print('破位')
                     print(i, " current: ", current)
                     print(self.base[self.base['code'] == i]['name'].values[0], " ")
                     print("holding place: ", ma_x)
@@ -501,9 +501,9 @@ def main():
     obj = filter_stock(local=True)
     # 留下来的函数都是有用的
     # obj.count_area(writeable=True)
-    # df=obj.get_area(u'广东',writeable=True)
+    # df=obj.get_area('广东',writeable=True)
     # obj.showInfo(df)
-    # df=obj.get_area(u'深圳',writeable=True)
+    # df=obj.get_area('深圳',writeable=True)
     # obj.showInfo(df)
     # obj.get_all_location()
     # obj.fetch_new_ipo(20170101,writeable=False)
