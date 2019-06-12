@@ -97,7 +97,7 @@ class BreakPoin(object):
             stock_l.append(stockID)
             stock_l.append(name)
             print('新低', stock_l)
-            insert_dict = {'类型': '新低', '范围': days, '名称': name, '代码': stockID, 'date': datetime.datetime.now(),
+            insert_dict = {'类型': '新低', '范围': days, '名称': name, '代码': stockID, 'run_time': datetime.datetime.now(),
                            '品种': stock_type, '开始日期': start_day, '结束日期': end_day}
             self.doc.insert_one(insert_dict)
 
