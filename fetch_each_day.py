@@ -52,25 +52,25 @@ class FetchDaily(object):
         filename = self.today + '_all_.xls'
         # 放在data文件夹下
         full_filename = os.path.join(self.path, filename)
-        if not os.path.exists(full_filename):
-            if self.df_today_all is not None:
-                # 保留小数点的后两位数
-                self.df_today_all['turnoverratio'] = self.df_today_all['turnoverratio'].map(lambda x: round(x, 2))
-                self.df_today_all['per'] = self.df_today_all['per'].map(lambda x: round(x, 2))
-                self.df_today_all['pb'] = self.df_today_all['pb'].map(lambda x: round(x, 2))
-                try:
-                    self.df_today_all.to_excel(full_filename)
-                except Exception as  e:
-                    logger.error(e)
+        if self.df_today_all is not None:
+            # 保留小数点的后两位数
+            self.df_today_all['turnoverratio'] = self.df_today_all['turnoverratio'].map(lambda x: round(x, 2))
+            self.df_today_all['per'] = self.df_today_all['per'].map(lambda x: round(x, 2))
+            self.df_today_all['pb'] = self.df_today_all['pb'].map(lambda x: round(x, 2))
+            try:
+                self.df_today_all.to_excel(full_filename)
+            except Exception as  e:
+                logger.error(e)
 
-                engine = get_engine('db_daily')
-                # print(self.df_today_all)
-                try:
-                    self.df_today_all.to_sql(self.today, engine, if_exists='fail')
-                except Exception as e:
-                    # print(e)
-                    logger.error(e)
-
+            engine = get_engine('db_daily')
+            # print(self.df_today_all)
+            try:
+                self.df_today_all.to_sql(self.today, engine, if_exists='fail')
+            except Exception as e:
+                # print(e)
+                logger.error(e)
+        else:
+            logger.error('today_all df is None')
     def store_new(self):
         self.df_today_all = self.gettodaymarket()
         filename = self.today + '_all_.xls'
