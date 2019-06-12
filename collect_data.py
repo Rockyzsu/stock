@@ -87,8 +87,6 @@ def main():
     obj.basic_info()
 
 if __name__=='__main__':
-    if is_holiday():
-        logger.info("Holidy")
-        exit()
+
     main()
     logger.info('完成')

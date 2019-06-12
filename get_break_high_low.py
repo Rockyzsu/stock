@@ -1,155 +1,108 @@
 # -*-coding=utf-8-*-
 __author__ = 'rocky'
-#获取破指定天数内的新高 比如破60日新高
+# 获取破指定天数内的新高 比如破60日新高
 import tushare as ts
 import datetime
-from sqlite_database import SqliteDb
+import pandas as pd
+from setting import get_engine, get_mysql_conn
+import pymongo
 
-info = ts.get_stock_basics()
-all_high_stock = []
-sql_db_h = SqliteDb("Create_HIGH_50days")
-sql_db_l = SqliteDb("Create_LOW_50days")
-
-
-def loop_all_stocks():
-    #遇到停牌的。
-    for EachStockID in info.index:
-        if is_break_high(EachStockID, 50, False):
-            print("High price on",)
-            print(e)achStockID,
-            print(info.ix[EachStockID]['name'].decode('utf-8'))
-            #sql_db.insert_break_high(all_high_stock)
-
-        elif is_break_low(EachStockID, 50, False):
-            print("Low price on",)
-            print(e)achStockID,
-            print(info.ix[EachStockID]['name'].decode('utf-8'))
-            #sql_db.insert_break_high(all_high_stock)
-
-    sql_db_h.close()
-    sql_db_l.close()
+MONGO_HOST = '10.18.6.46'
+MONGO_PORT = 27001
 
 
-def is_break_high(stockID, days, fast_type=True):
-    end_day = datetime.date(datetime.date.today().year, datetime.date.today().month, datetime.date.today().day-2)
-    days = days * 7 / 5
-    #考虑到周六日非交易
-    print(stockID)
-    start_day = end_day - datetime.timedelta(days)
+class BreakPoin(object):
 
-    start_day = start_day.strftime("%Y-%m-%d")
-    end_day = end_day.strftime("%Y-%m-%d")
-    if fast_type:
-        df = ts.get_h_data(stockID, start=start_day, end=end_day, retry_count=10, pause=10)
-    else:
-        df = ts.get_hist_data(stockID, start=start_day, end=end_day, retry_count=10, pause=10)
-    if df is None:
-        print("None len==0")
-        return False
-    if df.empty:
-        print("%s Trading halt" % info.ix[stockID]['name'].decode('utf-8'))
-        return False
-    period_high = df['high'].min()
-    #print(period_high)
-    curr_day = df[:1]
-    today_high = curr_day.iloc[0]['high']
-    #这里不能直接用 .values
-    #如果用的df【：1】 就需要用.values
-    #print(today_high)
-    if today_high >= period_high:
-        stock_h = []
-        day = curr_day.index.values[0]
+    def __init__(self):
+        self.engine = get_engine('db_stock', local=True)
+        self.conn = get_mysql_conn('db_stock', local='local')
+        self.info = pd.read_sql('tb_basic_info', con=self.engine, index_col='code')
+        self.db = pymongo.MongoClient(MONGO_HOST, MONGO_PORT)
+        self.doc = self.db['db_stock']['break_low_high']
 
-        #print(curr_day)
-        name = info.ix[stockID]['name'].decode('utf-8')
-        if fast_type:
-            turnover = 0
-            p_change = 0
-        else:
-            turnover = curr_day.iloc[0]['turnover']
-            p_change = curr_day.iloc[0]['p_change']
+    def loop_stocks(self):
 
-        print(day)
-        print(stockID)
-        print(p_change)
-        print(turnover)
-        #print(day)
-        #date=curr_day['date']
-        stock_h.append(day)
-        stock_h.append(stockID)
-        stock_h.append(name)
-        stock_h.append(p_change)
-        stock_h.append(turnover)
+        for idx, row in self.info.iterrows():
+            stock_code = idx
+            self.is_break(stock_code, 90, break_type='high', stock_type='stock')
+            self.is_break(stock_code, 90, break_type='low', stock_type='stock')
 
-        #print(name.decode('utf-8'))
-        #print(date)
-        #all_high_stock.append(stock)
-        sql_db_h.store_break(stock_h)
-        return True
-    else:
-        return False
+    def is_break(self, stockID, days, break_type, stock_type):
 
+        end_day = datetime.datetime.now()
+        days = days * 7 / 5
+        # 考虑到周六日非交易
+        start_day = end_day - datetime.timedelta(days)
 
-def is_break_low(stockID, days, fast_type=True):
-    end_day = datetime.date(datetime.date.today().year, datetime.date.today().month, datetime.date.today().day-2)
-    days = days * 7 / 5
-    #考虑到周六日非交易
-    print(stockID)
-    start_day = end_day - datetime.timedelta(days)
+        start_day = start_day.strftime("%Y-%m-%d")
+        end_day = end_day.strftime("%Y-%m-%d")
+        name = self.info.ix[stockID]['name']
+        # get_h_data 有问题。
 
-    start_day = start_day.strftime("%Y-%m-%d")
-    end_day = end_day.strftime("%Y-%m-%d")
-    if fast_type:
-        df = ts.get_h_data(stockID, start=start_day, end=end_day, retry_count=10, pause=10)
-    else:
-        df = ts.get_hist_data(stockID, start=start_day, end=end_day, retry_count=10, pause=10)
-    if df is None:
-        print("None len==0")
-        return False
-    if df.empty:
-        print("%s Trading halt" % info.ix[stockID]['name'].decode('utf-8'))
-        return False
-    period_low = df['low'].max()
-    #print(period_high)
-    curr_day = df[:1]
-    today_low = curr_day.iloc[0]['low']
-    #这里不能直接用 .values
-    #如果用的df【：1】 就需要用.values
-    #print(today_high)
-    if today_low <= period_low:
-        stock_l= []
-        day = curr_day.index.values[0]
+        try:
 
-        #print(curr_day)
-        name = info.ix[stockID]['name'].decode('utf-8')
-        if fast_type:
-            turnover = 0
-            p_change = 0
-        else:
-            turnover = curr_day.iloc[0]['turnover']
-            p_change = curr_day.iloc[0]['p_change']
+            df = ts.get_k_data(stockID, start=start_day, end=end_day)
 
-        print(day)
-        print(stockID)
-        print(p_change)
-        print(turnover)
-        #print(day)
-        #date=curr_day['date']
-        stock_l.append(day)
-        stock_l.append(stockID)
-        stock_l.append(name)
-        stock_l.append(p_change)
-        stock_l.append(turnover)
+        except Exception as e:
+            print(e)
+            print('{} {}获取行情识别'.format(stockID, name))
+            return False
 
-        #print(name.decode('utf-8'))
-        #print(date)
-        #all_high_stock.append(stock)
-        sql_db_l.store_break(stock_l)
-        return True
-    else:
-        return False
+        if df is None or df.empty:
+            print('{} {} df is None or empty'.format(stockID, name))
+            return False
+
+        if len(df) < 5:
+            print('上市时间太短'.format(stockID, name))
+            return False
+
+        if break_type == 'high':
+
+            period_high = df['high'][:-1].max()
+            today_high = df.iloc[-1]['high']
+            # 这里不能直接用 .values
+            # 如果用的df【：1】 就需要用.values
+            # print(today_high)
+
+            if today_high >= period_high:
+
+                stock_h = []
+
+                stock_h.append(stockID)
+                stock_h.append(name)
+                insert_dict = {'类型': '新高', '范围': days, '名称': name, '代码': stockID, 'date': datetime.datetime.now(),
+                               '品种': stock_type}
+                self.doc.insert_one(insert_dict)
+                return True
+
+            else:
+
+                return False
+
+        elif break_type == 'low':
+
+            period_low = df['low'][:-1].min()
+            today_low = df.iloc[-1]['low']
+
+            if today_low <= period_low:
+
+                stock_l = []
+
+                name = self.info.ix[stockID]['name']
+                stock_l.append(stockID)
+                stock_l.append(name)
+                print('新低', stock_l)
+                insert_dict = {'类型': '新低', '范围': days, '名称': name, '代码': stockID, 'date': datetime.datetime.now(),
+                               '品种': stock_type}
+                self.doc.insert_one(insert_dict)
+
+                return True
+
+            else:
+                return False
 
 
-loop_all_stocks()
-
-print("Done")
+if __name__ == '__main__':
+    obj = BreakPoin()
+    obj.loop_stocks()
+    print("Done")
