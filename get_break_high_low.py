@@ -26,9 +26,9 @@ class BreakPoin(object):
         self.pro = ts.pro_api()
         self.count = 0
 
-    def loop_stocks(self,day):
-        total = 200+10
-        each_loop = 60/total
+    def loop_stocks(self, day):
+        total = 200 + 10
+        each_loop = 60 / total
         for idx, row in self.info.iterrows():
             stock_code = idx
             print('Checking {}'.format(stock_code))
@@ -84,7 +84,7 @@ class BreakPoin(object):
             stock_h.append(stockID)
             stock_h.append(name)
             insert_dict = {'类型': '新高', '范围': days, '名称': name, '代码': stockID, 'run_time': datetime.datetime.now(),
-                           '品种': stock_type,'开始日期':start_day,'结束日期':end_day}
+                           '品种': stock_type, '开始日期': start_day, '结束日期': end_day}
             self.doc.insert_one(insert_dict)
 
         period_low = df['close'][1:].min()
@@ -98,7 +98,7 @@ class BreakPoin(object):
             stock_l.append(name)
             print('新低', stock_l)
             insert_dict = {'类型': '新低', '范围': days, '名称': name, '代码': stockID, 'date': datetime.datetime.now(),
-                           '品种': stock_type}
+                           '品种': stock_type, '开始日期': start_day, '结束日期': end_day}
             self.doc.insert_one(insert_dict)
 
 
