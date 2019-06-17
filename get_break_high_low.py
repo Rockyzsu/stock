@@ -9,12 +9,12 @@ import pandas as pd
 from setting import get_engine, get_mysql_conn
 import pymongo
 from config import token
-
+from filter_stock import Filter_Stock
 MONGO_HOST = '10.18.6.46'
 MONGO_PORT = 27001
 
 
-class BreakPoin(object):
+class BreakPoint(object):
 
     def __init__(self):
         self.engine = get_engine('db_stock', local=True)
@@ -26,6 +26,7 @@ class BreakPoin(object):
         self.pro = ts.pro_api()
         self.count = 0
 
+    # 获取新高，新低
     def loop_stocks(self, day):
         total = 200 + 10
         each_loop = 60 / total
@@ -103,7 +104,7 @@ class BreakPoin(object):
 
 
 if __name__ == '__main__':
-    obj = BreakPoin()
+    obj = BreakPoint()
     cal_day = 90
     obj.loop_stocks(cal_day)
     print("Done")

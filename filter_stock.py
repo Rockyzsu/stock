@@ -11,24 +11,23 @@ import pandas as pd
 import numpy as np
 from collections import OrderedDict
 import matplotlib
-
 matplotlib.use("Pdf")
 pd.set_option('display.max_rows', None)
 import matplotlib.pyplot as plt
- 
 
-# daily_engine = get_engine('daily')
-# history_engine = get_engine('history')
 
 # 过滤器，剔除不想要的个股
 
 class Filter_Stock():
+
     def __init__(self):
-        current = os.getcwd()
+        current = os.path.dirname(__file__)
         work_space = os.path.join(current, 'data')
         if os.path.exists(work_space) == False:
             os.mkdir(work_space)
+
         os.chdir(work_space)
+
         self.today = datetime.datetime.now().strftime("%Y-%m-%d")
 
     def get_location(self):
@@ -188,7 +187,6 @@ class Filter_Stock():
     # 返回新股信息
     def get_new_stock(self, start='2010', end='2011'):
         '''
-
         :param start: 开始年份 如 '2010'
         :param end:  结束年份 如 '2011'
         :return:
@@ -197,7 +195,6 @@ class Filter_Stock():
         df = df[df['timeToMarket'] != 0]
         df['timeToMarket'] = pd.to_datetime(df['timeToMarket'], format='%Y%m%d')
         df = df.set_index('timeToMarket', drop=True)
-        # print(len(df['2010']))
         years = OrderedDict()
         values = []
         # for year in range(1994, 2019):
@@ -210,21 +207,61 @@ class Filter_Stock():
         # plt.xticks(x[::2])
         # plt.show()
 
-        new_stock = df[start:end]
+        new_stock = df[start:end] # 返回df格式
         return new_stock
+
 
     def rect_show(self, rects):
         for rect in rects:
             height = rect.get_height()
             plt.text(rect.get_x(), 1.05 * height, '%s' % int(height))
 
+    # 只是用于测试，展示数据
     def show(self):
-        df = self.get_new_stock('2017', '2018')
+        df = self.get_new_stock()
+        # print(df)
+
+
+    # 返回黑名单的代码
+    def get_blacklist(self):
+        conn=get_mysql_conn('db_stock','local')
+        cursor = conn.cursor()
+        query = 'select CODE from tb_blacklist'
+        cursor.execute(query)
+        ret = cursor.fetchall()
+        return [i[0] for i in ret]
 
 # 可转债过滤
 class Filter_CB(object):
+
     def __init__(self):
         self.engine = get_engine('db_stock','local')
+        self.bonds = pd.read_sql('tb_bond_jisilu',con=self.engine)
+
+
+    # 获取新股的可转债，一般比较猛
+    def get_new_stock_bond(self,start='2017',end='2019'):
+        '''
+
+        :return: 返回新股对应的转债数据 df
+        '''
+        obj=Filter_Stock()
+        new_stock_df=obj.get_new_stock(start,end)
+        # index是timeToMarket
+
+        code_list = list(new_stock_df['code'].values)
+        new_stock_bond_df = self.bonds[self.bonds['正股代码'].isin(code_list)]
+        for code in new_stock_bond_df['正股代码'].values:
+            print(code)
+            t_market=new_stock_df[new_stock_df['code']==code].index.values[0]
+
+        return new_stock_bond_df
+
+
+    def show(self):
+        df = self.get_new_stock_bond()
+        print(df)
+
 
     def run(self):
         df = pd.read_sql('tb_bond_jisilu',con=self.engine)
@@ -242,6 +279,8 @@ class Filter_CB(object):
 
 def main():
     # obj = Filter_Stock()
+    # obj.show()
+    # obj.get_blacklist()
     # obj.get_ST()
     # obj.get_achievement()
     # obj.get_location('深圳')
@@ -258,8 +297,9 @@ def main():
     # print(obj.get_new_stock())
     # obj.get_location()
 
-    obj = Filter_CB()
-    obj.run()
+    obj_cb = Filter_CB()
+    obj_cb.show()
+
 
 if __name__ == '__main__':
     main()

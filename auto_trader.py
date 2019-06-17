@@ -5,11 +5,11 @@
 import datetime
 import logging
 import time
-
+import pymongo
 import easyquotation
 import easytrader
 import pandas as pd
-from config import PROGRAM_PATH
+from config import PROGRAM_PATH,MONGO_PORT,MONGO_HOST
 from setting import get_engine
 
 
@@ -17,19 +17,18 @@ class AutoTrader():
 
     def __init__(self):
         self.today = datetime.date.today().strftime('%Y-%m-%d')
-        self.engine = get_engine('db_stock', True)
 
-        self.stock_candidates = self.get_candidates()
+        # self.stock_candidates = self.get_candidates()
         # self.stock_candidates = self.get_candidates()
         self.logger = self.llogger('auto_trader_{}'.format(self.today))
         self.logger.info('程序启动')
-        input('请运行下单程序，按Enter\n')
-        self.user = easytrader.use('ths')
-        # self.user.prepare('user.json')
-        self.user.connect(PROGRAM_PATH)
-        # self.position = self.get_position()
-        self.blacklist_bond = self.get_blacklist()
-        self.q=easyquotation.use('qq')
+        self.user = easytrader.use('gj_client')
+        # self.user = easytrader.use('ths')
+        self.user.prepare('user.json')
+        # self.user.connect(PROGRAM_PATH)
+        # self.blacklist_bond = self.get_blacklist()
+        # self.q=easyquotation.use('qq')
+
 
     # 获取候选股票池数据
     def get_candidates(self):
@@ -85,9 +84,26 @@ class AutoTrader():
                 break
             time.sleep(20)
 
-
+    # 持仓仓位
     def get_position(self):
         return self.user.position
+
+    # 持仓仓位 Dataframe格式
+    def get_position_df(self):
+        position_list = self.get_position()
+        df = pd.DataFrame(position_list)
+        return df
+
+    def save_position(self):
+
+        self.engine = get_engine('db_position', True)
+        df= self.get_position_df()
+        try:
+            df.to_sql('tb_position_{}'.format(self.today),con=self.engine)
+        except Exception as e:
+            self.logger.error(e)
+
+
 
     def llogger(self, filename):
         logger = logging.getLogger(filename)  # 不加名称设置root logger
@@ -116,8 +132,8 @@ class AutoTrader():
 if __name__ == '__main__':
     trader = AutoTrader()
     # 开盘挂单
-    kaipan_percent = -2
-    trader.morning_start(kaipan_percent)
-    # trader.get_position()
-    trader.end()
+    # kaipan_percent = -2
+    # trader.morning_start(kaipan_percent)
+    trader.save_position()
+    # trader.end()
 
