@@ -1,14 +1,15 @@
 # -*-coding=utf-8-*-
 # 估价达到自己的设定值,发邮件通知, 每天2.45发邮件
 import tushare as ts
-from setting import get_engine, trading_time, llogger, is_holiday
+from setting import get_engine, trading_time, llogger, is_holiday, get_mysql_conn
 import datetime
 import time
 import pandas as pd
 import numpy as np
 import os
-dirname=os.path.dirname(__file__)
-full_name = os.path.join(dirname,'alert_me_{}.log'.format(datetime.date.today()))
+
+dirname = os.path.dirname(__file__)
+full_name = os.path.join(dirname, 'alert_me_{}.log'.format(datetime.date.today()))
 logger = llogger(full_name)
 
 # 循环检测时间
@@ -22,6 +23,7 @@ ZZ_ALERT_PERCENT = 4
 DIFF_DELTA_TIME=30
 # ALERT_PERCENT_POOL = 3
 DIFF_V = 40 # quote 接口以千为单位
+
 file = 'D:\OneDrive\Stock\gj_hold.xls'
 
 
@@ -31,15 +33,6 @@ class ReachTarget():
 
     def __init__(self):
         self.engine = get_engine('db_stock')
-
-        self.kzz_code, self.kzz_name, self.zg_code, self.name, self.yjl = self.zg_bond()
-
-        self.kzz_stocks = dict(zip(self.kzz_code, self.kzz_name))
-        self.zg_stocks = dict(zip(self.zg_code, self.name))
-
-        self.kzz_stocks_yjl = dict(zip(self.kzz_code, self.yjl))
-        self.zg_stocks_yjl = dict(zip(self.zg_code, self.yjl))
-
         self.api = ts.get_apis()
 
         # python3 这个返回的不是list,需要手工转换
@@ -65,12 +58,49 @@ class ReachTarget():
         #
         # self.code_lists=code_list
 
+    def all_bond_market(self):
+        self.kzz_code, self.kzz_name, self.zg_code, self.name, self.yjl = self.zg_bond()
+
+        self.kzz_stocks = dict(zip(self.kzz_code, self.kzz_name))
+        self.zg_stocks = dict(zip(self.zg_code, self.name))
+
+        self.kzz_stocks_yjl = dict(zip(self.kzz_code, self.yjl))
+        self.zg_stocks_yjl = dict(zip(self.zg_code, self.yjl))
+
+        return (self.kzz_stocks,
+                self.zg_stocks,
+                self.kzz_stocks_yjl,
+                self.zg_stocks_yjl)
+
     # 数据库获取模拟股，这个要废弃
     def stock_pool(self):
         pool_table = 'tb_current_hold'
         pool_df = pd.read_sql(pool_table, self.engine, index_col='index')
 
         return list(pool_df['代码'].values), list(pool_df['名字'].values)
+
+    def get_current_position(self):
+        engine = get_engine('db_position')
+
+        df = pd.read_sql('tb_position_2019-06-17', con=engine)
+        kzz_stocks = dict(zip(list(df['证券代码'].values), list(df['证券代码'].values)))
+        cons = get_mysql_conn('db_stock', 'local')
+        cursor = cons.cursor()
+        query_cmd = 'select 正股代码,正股名称,溢价率 from tb_bond_jisilu where 可转债代码=%s'
+        zg_stocks = {}
+        kzz_yjl = {}
+        zg_yjl = {}
+        for code in kzz_stocks:
+            cursor.execute(query_cmd, (code))
+            ret = cursor.fetchone()
+            if ret:
+                zg_stocks[ret[0]] = ret[1]
+                kzz_yjl[code] = ret[2]
+                zg_yjl[ret[0]] = ret[2]
+
+        kzz_code = list(df['证券代码'].values)
+
+        return (kzz_code, kzz_stocks, zg_stocks, kzz_yjl, zg_yjl)
 
     # 获取市场所有可转债数据个股代码 正股
     def zg_bond(self):
@@ -81,29 +111,31 @@ class ReachTarget():
 
         except Exception as e:
             logger.info(e)
-            return [], [], [],[],[]
+            return [], [], [], [], []
 
         else:
             return list(jsl_df['可转债代码']), list(jsl_df['可转债名称']), list(jsl_df['正股代码'].values), \
                    list(jsl_df['正股名称'].values), list(jsl_df['溢价率'].values)
 
-    # 可转债的监测
+    # 可转债的监测 只监控自己持仓
     def monitor(self):
-        self.has_sent_kzz = dict(zip(self.kzz_code, [datetime.datetime.now()] * len(self.kzz_code)))
-        self.has_sent_diff = dict(zip(self.kzz_code, [datetime.datetime.now()] * len(self.kzz_code)))
-        self.has_sent_zg = dict(zip(self.zg_code, [datetime.datetime.now()] * len(self.zg_code)))
+
+        (kzz_code, kzz_stocks, zg_stocks, kzz_yjl, zg_yjl) = self.get_current_position()
+        zg_code = list(zg_stocks.keys())
+        self.has_sent_kzz = dict(zip(kzz_code, [datetime.datetime.now()] * len(kzz_code)))
+        self.has_sent_diff = dict(zip(kzz_code, [datetime.datetime.now()] * len(kzz_code)))
+        self.has_sent_zg = dict(zip(zg_code, [datetime.datetime.now()] * len(zg_code)))
 
         while 1:
 
             current = trading_time()
-            # current=0
             if current == MARKET_OPENING:
 
-                self.get_realtime_info(self.kzz_code, self.has_sent_kzz, '转债', self.kzz_stocks, self.kzz_stocks_yjl,
+                self.get_realtime_info(kzz_code, self.has_sent_kzz, '转债', kzz_stocks, kzz_yjl,
                                        ZZ_ALERT_PERCENT)
-                self.get_realtime_info(self.zg_code, self.has_sent_zg, '正股', self.zg_stocks, self.zg_stocks_yjl,
+                self.get_realtime_info(zg_code, self.has_sent_zg, '正股', zg_stocks, zg_yjl,
                                        ZG_ALERT_PERCENT)
-                self.get_price_diff(self.kzz_code, self.has_sent_diff, '差价')
+                self.get_price_diff(kzz_code, self.has_sent_diff, '差价')
                 time.sleep(LOOP_TIME)
 
             elif current == -1:
@@ -162,16 +194,17 @@ class ReachTarget():
                             ret_dt1['名称'] = name_list
                             ret_dt1['溢价率'] = yjl_list
 
-                            name=ret_dt1['名称'].values[0]
-                            price=ret_dt1['price'].values[0]
-                            percent=ret_dt1['percent'].values[0]
+                            name = ret_dt1['名称'].values[0]
+                            price = ret_dt1['price'].values[0]
+                            percent = ret_dt1['percent'].values[0]
                             yjl_v = ret_dt1['溢价率'].values[0]
                             now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-                            content0='{t}\n{name}:价格:{price} 涨幅:{percent},溢价率:{yjl}'.format(name=name,price=price,percent=percent,yjl=yjl_v,t=now)
+                            content0 = '{t}\n{name}:价格:{price} 涨幅:{percent},溢价率:{yjl}'.format(name=name, price=price,
+                                                                                              percent=percent,
+                                                                                              yjl=yjl_v, t=now)
 
                             logger.info(content0)
-
 
                             try:
                                 wechat.send_content(content0)
@@ -207,26 +240,28 @@ class ReachTarget():
                 for j in result['code']:
 
                     if has_sent_[j] <= datetime.datetime.now():
-                        has_sent_[j] = datetime.datetime.now()+ datetime.timedelta(minutes=DIFF_DELTA_TIME)
+                        has_sent_[j] = datetime.datetime.now() + datetime.timedelta(minutes=DIFF_DELTA_TIME)
                         name_list = []
                         yjl_list = []
                         name_list.append(self.kzz_stocks[j])
                         yjl_list.append(self.kzz_stocks_yjl[j])
                         ret_dt1 = result[result['code'] == j]
-                        ret_dt1['名称']=name_list
-                        ret_dt1['溢价率']=yjl_list
+                        ret_dt1['名称'] = name_list
+                        ret_dt1['溢价率'] = yjl_list
                         # ret_dt1 = ret_dt1.set_index('code', drop=True)
 
-                        code=j
+                        code = j
                         name = ret_dt1['名称'].values[0]
                         price = ret_dt1['price'].values[0]
                         bid = ret_dt1['bid1'].values[0]
                         ask = ret_dt1['ask1'].values[0]
-                        diff = round(ret_dt1['diff'].values[0],2)
+                        diff = round(ret_dt1['diff'].values[0], 2)
                         now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                        content0 = '{t}\n{code}::{name}:价格:{price} 买1:{bid} 卖1:{ask}差价:{diff}'.format(code=code,name=name, price=price,
-                                                                                              bid=bid, ask=ask,
-                                                                                              diff=diff, t=now)
+                        content0 = '{t}\n{code}::{name}:价格:{price} 买1:{bid} 卖1:{ask}差价:{diff}'.format(code=code,
+                                                                                                      name=name,
+                                                                                                      price=price,
+                                                                                                      bid=bid, ask=ask,
+                                                                                                      diff=diff, t=now)
                         logger.info(content0)
                         try:
                             wechat.send_content(content0)
