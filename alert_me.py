@@ -17,12 +17,13 @@ LOOP_TIME = 60
 EXECEPTION_TIME = 20
 MARKET_OPENING = 0
 # ALERT_PERCENTAGE = 3
-DELTA_TIME = 20
+DELTA_TIME = 30
 ZG_ALERT_PERCENT = 5
-ZZ_ALERT_PERCENT = 3
-DIFF_DELTA_TIME = 10
+ZZ_ALERT_PERCENT = 4
+DIFF_DELTA_TIME=30
 # ALERT_PERCENT_POOL = 3
-DIFF_V = 20  # quote 接口以千为单位
+DIFF_V = 40 # quote 接口以千为单位
+
 file = 'D:\OneDrive\Stock\gj_hold.xls'
 
 
@@ -82,7 +83,7 @@ class ReachTarget():
         engine = get_engine('db_position')
 
         df = pd.read_sql('tb_position_2019-06-17', con=engine)
-        kzz_stocks = dict(zip(list(df['证券代码'].values), list(df['证券代码'].values)))
+        kzz_stocks = dict(zip(list(df['证券代码'].values), list(df['证券名称'].values)))
         cons = get_mysql_conn('db_stock', 'local')
         cursor = cons.cursor()
         query_cmd = 'select 正股代码,正股名称,溢价率 from tb_bond_jisilu where 可转债代码=%s'
@@ -120,6 +121,7 @@ class ReachTarget():
     def monitor(self):
 
         (kzz_code, kzz_stocks, zg_stocks, kzz_yjl, zg_yjl) = self.get_current_position()
+
         zg_code = list(zg_stocks.keys())
         self.has_sent_kzz = dict(zip(kzz_code, [datetime.datetime.now()] * len(kzz_code)))
         self.has_sent_diff = dict(zip(kzz_code, [datetime.datetime.now()] * len(kzz_code)))
@@ -134,7 +136,7 @@ class ReachTarget():
                                        ZZ_ALERT_PERCENT)
                 self.get_realtime_info(zg_code, self.has_sent_zg, '正股', zg_stocks, zg_yjl,
                                        ZG_ALERT_PERCENT)
-                self.get_price_diff(kzz_code, self.has_sent_diff, '差价')
+                self.get_price_diff(codes=kzz_code, has_sent_=self.has_sent_diff, types='差价',kzz_stocks=kzz_stocks,kzz_stocks_yjl=kzz_yjl)
                 time.sleep(LOOP_TIME)
 
             elif current == -1:
@@ -213,7 +215,7 @@ class ReachTarget():
                                 logger.info(e)
 
     # 获取差价 可转债
-    def get_price_diff(self, codes, has_sent_, types):
+    def get_price_diff(self, codes, has_sent_, types,kzz_stocks,kzz_stocks_yjl):
         # 针对可转债
         try:
             df = ts.quotes(codes, conn=self.api)
@@ -242,8 +244,8 @@ class ReachTarget():
                         has_sent_[j] = datetime.datetime.now() + datetime.timedelta(minutes=DIFF_DELTA_TIME)
                         name_list = []
                         yjl_list = []
-                        name_list.append(self.kzz_stocks[j])
-                        yjl_list.append(self.kzz_stocks_yjl[j])
+                        name_list.append(kzz_stocks[j])
+                        yjl_list.append(kzz_stocks_yjl[j])
                         ret_dt1 = result[result['code'] == j]
                         ret_dt1['名称'] = name_list
                         ret_dt1['溢价率'] = yjl_list
