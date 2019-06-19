@@ -54,6 +54,7 @@ def save_sql():
 
                     titles = re.findall(r'\d+-\d+ \d+:\d+(.*)', s)[0]  # 03-06 16:53
                     titles=titles.strip()
+
                     # print(title)
                     # if title:
                     #     titles = title[0]

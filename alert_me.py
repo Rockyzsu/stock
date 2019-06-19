@@ -79,11 +79,25 @@ class ReachTarget():
 
         return list(pool_df['代码'].values), list(pool_df['名字'].values)
 
+    # 判断市场
+    def identify_market(self,x):
+        if x.startswith('3') or x.startswith('6') or x.startswith('0'):
+            return False
+        else:
+            return True
+
     def get_current_position(self):
         engine = get_engine('db_position')
 
         df = pd.read_sql('tb_position_2019-06-17', con=engine)
+
+        # 只关注可转债
+        df=df[df['证券代码'].map(self.identify_market)]
+        # print(df)
+
+
         kzz_stocks = dict(zip(list(df['证券代码'].values), list(df['证券名称'].values)))
+
         cons = get_mysql_conn('db_stock', 'local')
         cursor = cons.cursor()
         query_cmd = 'select 正股代码,正股名称,溢价率 from tb_bond_jisilu where 可转债代码=%s'
@@ -279,9 +293,9 @@ if __name__ == '__main__':
 
     # 周末的时候不登录微信
 
-    from setting import WechatSend
-
-    wechat = WechatSend('wei')
+    # from setting import WechatSend
+    #
+    # wechat = WechatSend('wei')
     logger.info('{} 开始实时行情爬取'.format(datetime.date.today()))
     obj = ReachTarget()
     obj.monitor()
