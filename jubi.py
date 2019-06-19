@@ -4,6 +4,8 @@ __author__ = 'Rocky'
 http://30daydo.com
 Contact: weigesysu@qq.com
 '''
+
+## python2代码，网站已经停止更新
 import random
 import hashlib
 import hmac,time
@@ -44,7 +46,7 @@ class Jubi_web():
                 self.smtp = smtplib.SMTP_SSL(port=465)
                 self.smtp.connect(self.server)
                 self.smtp.login(self.username, self.password)
-            except smtplib.SMTPException, e:
+            except smtplib.SMTPException as e:
                 print(e)
                 return 0
 

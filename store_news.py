@@ -1,10 +1,10 @@
 # -*-coding=utf-8-*-
 import os, re
-import MySQLdb
+import pymysql
 import setting
 
 db_name = 'db_news'
-conn = MySQLdb.connect(host=setting.MYSQL_REMOTE,
+conn = pymysql.connect(host=setting.MYSQL_REMOTE,
                        port=3306,
                        user=setting.MYSQL_REMOTE_USER,
                        passwd=setting.MYSQL_PASSWORD,

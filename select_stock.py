@@ -14,8 +14,7 @@ from threading import Thread
 from pandas import Series
 
 q = Queue.Queue()
-reload(sys)
-sys.setdefaultencoding('utf-8')
+
 # 用来选股用的
 pd.set_option('max_rows', None)
 
@@ -313,7 +312,7 @@ class filter_stock():
         start_day = start_day.strftime("%Y-%m-%d")
         end_day = end_day.strftime("%Y-%m-%d")
         print(start_day)
-        print(e)nd_day
+        print(end_day)
         all_break = []
 
         for i in codes:
