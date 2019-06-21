@@ -20,6 +20,7 @@ MARKET_OPENING = 0
 DELTA_TIME = 30
 ZG_ALERT_PERCENT = 5
 ZZ_ALERT_PERCENT = 4
+CW_ALERT_PERCENT=-5
 DIFF_DELTA_TIME=30
 # ALERT_PERCENT_POOL = 3
 DIFF_V = 40 # quote 接口以千为单位
@@ -95,7 +96,6 @@ class ReachTarget():
         df=df[df['证券代码'].map(self.identify_market)]
         # print(df)
 
-
         kzz_stocks = dict(zip(list(df['证券代码'].values), list(df['证券名称'].values)))
 
         cons = get_mysql_conn('db_stock', 'local')
@@ -137,6 +137,7 @@ class ReachTarget():
         (kzz_code, kzz_stocks, zg_stocks, kzz_yjl, zg_yjl) = self.get_current_position()
 
         zg_code = list(zg_stocks.keys())
+
         self.has_sent_kzz = dict(zip(kzz_code, [datetime.datetime.now()] * len(kzz_code)))
         self.has_sent_diff = dict(zip(kzz_code, [datetime.datetime.now()] * len(kzz_code)))
         self.has_sent_zg = dict(zip(zg_code, [datetime.datetime.now()] * len(zg_code)))
@@ -151,6 +152,8 @@ class ReachTarget():
                 self.get_realtime_info(zg_code, self.has_sent_zg, '正股', zg_stocks, zg_yjl,
                                        ZG_ALERT_PERCENT)
                 self.get_price_diff(codes=kzz_code, has_sent_=self.has_sent_diff, types='差价',kzz_stocks=kzz_stocks,kzz_stocks_yjl=kzz_yjl)
+
+
                 time.sleep(LOOP_TIME)
 
             elif current == -1:
@@ -293,9 +296,9 @@ if __name__ == '__main__':
 
     # 周末的时候不登录微信
 
-    # from setting import WechatSend
+    from setting import WechatSend
     #
-    # wechat = WechatSend('wei')
+    wechat = WechatSend('wei')
     logger.info('{} 开始实时行情爬取'.format(datetime.date.today()))
     obj = ReachTarget()
     obj.monitor()
