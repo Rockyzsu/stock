@@ -91,6 +91,7 @@ class AutoTrader():
     # 持仓仓位 Dataframe格式
     def get_position_df(self):
         position_list = self.get_position()
+        # print(position_list)
         df = pd.DataFrame(position_list)
         return df
 
@@ -98,8 +99,9 @@ class AutoTrader():
 
         self.engine = get_engine('db_position', True)
         df= self.get_position_df()
+        # print(df)
         try:
-            df.to_sql('tb_position_{}'.format(self.today),con=self.engine)
+            df.to_sql('tb_position_{}'.format(self.today),con=self.engine,if_exists='replace')
         except Exception as e:
             self.logger.error(e)
 
