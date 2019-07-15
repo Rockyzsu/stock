@@ -113,8 +113,8 @@ def getinfo(days=-30):
 
             link = item.get('link')
             link = link.replace('\\', '')
-            pubdate = item.get('time')
-            pubdate_dtype = datetime.datetime.strptime(pubdate, '%Y-%m-%d %H:%M:%S')
+            pubdate_t = item.get('time')
+            pubdate_dtype = datetime.datetime.strptime(pubdate_t, '%Y-%m-%d %H:%M:%S')
 
             if pubdate_dtype < last_day:
                 run_flag = False
@@ -142,12 +142,13 @@ def getinfo(days=-30):
             detail_content = root.xpath('//div[@id="qmt_content_div"]')[0].xpath('string(.)').extract_first()
             if detail_content:
                 detail_content = detail_content.strip()
-            temp_tuple = (pubdate, title, link, detail_content, keyword)
+            temp_tuple = (pubdate_dtype, title, link, detail_content, keyword)
             insert_sql = 'insert into tb_cnstock (Date,Title,URL,Content,keyword) values (%s,%s,%s,%s,%s)'
 
             # es
             try:
-                body = {'Title': title, 'ULR': link, 'keyword': keyword, 'content': detail_content, 'Date': pubdate}
+                pubdate_dtype=pubdate_dtype.strftime("%Y-%m-%d"'T'"%H:%M:%S")
+                body = {'Title': title, 'ULR': link, 'keyword': keyword, 'content': detail_content, 'Date': pubdate_dtype}
 
                 es.index(index='cnstock',doc_type='doc',body=body)
 
@@ -162,10 +163,8 @@ def getinfo(days=-30):
                 logger.error(e)
                 conn.rollback()
 
-            file_content = '{} ---- {}\n{}\n\n'.format(pubdate, title, link)
-            # print(file_content)
+            file_content = '{} ---- {}\n{}\n\n'.format(pubdate_t, title, link)
             f_open.write(file_content)
-            # insert_data.append(temp_tuple)
 
         page += 1
 
