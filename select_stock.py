@@ -154,7 +154,7 @@ class filter_stock():
         # exit()
         percents = []
         for each in all_code:
-            print(e)ach
+            print(each)
             # print(type(each))
             percent = self.drop_down_from_high('2017-01-01', each)
             percents.append(percent)
@@ -175,7 +175,7 @@ class filter_stock():
         # print(all_code)
         result = []
         for each_code in self.all_code:
-            print(e)ach_code
+            print(each_code)
             try:
                 df_x = ts.get_k_data(code=each_code, start='2017-03-01')
             # 只找最近一个月的，所以no item的是停牌。
@@ -210,7 +210,7 @@ class filter_stock():
         start_day = start_day.strftime("%Y-%m-%d")
         end_day = end_day.strftime("%Y-%m-%d")
         print(start_day)
-        print(e)nd_day
+        print(end_day)
         result_m5_large = []
         result_m5_small = []
         for each_code in codes:
@@ -226,7 +226,7 @@ class filter_stock():
             if len(df) < 20:
                 # print("not long enough")
                 continue
-            print(e)ach_code
+            print(each_code)
             all_mean = df['volume'].mean()
             m5_volume_m = df['volume'][-5:].mean()
             m10_volume_m = df['volume'][-10:].mean()
@@ -234,7 +234,7 @@ class filter_stock():
             # 在这里分几个分支，放量 180天均量的4倍
             if m5_volume_m > (4.0 * all_mean):
                 print("m5 > m_all_avg ")
-                print(e)ach_code,
+                print(each_code,)
                 temp = self.base[self.base['code'] == each_code]['name'].values[0]
                 print(temp)
                 result_m5_large.append(each_code)
@@ -252,7 +252,7 @@ class filter_stock():
         start_day = start_day.strftime("%Y-%m-%d")
         end_day = end_day.strftime("%Y-%m-%d")
         print(start_day)
-        print(e)nd_day
+        print(end_day)
         for each_code in self.all_code:
             try:
                 df = ts.get_hist_data(code=each_code, start=start_day, end=end_day)
@@ -262,7 +262,7 @@ class filter_stock():
             mv5 = df['v_ma5'][-1]
             mv20 = df['v_ma20'][-1]
             mv_all = df['volume'].mean()
-            print
+
 
     # 写入csv文件
     def write_to_text(self):
@@ -367,7 +367,7 @@ class filter_stock():
         start_day = start_day.strftime("%Y-%m-%d")
         end_day = end_day.strftime("%Y-%m-%d")
         print(start_day)
-        print(e)nd_day
+        print(end_day)
         all_break = []
         for i in codes:
             try:
@@ -542,5 +542,5 @@ if __name__ == "__main__":
     print(start_time)
     main()
     end_time = datetime.datetime.now()
-    print(e)nd_time
+    print(end_time)
     print("time use : ", (end_time - start_time).seconds)

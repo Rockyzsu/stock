@@ -12,7 +12,7 @@ import pandas as pd
 from config import PROGRAM_PATH,MONGO_PORT,MONGO_HOST
 from setting import get_engine,get_mysql_conn
 
-SELL = 8.9 # 配置为8.9%个点卖
+SELL = 8 # 配置为8%个点卖
 
 class AutoTrader():
 
@@ -21,7 +21,7 @@ class AutoTrader():
 
         # self.stock_candidates = self.get_candidates()
         # self.stock_candidates = self.get_candidates()
-        self.logger = self.llogger('auto_trader_{}'.format(self.today))
+        self.logger = self.llogger('log/auto_trader_{}'.format(self.today))
         self.logger.info('程序启动')
         self.user = easytrader.use('gj_client')
         # self.user = easytrader.use('ths')
@@ -30,7 +30,7 @@ class AutoTrader():
         # self.blacklist_bond = self.get_blacklist()
         # self.q=easyquotation.use('qq')
 
-        self.yesterday = datetime.datetime.now()+datetime.timedelta(days=-1)
+        self.yesterday = datetime.datetime.now()+datetime.timedelta(days=-3)
         # 如果是周一 加一个判断
         self.yesterday=self.yesterday.strftime('%Y-%m-%d')
 
