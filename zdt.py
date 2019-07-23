@@ -26,8 +26,10 @@ logger = llogger('log/'+filename)
 class GetZDT:
     def __init__(self,today):
         self.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/64.0.3282.167 Chrome/64.0.3282.167 Safari/537.36"
-        # self.today = time.strftime("%Y%m%d")
-        self.today = today
+        if today is None:
+            self.today = time.strftime("%Y%m%d")
+        else:
+            self.today = today
         self.path = DATA_PATH
         self.zdt_url = 'http://home.flashdata2.jrj.com.cn/limitStatistic/ztForce/' + \
             self.today + ".js"
@@ -191,42 +193,42 @@ class GetZDT:
         self.save_to_dataframe(zdt_js, self.zdt_indexx, 1, 'zdt')
 
         # 昨日涨停数据会如果不是当天获取会失效
-        # time.sleep(0.5)
-        # zrzt_content = self.getdata(self.zrzt_url, headers=self.header_zrzt)
-        # logger.info('zrzt Content' + zrzt_content)
-        #
-        # zrzt_js = self.convert_json(zrzt_content)
-        # self.save_to_dataframe(zrzt_js, self.zrzt_indexx, 2, 'zrzt')
+        time.sleep(0.5)
+        zrzt_content = self.getdata(self.zrzt_url, headers=self.header_zrzt)
+        logger.info('zrzt Content' + zrzt_content)
+
+        zrzt_js = self.convert_json(zrzt_content)
+        self.save_to_dataframe(zrzt_js, self.zrzt_indexx, 2, 'zrzt')
 
 
 if __name__ == '__main__':
 
     # 填补以前的数据
-    date_list = [i for i in list(pd.date_range('20180921','20190101'))]
-    conn = get_mysql_conn('db_zdt','local')
-    cursor = conn.cursor()
-    for d in date_list:
-        x=datetime.datetime.strftime(d, '%Y%m%d')
-        y=datetime.datetime.strftime(d, '%Y-%m-%d')
-        if ts.is_holiday(y):
-            continue
-        print(y)
-        check_cmd ='select 1 from `{}zdt`'.format(x)
-        try:
-            cursor.execute(check_cmd)
-        except Exception as e:
-            print(e)
-            obj = GetZDT(x)
-            obj.storedata()
-        else:
-            ret = cursor.fetchone()
-            print(ret)
-            continue
+    # date_list = [i for i in list(pd.date_range('20180921','20190101'))]
+    # conn = get_mysql_conn('db_zdt','local')
+    # cursor = conn.cursor()
+    # for d in date_list:
+    #     x=datetime.datetime.strftime(d, '%Y%m%d')
+    #     y=datetime.datetime.strftime(d, '%Y-%m-%d')
+    #     if ts.is_holiday(y):
+    #         continue
+    #     print(y)
+    #     check_cmd ='select 1 from `{}zdt`'.format(x)
+    #     try:
+    #         cursor.execute(check_cmd)
+    #     except Exception as e:
+    #         print(e)
+    #         obj = GetZDT(x)
+    #         obj.storedata()
+    #     else:
+    #         ret = cursor.fetchone()
+    #         print(ret)
+    #         continue
 
 
-    # if is_holiday():
-    #     logger.info('Holiday')
-    #     exit()
-    # logger.info("start")
-    # obj = GetZDT()
-    # obj.storedata()
+    if is_holiday():
+        logger.info('Holiday')
+        exit()
+    logger.info("start")
+    obj = GetZDT(None)
+    obj.storedata()

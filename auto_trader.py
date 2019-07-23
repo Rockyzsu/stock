@@ -12,7 +12,7 @@ import pandas as pd
 from config import PROGRAM_PATH,MONGO_PORT,MONGO_HOST
 from setting import get_engine,get_mysql_conn
 
-SELL = 8 # 配置为8%个点卖
+SELL = 7 # 配置为8%个点卖
 
 class AutoTrader():
 
@@ -30,7 +30,7 @@ class AutoTrader():
         # self.blacklist_bond = self.get_blacklist()
         # self.q=easyquotation.use('qq')
 
-        self.yesterday = datetime.datetime.now()+datetime.timedelta(days=-3)
+        self.yesterday = datetime.datetime.now()+datetime.timedelta(days=-1)
         # 如果是周一 加一个判断
         self.yesterday=self.yesterday.strftime('%Y-%m-%d')
 
@@ -71,9 +71,6 @@ class AutoTrader():
             except Exception as e:
 
                 self.logger.error(e)
-
-
-
 
 
 
@@ -165,7 +162,7 @@ class AutoTrader():
         logger = logging.getLogger(filename)  # 不加名称设置root logger
         logger.setLevel(logging.DEBUG)
         formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s: - %(message)s',
+            '%(asctime)s - %(name)s - Line:%(lineno)d:-%(levelname)s: - %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S')
         # 使用FileHandler输出到文件
         fh = logging.FileHandler(filename + '.log')
