@@ -4,6 +4,9 @@ import tushare as ts
 import pandas as pd
 from setting import get_engine
 import matplotlib.pyplot as plt
+
+# 股权质押数据整理
+
 with open('codes.txt','r') as f:
 	# s= f.read()
 	codes=json.load(f)

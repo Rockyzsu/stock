@@ -9,7 +9,7 @@ from pylab import mpl
 #mpl.rcParams['font.sans-serif'] = ['SimHei']
 mpl.rcParams['font.sans-serif'] = ['Microsoft YaHei']    # 指定默认字体：解决plot不能显示中文问题
 mpl.rcParams['axes.unicode_minus'] = False
-#每个月的解禁股与大盘指数的关系
+# 每个月的解禁股与大盘指数的关系
 def ban_share(code,name):
     conn =ts.get_apis()
     year_2017 = [2629.218,3970.902,2083.032,1720.327,1999.456,1771.074,2417.082,2904.992,2910.946,2971.483,2350.122,3874.328]
