@@ -10,8 +10,9 @@ import easyquotation
 import easytrader
 import pandas as pd
 from config import PROGRAM_PATH,MONGO_PORT,MONGO_HOST
-from setting import get_engine
+from setting import get_engine,get_mysql_conn
 
+SELL = 7 # 配置为8%个点卖
 
 class AutoTrader():
 
@@ -20,7 +21,7 @@ class AutoTrader():
 
         # self.stock_candidates = self.get_candidates()
         # self.stock_candidates = self.get_candidates()
-        self.logger = self.llogger('auto_trader_{}'.format(self.today))
+        self.logger = self.llogger('log/auto_trader_{}'.format(self.today))
         self.logger.info('程序启动')
         self.user = easytrader.use('gj_client')
         # self.user = easytrader.use('ths')
@@ -28,6 +29,49 @@ class AutoTrader():
         # self.user.connect(PROGRAM_PATH)
         # self.blacklist_bond = self.get_blacklist()
         # self.q=easyquotation.use('qq')
+
+        self.yesterday = datetime.datetime.now()+datetime.timedelta(days=-1)
+        # 如果是周一 加一个判断
+        self.yesterday=self.yesterday.strftime('%Y-%m-%d')
+
+    def get_close_price(self):
+        conn = get_mysql_conn('db_jisilu','local')
+        cursor = conn.cursor()
+
+        cmd = 'select 可转债代码,可转债价格 from `tb_jsl_{}`'.format(self.yesterday)
+        try:
+            cursor.execute(cmd)
+            result = cursor.fetchall()
+        except Exception as e:
+            return None
+
+        else:
+            d={}
+            for item in result:
+                d[item[0]]=item[1]
+            return d
+
+
+    # 设置涨停 附近卖出 挂单
+    def set_ceiling(self):
+        position =self.get_position()
+        # print(position)
+        code_price = self.get_close_price()
+
+        for each_stock in position:
+            try:
+                code=each_stock.get('证券代码')
+                amount = int(each_stock.get('可用余额',0))
+                if amount<=0.1:
+                    continue
+                close_price = code_price.get(code,None)
+                buy_price = round(close_price * (1+SELL*0.01),1)
+                self.user.sell(code, price=buy_price, amount=amount)
+
+            except Exception as e:
+
+                self.logger.error(e)
+
 
 
     # 获取候选股票池数据
@@ -86,11 +130,19 @@ class AutoTrader():
 
     # 持仓仓位
     def get_position(self):
+        '''
+        [{'证券代码': '128012', '证券名称': '辉丰转债', '股票余额': 10.0, '可用余额': 10.0,
+        '市价': 97.03299999999999, '冻结数量': 0, '参考盈亏': 118.77, '参考成本价': 85.156,
+        '参考盈亏比例(%)': 13.947000000000001, '市值': 970.33, '买入成本': 85.156, '市场代码': 1,
+        '交易市场': '深圳Ａ股', '股东帐户': '0166448046', '实际数量': 10, 'Unnamed: 15': ''}
+        :return:
+        '''
         return self.user.position
 
     # 持仓仓位 Dataframe格式
     def get_position_df(self):
         position_list = self.get_position()
+        # print(position_list)
         df = pd.DataFrame(position_list)
         return df
 
@@ -98,8 +150,9 @@ class AutoTrader():
 
         self.engine = get_engine('db_position', True)
         df= self.get_position_df()
+        # print(df)
         try:
-            df.to_sql('tb_position_{}'.format(self.today),con=self.engine)
+            df.to_sql('tb_position_{}'.format(self.today),con=self.engine,if_exists='replace')
         except Exception as e:
             self.logger.error(e)
 
@@ -109,7 +162,7 @@ class AutoTrader():
         logger = logging.getLogger(filename)  # 不加名称设置root logger
         logger.setLevel(logging.DEBUG)
         formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s: - %(message)s',
+            '%(asctime)s - %(name)s - Line:%(lineno)d:-%(levelname)s: - %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S')
         # 使用FileHandler输出到文件
         fh = logging.FileHandler(filename + '.log')
@@ -134,6 +187,7 @@ if __name__ == '__main__':
     # 开盘挂单
     # kaipan_percent = -2
     # trader.morning_start(kaipan_percent)
-    trader.save_position()
+    # trader.save_position()
     # trader.end()
+    trader.set_ceiling()
 

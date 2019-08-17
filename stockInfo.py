@@ -12,6 +12,7 @@ import os, sys
 import requests
 import re
 from scrapy.selector import Selector
+from elasticsearch import Elasticsearch
 from setting import llogger, get_mysql_conn, DATA_PATH
 
 filename = os.path.basename(__file__)
@@ -34,6 +35,7 @@ my_useragent = [
     'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; SE 2.X MetaSr 1.0; SE 2.X MetaSr 1.0; .NET CLR 2.0.50727; SE 2.X MetaSr 1.0)'
 ]
 
+es = Elasticsearch('10.18.6.102:9200')
 
 def create_tb(conn):
     cur = conn.cursor()
@@ -69,7 +71,7 @@ def getinfo(days=-30):
 
     while run_flag:
         headers = {'Referer': 'http://ggjd.cnstock.com/company/scp_ggjd/tjd_ggkx',
-                   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.131 Safari/537.36', }
+                   'User-Agent': 'Mozilla/5.0 (Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.131 Safari/537.36', }
 
         retry = 3
         response = None
@@ -111,8 +113,8 @@ def getinfo(days=-30):
 
             link = item.get('link')
             link = link.replace('\\', '')
-            pubdate = item.get('time')
-            pubdate_dtype = datetime.datetime.strptime(pubdate, '%Y-%m-%d %H:%M:%S')
+            pubdate_t = item.get('time')
+            pubdate_dtype = datetime.datetime.strptime(pubdate_t, '%Y-%m-%d %H:%M:%S')
 
             if pubdate_dtype < last_day:
                 run_flag = False
@@ -140,9 +142,20 @@ def getinfo(days=-30):
             detail_content = root.xpath('//div[@id="qmt_content_div"]')[0].xpath('string(.)').extract_first()
             if detail_content:
                 detail_content = detail_content.strip()
-            temp_tuple = (pubdate, title, link, detail_content, keyword)
+            temp_tuple = (pubdate_dtype, title, link, detail_content, keyword)
             insert_sql = 'insert into tb_cnstock (Date,Title,URL,Content,keyword) values (%s,%s,%s,%s,%s)'
 
+            # es
+            try:
+                pubdate_dtype=pubdate_dtype.strftime("%Y-%m-%d"'T'"%H:%M:%S")
+                body = {'Title': title, 'ULR': link, 'keyword': keyword, 'content': detail_content, 'Date': pubdate_dtype}
+
+                es.index(index='cnstock',doc_type='doc',body=body)
+
+            except Exception as e:
+                logger.error(e)
+
+            # mysql
             try:
                 cur.execute(insert_sql, temp_tuple)
                 conn.commit()
@@ -150,10 +163,8 @@ def getinfo(days=-30):
                 logger.error(e)
                 conn.rollback()
 
-            file_content = '{} ---- {}\n{}\n\n'.format(pubdate, title, link)
-            # print(file_content)
+            file_content = '{} ---- {}\n{}\n\n'.format(pubdate_t, title, link)
             f_open.write(file_content)
-            # insert_data.append(temp_tuple)
 
         page += 1
 

@@ -14,18 +14,22 @@ import os
 import setting
 from setting import is_holiday, DATA_PATH
 import pandas as pd
-from setting import llogger
+from setting import llogger,get_mysql_conn
 import requests
 from send_mail import sender_139
 import datetime
+import tushare as ts
 
 filename=os.path.basename(__file__)
 logger = llogger('log/'+filename)
 
 class GetZDT:
-    def __init__(self):
+    def __init__(self,today):
         self.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/64.0.3282.167 Chrome/64.0.3282.167 Safari/537.36"
-        self.today = time.strftime("%Y%m%d")
+        if today is None:
+            self.today = time.strftime("%Y%m%d")
+        else:
+            self.today = today
         self.path = DATA_PATH
         self.zdt_url = 'http://home.flashdata2.jrj.com.cn/limitStatistic/ztForce/' + \
             self.today + ".js"
@@ -62,7 +66,8 @@ class GetZDT:
                     logger.info('failed to get content, retry: {}'.format(i))
                     continue
             except Exception as e:
-                logger.info(e)
+                sender_139('获取涨跌停数据出错','{}'.format(e))
+                logger.error(e)
                 time.sleep(60)
                 continue
         return None
@@ -79,9 +84,11 @@ class GetZDT:
                 t1 = result[0]
                 t2=re.sub('[\\r\\n]', '', t1)
                 t2=re.sub(',,',',0,0',t2)
+                t2 = re.sub('Infinity','-1',t2)
                 t2 = list(eval(t2))
                 return t2
             except Exception as e:
+                sender_139('获取涨跌停数据出错','e{}'.format(e))
                 logger.info(e)
                 return None
         else:
@@ -171,35 +178,57 @@ class GetZDT:
             current = datetime.datetime.now().strftime('%Y-%m-%d')
             title = '昨天涨停个股今天{}\n的平均涨幅{}\n'.format(current, avg)
             content = '昨天涨停个股今天{}\n的平均涨幅{}\n涨幅中位数{}\n涨幅最小{}\n'.format(current,avg,median,min_v)
-            try:
-                sender_139(title, content)
-            except Exception as e:
-                print(e)
+
+            # try:
+            #     sender_139(title, content)
+            # except Exception as e:
+            #     print(e)
 
     # 昨日涨停今日的状态，今日涨停
 
     def storedata(self):
         zdt_content = self.getdata(self.zdt_url, headers=self.header_zdt)
-        logger.info('zdt Content' + zdt_content)
+        # logger.info('zdt Content' + zdt_content)
         zdt_js = self.convert_json(zdt_content)
         self.save_to_dataframe(zdt_js, self.zdt_indexx, 1, 'zdt')
+
+        # 昨日涨停数据会如果不是当天获取会失效
         time.sleep(0.5)
         zrzt_content = self.getdata(self.zrzt_url, headers=self.header_zrzt)
-        logger.info('zrzt Content' + zdt_content)
+        logger.info('zrzt Content' + zrzt_content)
 
         zrzt_js = self.convert_json(zrzt_content)
         self.save_to_dataframe(zrzt_js, self.zrzt_indexx, 2, 'zrzt')
 
 
 if __name__ == '__main__':
-    # today='2018-04-16'
+
     # 填补以前的数据
-    # x=pd.date_range('20170101','20180312')
-    # date_list = [datetime.datetime.strftime(i,'%Y%m%d') for i in list(pd.date_range('20170401','20171231'))
+    # date_list = [i for i in list(pd.date_range('20180921','20190101'))]
+    # conn = get_mysql_conn('db_zdt','local')
+    # cursor = conn.cursor()
+    # for d in date_list:
+    #     x=datetime.datetime.strftime(d, '%Y%m%d')
+    #     y=datetime.datetime.strftime(d, '%Y-%m-%d')
+    #     if ts.is_holiday(y):
+    #         continue
+    #     print(y)
+    #     check_cmd ='select 1 from `{}zdt`'.format(x)
+    #     try:
+    #         cursor.execute(check_cmd)
+    #     except Exception as e:
+    #         print(e)
+    #         obj = GetZDT(x)
+    #         obj.storedata()
+    #     else:
+    #         ret = cursor.fetchone()
+    #         print(ret)
+    #         continue
+
 
     if is_holiday():
         logger.info('Holiday')
         exit()
     logger.info("start")
-    obj = GetZDT()
+    obj = GetZDT(None)
     obj.storedata()
