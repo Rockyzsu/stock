@@ -85,6 +85,7 @@ class GetZDT:
                 t2=re.sub('[\\r\\n]', '', t1)
                 t2=re.sub(',,',',0,0',t2)
                 t2 = re.sub('Infinity','-1',t2)
+                t2 = re.sub('NaN','-1',t2)
                 t2 = list(eval(t2))
                 return t2
             except Exception as e:
