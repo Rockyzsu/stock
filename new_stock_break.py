@@ -4,7 +4,7 @@ __author__ = 'Rocky'
 http://30daydo.com
 Contact: weigesysu@qq.com
 '''
-#分析新股的开板时机
+# 分析新股的开板时机
 import tushare as ts
 import os
 import pandas as pd
