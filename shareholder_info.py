@@ -119,14 +119,14 @@ def main():
 
     for code, name in code_dict.items():
         # if next_stock:
-        print('name ：',name)
+        print('name ：', name)
         temp_code = code.split('.')[0]
         if temp_code in result:
             continue
 
         start_date = '20{}0101'
         end_date = '20{}1231'
-        for i in range(18, 0,-1):
+        for i in range(18, 0, -1):
             start = start_date.format(str(i).zfill(2))
             end = end_date.format(str(i).zfill(2))
             df0, df1 = get_stockholder(code, start, end)
@@ -140,12 +140,13 @@ def main():
 
 
 def test():
-    #过了时间还是有数据
-    code='603259.SH'
-    start='2010-01-01'
-    end='2012-02-02'
+    # 过了时间还是有数据
+    code = '603259.SH'
+    start = '2010-01-01'
+    end = '2012-02-02'
     stockholder = pro.top10_holders(ts_code=code, start_date=start, end_date=end)
     print(stockholder)
+
 
 # test()
 # create_date()
