@@ -11,9 +11,9 @@ import xlrd
 import time
 from xlutils.copy import copy
 import tushare as ts
-from setting import get_mysql_conn
+from settings import get_mysql_conn
 import codecs
-from setting import LLogger
+from settings import LLogger
 
 logger=LLogger('recordMyChoice.log')
 class Prediction_rate():

@@ -18,11 +18,11 @@ import tushare as ts
 import matplotlib as mpl
 from mpl_finance import candlestick2_ochl, volume_overlay
 import matplotlib.pyplot as plt
-from setting import get_engine
+from settings import get_engine
 
 mpl.rcParams['font.sans-serif'] = ['simhei']
 mpl.rcParams['axes.unicode_minus'] = False
-from setting import llogger
+from settings import llogger
 
 filename=os.path.basename(__file__)
 logger = llogger('log/'+filename)

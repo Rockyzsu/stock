@@ -9,7 +9,7 @@ import time
 import datetime
 import requests
 import pandas as pd
-from setting import get_engine, llogger, is_holiday,get_mysql_conn
+from settings import get_engine, llogger, is_holiday,get_mysql_conn
 import six
 from send_mail import sender_139
 from sqlalchemy import VARCHAR

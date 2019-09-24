@@ -1,6 +1,6 @@
 # -*-coding=utf-8-*-
 # 股市黑名单
-from setting import get_mysql_conn,llogger,DATA_PATH
+from settings import get_mysql_conn,llogger,DATA_PATH
 import os
 import codecs
 

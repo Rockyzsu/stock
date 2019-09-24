@@ -8,7 +8,7 @@ http://30daydo.com
 Contact: weigesysu@qq.com
 '''
 
-from setting import get_engine
+from settings import get_engine
 import pandas as pd
 import pymongo
 

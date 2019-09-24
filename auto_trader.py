@@ -10,7 +10,7 @@ import easyquotation
 import easytrader
 import pandas as pd
 from config import PROGRAM_PATH,MONGO_PORT,MONGO_HOST
-from setting import get_engine,get_mysql_conn
+from settings import get_engine,get_mysql_conn
 
 SELL = 7 # 配置为8%个点卖
 

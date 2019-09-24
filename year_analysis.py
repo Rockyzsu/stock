@@ -2,7 +2,7 @@
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
-from setting import DATA_PATH
+from settings import DATA_PATH
 
 # 分析年度的数据
 def stock_analysis():

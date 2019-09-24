@@ -17,8 +17,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import threading
-from setting import  get_engine,sendmail
-# from setting import MsgSend
+from settings import  get_engine,sendmail
+# from settings import MsgSend
 # msg = MsgSend('wei')
 
 EXCEPTION_TIME_OUT = 60

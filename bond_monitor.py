@@ -4,7 +4,7 @@
 '''
 # from __future__ import division
 import tushare as ts
-from setting import get_engine
+from settings import get_engine
 import pandas as pd
 import datetime,time
 from numpy import inf

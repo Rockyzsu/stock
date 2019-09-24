@@ -13,7 +13,7 @@ import requests
 import re
 from scrapy.selector import Selector
 from elasticsearch import Elasticsearch
-from setting import llogger, get_mysql_conn, DATA_PATH
+from settings import llogger, get_mysql_conn, DATA_PATH
 
 filename = os.path.basename(__file__)
 logger = llogger('log/' + filename)

@@ -6,7 +6,7 @@ http://30daydo.com
 Email: weigesysu@qq.com
 '''
 import re
-from setting import get_mysql_conn
+from settings import get_mysql_conn
 # 是否黑名单
 def check_blacklist(code):
     conn = get_mysql_conn('db_stock')

@@ -6,12 +6,12 @@ import matplotlib
 昨日涨停的今日的实时情况
 '''
 matplotlib.use("Pdf")
-from setting import get_engine, is_holiday, DATA_PATH
+from settings import get_engine, is_holiday, DATA_PATH
 import pandas as pd
 import tushare as ts
 import numpy as np
 from plot_line import plot_stock_line
-from setting import llogger
+from settings import llogger
 
 filename=os.path.basename(__file__)
 logger = llogger('log/'+filename)

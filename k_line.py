@@ -7,7 +7,7 @@ import pandas as pd
 import os, datetime, math
 import numpy as np
 import logging
-from setting import get_engine, MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASSWORD, REDIS_HOST, get_mysql_conn
+from settings import get_engine, MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASSWORD, REDIS_HOST, get_mysql_conn
 import redis
 from threading import Thread
 import MySQLdb

@@ -1,7 +1,7 @@
 # -*-coding=utf-8-*-
 # 估价达到自己的设定值,发邮件通知, 每天2.45发邮件
 import tushare as ts
-from setting import get_engine, trading_time, llogger, is_holiday, get_mysql_conn
+from settings import get_engine, trading_time, llogger, is_holiday, get_mysql_conn
 import datetime
 import time
 import pandas as pd
@@ -302,7 +302,7 @@ if __name__ == '__main__':
 
     # 周末的时候不登录微信
 
-    from setting import WechatSend
+    from settings import WechatSend
     #
     wechat = WechatSend('wei')
     logger.info('{} 开始实时行情爬取'.format(datetime.date.today()))

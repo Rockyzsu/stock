@@ -4,7 +4,7 @@ import numpy as np
 import datetime,os
 import pandas as pd
 import sys
-from setting import get_engine
+from settings import get_engine
 reload(sys)
 sys.setdefaultencoding('utf8')
 def ipo_rank():
