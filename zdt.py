@@ -12,9 +12,9 @@ import xlwt
 import sys
 import os
 import setting
-from setting import is_holiday, DATA_PATH
+from settings import is_holiday, DATA_PATH
 import pandas as pd
-from setting import llogger,get_mysql_conn
+from settings import llogger,get_mysql_conn
 import requests
 from send_mail import sender_139
 import datetime

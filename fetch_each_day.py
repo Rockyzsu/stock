@@ -10,7 +10,7 @@ import pandas as pd
 import time
 import datetime
 import os
-from setting import get_engine, llogger, is_holiday, DATA_PATH
+from settings import get_engine, llogger, is_holiday, DATA_PATH
 
 filename=os.path.basename(__file__)
 logger = llogger('log/'+filename)

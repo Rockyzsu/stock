@@ -6,7 +6,7 @@ email: weigesysu@qq.com
 import datetime
 import tushare as ts
 import os
-from setting import get_engine, get_mysql_conn
+from settings import get_engine, get_mysql_conn
 import pandas as pd
 import numpy as np
 from collections import OrderedDict

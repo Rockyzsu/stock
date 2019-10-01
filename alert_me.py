@@ -1,7 +1,7 @@
 # -*-coding=utf-8-*-
 # 估价达到自己的设定值,发邮件通知, 每天2.45发邮件
 import tushare as ts
-from setting import get_engine, trading_time, llogger, is_holiday, get_mysql_conn
+from settings import get_engine, trading_time, llogger, is_holiday, get_mysql_conn
 import datetime
 import time
 import pandas as pd
@@ -9,7 +9,7 @@ import numpy as np
 import os
 
 dirname = os.path.dirname(__file__)
-full_name = os.path.join(dirname, 'alert_me_{}.log'.format(datetime.date.today()))
+full_name = os.path.join(dirname, 'log/alert_me_{}.log'.format(datetime.date.today()))
 logger = llogger(full_name)
 
 # 循环检测时间
@@ -68,7 +68,8 @@ class ReachTarget():
         self.kzz_stocks_yjl = dict(zip(self.kzz_code, self.yjl))
         self.zg_stocks_yjl = dict(zip(self.zg_code, self.yjl))
 
-        return (self.kzz_stocks,
+        return (
+                self.kzz_stocks,
                 self.zg_stocks,
                 self.kzz_stocks_yjl,
                 self.zg_stocks_yjl)
@@ -87,6 +88,7 @@ class ReachTarget():
         else:
             return True
 
+    # 获取当前持仓个股
     def get_current_position(self):
         engine = get_engine('db_position')
 
@@ -94,7 +96,6 @@ class ReachTarget():
 
         # 只关注可转债
         df=df[df['证券代码'].map(self.identify_market)]
-        # print(df)
 
         kzz_stocks = dict(zip(list(df['证券代码'].values), list(df['证券名称'].values)))
 
@@ -112,9 +113,9 @@ class ReachTarget():
                 kzz_yjl[code] = ret[2]
                 zg_yjl[ret[0]] = ret[2]
 
-        kzz_code = list(df['证券代码'].values)
-
-        return (kzz_code, kzz_stocks, zg_stocks, kzz_yjl, zg_yjl)
+        # 可转债代码
+        # dict,dict,dict,dict
+        return (kzz_stocks, zg_stocks, kzz_yjl, zg_yjl)
 
     # 获取市场所有可转债数据个股代码 正股
     def zg_bond(self):
@@ -131,13 +132,18 @@ class ReachTarget():
             return list(jsl_df['可转债代码']), list(jsl_df['可转债名称']), list(jsl_df['正股代码'].values), \
                    list(jsl_df['正股名称'].values), list(jsl_df['溢价率'].values)
 
-    # 可转债的监测 只监控自己持仓
-    def monitor(self):
-
-        (kzz_code, kzz_stocks, zg_stocks, kzz_yjl, zg_yjl) = self.get_current_position()
+    # 可转债的监测
+    def monitor(self,total_market=True):
+        '''
+        total_market 默认监控全市场 total_market = True
+        '''
+        if total_market:
+            (kzz_stocks, zg_stocks, kzz_yjl, zg_yjl) = self.all_bond_market()
+        else:
+            (kzz_stocks, zg_stocks, kzz_yjl, zg_yjl) = self.get_current_position()
 
         zg_code = list(zg_stocks.keys())
-
+        kzz_code = list(kzz_stocks.keys())
         self.has_sent_kzz = dict(zip(kzz_code, [datetime.datetime.now()] * len(kzz_code)))
         self.has_sent_diff = dict(zip(kzz_code, [datetime.datetime.now()] * len(kzz_code)))
         self.has_sent_zg = dict(zip(zg_code, [datetime.datetime.now()] * len(zg_code)))
@@ -296,7 +302,7 @@ if __name__ == '__main__':
 
     # 周末的时候不登录微信
 
-    from setting import WechatSend
+    from settings import WechatSend
     #
     wechat = WechatSend('wei')
     logger.info('{} 开始实时行情爬取'.format(datetime.date.today()))

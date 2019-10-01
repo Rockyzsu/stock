@@ -10,7 +10,7 @@ Contact: weigesysu@qq.com
 '''
 import tushare as ts
 import os
-from setting import get_engine,llogger,is_holiday,DATA_PATH
+from settings import get_engine,llogger,is_holiday,DATA_PATH
 import pandas as pd
 filename=os.path.basename(__file__)
 logger = llogger('log/'+filename)

@@ -17,3 +17,6 @@ conf.py
 send_mail.py
 user.json
 codes.txt
+.vscode/
+settings.py
+keys/

@@ -4,7 +4,7 @@
 '''
 import datetime
 
-from setting import get_engine
+from settings import get_engine
 import pandas as pd
 from scipy import stats
 

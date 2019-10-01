@@ -13,7 +13,7 @@ import datetime
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from setting import get_engine, get_mysql_conn
+from settings import get_engine, get_mysql_conn
 
 engine = get_engine('db_stock', local=True)
 pd.set_option('display.max_rows', None)
