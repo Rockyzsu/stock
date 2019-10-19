@@ -15,6 +15,8 @@ import pandas as pd
 filename=os.path.basename(__file__)
 logger = llogger('log/'+filename)
 
+# 获取市场全貌
+
 class SaveData():
     today = datetime.datetime.now().strftime("%Y-%m-%d")
     daily_engine = get_engine('db_daily')

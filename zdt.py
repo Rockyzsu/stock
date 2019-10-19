@@ -11,10 +11,10 @@ import xlrd
 import xlwt
 import sys
 import os
-import setting
+import settings
 from settings import is_holiday, DATA_PATH
 import pandas as pd
-from settings import llogger,get_mysql_conn
+from settings import llogger,get_mysql_conn,get_engine
 import requests
 from send_mail import sender_139
 import datetime
@@ -138,7 +138,7 @@ class GetZDT:
         w.save(excel_filename)
 
     def save_to_dataframe(self, data, indexx, choice, post_fix):
-        engine = setting.get_engine('db_zdt')
+        engine = get_engine('db_zdt')
         if not data:
             exit()
         data_len = len(data)
