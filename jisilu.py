@@ -22,7 +22,7 @@ logger = llogger('log/'+'jisilu')
 class Jisilu(object):
     def __init__(self):
 
-        self.check_holiday()
+        # self.check_holiday()
 
         # py2
         if six.PY2:
