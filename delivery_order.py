@@ -15,7 +15,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from settings import get_engine, get_mysql_conn
 
-engine = get_engine('db_stock', local=True)
+engine = get_engine('db_stock', 'local')
 pd.set_option('display.max_rows', None)
 
 

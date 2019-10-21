@@ -27,7 +27,7 @@ from settings import llogger
 filename=os.path.basename(__file__)
 logger = llogger('log/'+filename)
 
-engine = get_engine('db_stock', local=True)
+engine = get_engine('db_stock', 'local')
 base_info = pd.read_sql('tb_basic_info', engine, index_col='index')
 
 
