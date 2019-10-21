@@ -13,8 +13,7 @@ import numpy as np
 from plot_line import plot_stock_line
 from settings import llogger
 
-filename=os.path.basename(__file__)
-logger = llogger('log/'+filename)
+logger = llogger('log/yester_zdt.log')
 
 def monitor():
     engine = get_engine('db_zdt','local')
@@ -84,9 +83,9 @@ def plot_yesterday_zt(type_name='zrzt', current=datetime.datetime.now().strftime
 
 if __name__ == '__main__':
 
-    # if is_holiday():
-    #     logger.info('Holiday')
-    #     exit()
+    if is_holiday():
+        logger.info('Holiday')
+        exit()
 
     logger.info("Start")
     api = ts.get_apis()

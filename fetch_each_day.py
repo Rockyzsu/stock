@@ -12,8 +12,7 @@ import datetime
 import os
 from settings import get_engine, llogger, is_holiday, DATA_PATH
 
-filename=os.path.basename(__file__)
-logger = llogger('log/'+filename)
+logger = llogger('log/fetch_each_day.log')
 
 
 class FetchDaily(object):

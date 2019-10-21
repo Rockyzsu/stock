@@ -15,7 +15,7 @@ from send_mail import sender_139
 from sqlalchemy import VARCHAR
 import os
 engine = get_engine('db_jisilu')
-logger = llogger('log/'+'jisilu')
+logger = llogger('log/'+'jisilu.log')
 
 
 # 爬取集思录 可转债的数据

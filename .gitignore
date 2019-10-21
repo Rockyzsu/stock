@@ -20,3 +20,4 @@ codes.txt
 .vscode/
 settings.py
 keys/
+email_list.py

@@ -20,8 +20,7 @@ from send_mail import sender_139
 import datetime
 import tushare as ts
 
-filename=os.path.basename(__file__)
-logger = llogger('log/'+filename)
+logger = llogger('log/zdt.log')
 
 class GetZDT:
     def __init__(self,today):
