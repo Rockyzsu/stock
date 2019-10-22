@@ -19,6 +19,7 @@
 * push_msn.py -短信提醒自己 设定的某个股票价格或者涨幅达到自己 要求
 * relationship_case.py 每个月的解禁股与大盘指数的关系
 * select_stock.py - 选股策略， 根据自己的经验选出来的个股。 
+* SPSIOP_PRICE.py - 华宝油气估值 通过爬虫获取数据然后计算
 * stockInfo.py 爬取市场股票新闻消息，并存储到ElasticSearch数据库中
 * strategy_verify.py 获取雪球的策略并验证
 * simulation.py 记录自己的模拟仓

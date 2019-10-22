@@ -7,8 +7,7 @@ import re
 import datetime
 import requests
 from settings import sendmail,get_mysql_conn,llogger
-filename=os.path.basename(__file__)
-logger = llogger('log/'+filename)
+logger = llogger('log/usd.log')
 
 class ForeighExchange(object):
 
