@@ -24,8 +24,7 @@ mpl.rcParams['font.sans-serif'] = ['simhei']
 mpl.rcParams['axes.unicode_minus'] = False
 from settings import llogger
 
-filename=os.path.basename(__file__)
-logger = llogger('log/'+filename)
+logger = llogger('log/plot_line.log')
 
 engine = get_engine('db_stock', 'local')
 base_info = pd.read_sql('tb_basic_info', engine, index_col='index')

@@ -15,8 +15,7 @@ from scrapy.selector import Selector
 from elasticsearch import Elasticsearch
 from settings import llogger, get_mysql_conn, DATA_PATH
 
-filename = os.path.basename(__file__)
-logger = llogger('log/' + filename)
+logger = llogger('log/stockinfo.log')
 
 my_useragent = [
     'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_8; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50',

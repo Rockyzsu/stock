@@ -13,8 +13,7 @@ import tushare as ts
 from send_mail import sender_139
 from settings import get_engine, get_mysql_conn, is_holiday, llogger, DATA_PATH
 
-filename=os.path.basename(__file__)
-logger = llogger('log/'+filename)
+logger = llogger('log/simulation.log')
 
 class Simulation():
 
