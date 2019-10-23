@@ -15,6 +15,7 @@
 * jisilu.py 获取集思录的可转债行情
 * jubi.py -获取国内山寨币平台的实时数据
 * new_stock_break 分析新股的开板时机
+* new_stock_fund 打新基金获取，并选出中签科创板的基金
 * pledgeed_validation.py 股权质押数据整理
 * push_msn.py -短信提醒自己 设定的某个股票价格或者涨幅达到自己 要求
 * relationship_case.py 每个月的解禁股与大盘指数的关系
