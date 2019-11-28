@@ -4,7 +4,7 @@ from settings import get_mysql_conn,llogger,DATA_PATH
 import os
 import codecs
 
-logger = llogger(__file__)
+logger = llogger('log/blacklist.log')
 
 def create_tb(conn):
     cmd = '''CREATE TABLE IF NOT EXISTS `tb_blacklist` (DATE TIMESTAMP DEFAULT CURRENT_TIMESTAMP,CODE VARCHAR(6) PRIMARY KEY,NAME VARCHAR(60),REASON TEXT);'''
@@ -82,7 +82,7 @@ def main():
     # 远程更新
     # db_name = 'db_stock'
     logger.info('update remote')
-    remote_conn = get_mysql_conn('', local='ali')
+    remote_conn = get_mysql_conn('qdm225205669_db', local='ali')
     create_tb(remote_conn)
     update_data(filename,remote_conn)
 

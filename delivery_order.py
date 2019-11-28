@@ -21,12 +21,106 @@ pd.set_option('display.max_rows', None)
 
 class Delivery_Order():
 
-    def __init__(self):
+    def __init__(self,path):
 
-        path = os.path.join(os.getcwd(), 'private/2019/GJ')
+        path = os.path.join(os.getcwd(), path)
         if os.path.exists(path) == False:
             os.mkdir(path)
         os.chdir(path)
+
+    # 单独处理华宝证券的数据
+    def merge_data_HuaBao(self,filename):
+
+        # filename = 'GJ_2019-05-11-05-16.csv'
+        try:
+            # 根据不同的格式选用不同的函数
+            # t=pd.read_table(filename,encoding='gbk',dtype={'证券代码':np.str})
+            t = pd.read_csv(filename,encoding='gbk')
+            # t = pd.read_excel(filename, encoding='gbk',dtype={'证券代码': np.str})
+        except Exception as e:
+            print(e)
+            # continue
+        # fee=t['手续费'].sum()+t['印花税'].sum()+t['其他杂费'].sum()
+        else:
+            # df_list.append(t)
+            # result.append(fee)
+            df = t.copy()
+        # df = pd.concat(df_list)
+        df = df.reset_index(drop='True')
+        df = df.dropna(subset=['成交时间'])
+        # df['成交时间'] = df['成交时间'].map(lambda x: x.zfill(8))
+        df['成交日期'] = df['成交日期'].astype(np.str) + df['成交时间']
+        # for i in df['成交日期'].values:
+        #     try:
+        #         x = datetime.datetime.strptime(
+        #             i, "%Y%m%d%H:%M:%S").strftime('%Y-%m-%d %H:%M:%S')
+        #     except Exception as e:
+        #         print(e)
+        df['成交日期'] = df['成交日期'].map(lambda x: datetime.datetime.strptime(
+            x, "%Y%m%d%H:%M:%S").strftime('%Y-%m-%d %H:%M:%S'))
+        try:
+
+            df['成交日期'] = pd.to_datetime(df['成交日期'])
+        except Exception as e:
+            print(e)
+        # df=df[df['摘要']!='申购配号']
+        # df=df[df['摘要']!='质押回购拆出']
+        # df=df[df['摘要']!='拆出质押购回']
+        # print(df.info())
+        # print(df)
+        # print(df['2017-01'])
+        # del df['合同编号']
+        # del df['备注']
+
+        del df['股东代码']
+        del df['成交时间']
+
+        # del df['结算汇率']
+        # del df['Unnamed: 17']
+        df=df[(df['委托类别']=='买入') | (df['委托类别']=='卖出')]
+        df = df.fillna(0)
+        # df = df[(df['操作'] != '申购配号') & (df['操作'] != '拆出质押购回') & (df['操作'] != '质押回购拆出')]
+        df = df.sort_values(by='成交日期', ascending=False)
+        conn = get_mysql_conn('db_stock', 'local')
+        cursor = conn.cursor()
+        insert_cmd = '''
+               insert into tb_delivery_hb_django (成交日期,证券代码,证券名称,委托类别,成交数量,成交价格,成交金额,发生金额,佣金,印花税,过户费,其他费) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'''
+        check_dup = '''
+               select * from tb_delivery_hb_django where 成交日期=%s and 证券代码=%s and 委托类别=%s and 成交数量=%s and 发生金额=%s
+               '''
+        for index, row in df.iterrows():
+            date = row['成交日期']
+            date = date.to_pydatetime()
+            # print(type(date))
+
+            # print(date)
+            cursor.execute(check_dup, (date, row['证券代码'], row['委托类别'], row['成交数量'], row['发生金额']))
+            if cursor.fetchall():
+                print('有重复数据，忽略')
+
+            else:
+                cursor.execute(insert_cmd, (
+                    date, row['证券代码'], row['证券名称'], row['委托类别'], row['成交数量'], row['成交价格'], row['成交金额'], row['发生金额'],
+                    row['佣金'], row['印花税'], row['过户费'], row['其他费']))
+
+        conn.commit()
+        conn.close()
+        # df.to_sql('tb_delivery_gj', engine, if_exists='append')
+        # df=df[(df['摘要']=='证券卖出') | (df['摘要']=='证券买入')]
+        # df= df.groupby(df['证券名称'])
+        # print(df.describe())
+        # print(df['手续费'].sum())
+        # print(df['印花税'].sum())
+        # df1=df[['证券名称','证券代码','成交数量',	'成交均价'	,'成交金额','手续费',	'印花税','发生金额','操作']]
+        # print(df1['证券名称'].value_counts())
+        # print(df.groupby(by=['证券名称'])['发生金额'].sum())
+        # df1.to_excel('2017-all.xls')
+        # print(df1.groupby(df1['证券名称']).describe())
+        # print(df1['2017-02'])
+        # df.to_excel('2016_delivery_order.xls')
+        # self.caculation(df)
+        # plt.plot(j,result)
+        # plt.show()
 
     # 合并一年的交割单
     def years_ht(self):
@@ -360,15 +454,30 @@ def bank_account():
 
 
 def main():
-    filename=sys.argv[1]
-    obj = Delivery_Order()
-    # obj.data_sync()
-    obj.years_gj_each_month_day(filename=filename)
-    # obj.years_gj_each_month()
-    # obj.years_gj()
-    # obj.years_ht()
-    # bank_account()
-    # obj.pretty()
+    if len(sys.argv)<2:
+        print('输入参数有误')
+        exit()
+    # 国金
+    if sys.argv[1]=='GJ':
+
+        filename=sys.argv[2]
+        path='private/2019/GJ'
+        obj = Delivery_Order(path)
+        # obj.data_sync()
+        obj.years_gj_each_month_day(filename=filename)
+        # obj.years_gj_each_month()
+        # obj.years_gj()
+        # obj.years_ht()
+        # bank_account()
+        # obj.pretty()
+
+    # 华宝
+    elif sys.argv[1]=='HB':
+        path='private/2019/HB'
+        obj = Delivery_Order(path)
+        # obj.data_sync()
+        filename=sys.argv[2]
+        obj.merge_data_HuaBao(filename=filename)
 
 
 if __name__ == '__main__':

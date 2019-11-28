@@ -12,7 +12,7 @@ import tushare as ts
 import os
 from settings import get_engine,llogger,is_holiday,DATA_PATH
 import pandas as pd
-logger = llogger('log/collect_data')
+logger = llogger('log/collect_data.log')
 
 # 获取市场全貌
 
