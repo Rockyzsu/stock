@@ -455,7 +455,7 @@ def bank_account():
 
 def main():
     if len(sys.argv)<2:
-        print('输入参数有误')
+        print('python delivery_order.py GJ/HB filename\n')
         exit()
     # 国金
     if sys.argv[1]=='GJ':
