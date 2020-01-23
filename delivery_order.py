@@ -461,7 +461,7 @@ def main():
     if sys.argv[1]=='GJ':
 
         filename=sys.argv[2]
-        path='private/2019/GJ'
+        path='private/2020/GJ'
         obj = Delivery_Order(path)
         # obj.data_sync()
         obj.years_gj_each_month_day(filename=filename)
@@ -473,7 +473,7 @@ def main():
 
     # 华宝
     elif sys.argv[1]=='HB':
-        path='private/2019/HB'
+        path='private/2020/HB'
         obj = Delivery_Order(path)
         # obj.data_sync()
         filename=sys.argv[2]
