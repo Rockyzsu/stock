@@ -4,7 +4,7 @@ __author__ = 'Rocky'
 '''
 http://30daydo.com
 Contact: weigesysu@qq.com
-计算某个股票的某个时间段的成交量
+计算某个股票的某个时间段的累计成交量
 '''
 
 import tushare as ts
@@ -35,13 +35,14 @@ class AmountCalculation():
 
 
 def main():
-    code = '300023'
+    code = '000069'
     obj = AmountCalculation(code)
     # s1=obj.calc('09:24:00','10:30:00')
     # s2=obj.calc('10:30:00','11:30:00')
     # s3=obj.calc('13:00:00','14:00:00')
 
-    v, ratio = obj.calc('09:30:00', '09:47:00')
+    v, ratio = obj.calc('09:30:00', '10:00:00')
+    print('\n')
     print(v, ratio)
 
     # print(s1+s2+s3+s4)
