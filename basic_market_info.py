@@ -1,13 +1,11 @@
-#-*-coding=utf-8-*-
-# 每天收盘收运行
-import datetime
-import time
-
 __author__ = 'Rocky'
 '''
 http://30daydo.com
 Contact: weigesysu@qq.com
 '''
+
+import datetime
+import time
 import tushare as ts
 import os
 from settings import get_engine,llogger,is_holiday,DATA_PATH
@@ -17,6 +15,7 @@ logger = llogger('log/collect_data.log')
 # 获取市场全貌
 
 class SaveData():
+
     today = datetime.datetime.now().strftime("%Y-%m-%d")
     daily_engine = get_engine('db_daily')
 
