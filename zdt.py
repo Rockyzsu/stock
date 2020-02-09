@@ -22,13 +22,16 @@ import tushare as ts
 
 logger = llogger('log/zdt.log')
 
-class GetZDT:
+class GetZDT(object):
+
     def __init__(self,today):
         self.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/64.0.3282.167 Chrome/64.0.3282.167 Safari/537.36"
+
         if today is None:
             self.today = time.strftime("%Y%m%d")
         else:
             self.today = today
+
         self.path = DATA_PATH
         self.zdt_url = 'http://home.flashdata2.jrj.com.cn/limitStatistic/ztForce/' + \
             self.today + ".js"
@@ -229,6 +232,9 @@ if __name__ == '__main__':
     if is_holiday():
         logger.info('Holiday')
         exit()
+
     logger.info("start")
     obj = GetZDT(None)
+    # obj = GetZDT('20200207')
+
     obj.storedata()
