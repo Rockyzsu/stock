@@ -11,7 +11,7 @@ from settings import get_engine, MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASSW
 import redis
 from threading import Thread
 import MySQLdb
-from collect_data import SaveData
+from basic_market_info import SaveData
 engine = get_engine('history')
 conn = ts.get_apis()
 MYSQL_DB = 'history'
