@@ -16,7 +16,7 @@ from settings import is_holiday, DATA_PATH
 import pandas as pd
 from settings import llogger,get_mysql_conn,get_engine
 import requests
-from send_mail import sender_139
+# from send_mail import sender_139
 import datetime
 import tushare as ts
 

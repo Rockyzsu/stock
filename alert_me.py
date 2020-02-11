@@ -1,5 +1,6 @@
 # -*-coding=utf-8-*-
 # 估价达到自己的设定值,发邮件通知, 每天2.45发邮件
+import requests
 import tushare as ts
 from settings import get_engine, trading_time, llogger, is_holiday, get_mysql_conn
 import datetime
@@ -7,6 +8,14 @@ import time
 import pandas as pd
 import numpy as np
 import os
+import tkinter
+import tkinter
+import tkinter.messagebox #弹窗库
+import threading
+
+def show_box(msg):
+    tkinter.messagebox.showinfo('注意',msg)
+
 
 dirname = os.path.dirname(__file__)
 full_name = os.path.join(dirname, 'log/alert_me_{}.log'.format(datetime.date.today()))
@@ -18,8 +27,8 @@ EXECEPTION_TIME = 20
 MARKET_OPENING = 0
 # ALERT_PERCENTAGE = 3
 DELTA_TIME = 30
-ZG_ALERT_PERCENT = 5
-ZZ_ALERT_PERCENT = 4
+ZG_ALERT_PERCENT = 8
+ZZ_ALERT_PERCENT = 8
 CW_ALERT_PERCENT=-5
 DIFF_DELTA_TIME=30
 # ALERT_PERCENT_POOL = 3
@@ -293,6 +302,90 @@ class ReachTarget():
                             logger.info('发送微信失败')
                             logger.info(e)
 
+# 使用jsl作为数据源
+class ReachTargetJSL():
+    def __init__(self):
+        self.session = requests.Session()
+        self.cookies = {
+            'auto_reload': 'true',
+            'kbzw_r_uname': '%E9%87%8F%E5%8C%96%E8%87%AA%E7%94%B1%E4%B9%8B%E8%B7%AF',
+            'kbz_newcookie': '1',
+            'kbzw__Session': '1kmak8h8v6pscf5brjllb9hfk3',
+            'Hm_lvt_164fe01b1433a19b507595a43bf58262': '1578275141,1578879529',
+            'Hm_lpvt_164fe01b1433a19b507595a43bf58262': '1579488732',
+        }
+
+        self.headers = {
+            'Sec-Fetch-Mode': 'cors',
+            'Origin': 'https://www.jisilu.cn',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Accept-Language': 'zh,en;q=0.9,en-US;q=0.8',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Connection': 'keep-alive',
+            'Pragma': 'no-cache',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36',
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'Accept': 'application/json, text/javascript, */*; q=0.01',
+            'Cache-Control': 'no-cache',
+            'Referer': 'https://www.jisilu.cn/data/cbnew/',
+            'Sec-Fetch-Site': 'same-origin',
+        }
+
+        self.params = (
+            ('___jsl', 'LST___t=1579488785838'),
+        )
+
+        self.data = {
+            'fprice': '',
+            'tprice': '',
+            'volume': '',
+            'svolume': '',
+            'premium_rt': '',
+            'ytm_rt': '',
+            'rating_cd': '',
+            'is_search': 'Y',
+            'btype': '',
+            'listed': 'Y',
+            'sw_cd': '',
+            'bond_ids': '',
+            'rp': '50'
+        }
+
+    def get_info(self):
+
+        try:
+            response = self.session.post('https://www.jisilu.cn/data/cbnew/cb_list/', headers=self.headers, params=self.params,
+                                    cookies=self.cookies, data=self.data, timeout=30)
+        except Exception as e:
+            print(e)
+            print('网络超时')
+        else:
+            ret = response.json()
+
+        for body_dict in ret.get('rows', []):
+            # print(item)
+            item = body_dict.get('cell', {})
+            bond_nm = item.get('bond_nm', '').strip()
+            full_price = item.get('full_price')
+            if full_price:
+                full_price = float(full_price)
+
+            remium_rt = item.get('premium_rt')
+
+            increase_rt = item.get('increase_rt')
+            if increase_rt:
+                increase_rt = increase_rt.replace('%','')
+                increase_rt = float(increase_rt)
+
+            if abs(increase_rt)> ZZ_ALERT_PERCENT:
+                '''
+                发送消息
+                t = threading.Thread(target=show_box, args=(bond_nm,))
+                t.start()
+                '''
+
+                
+
 
 if __name__ == '__main__':
 
@@ -306,5 +399,11 @@ if __name__ == '__main__':
     #
     wechat = WechatSend('wei')
     logger.info('{} 开始实时行情爬取'.format(datetime.date.today()))
-    obj = ReachTarget()
-    obj.monitor()
+    jsl = True
+    if jsl:
+        obj = ReachTargetJSL()
+        obj.get_info()
+
+    else:
+        obj = ReachTarget()
+        obj.monitor()

@@ -11,7 +11,7 @@ import requests
 import pandas as pd
 from settings import get_engine, llogger, is_holiday,get_mysql_conn
 import six
-from send_mail import sender_139
+# from send_mail import sender_139
 from sqlalchemy import VARCHAR
 import os
 engine = get_engine('db_jisilu')
