@@ -3,6 +3,7 @@ import re
 
 import datetime
 import demjson
+import pymongo
 import requests
 import time
 
@@ -24,16 +25,13 @@ headers = {
 conn = get_mysql_conn('db_fund', local='local')
 cursor = conn.cursor()
 
-create_table = 'create table if not EXISTS `{}` (`基金代码` varchar(20) PRIMARY KEY,`基金简称` varchar(100),`最新规模-万` float,`实时价格` float,`涨跌幅` float,`成交额-万` float,`单位净值` float,`累计净值` float,`折溢价率` float ,`申购状态` VARCHAR(20),`申赎状态` varchar(20),`基金经理` VARCHAR(200),`成立日期` VARCHAR(20), `管理人名称` VARCHAR(200));'.format(today)
+def tencent_info():
+    create_table = 'create table if not EXISTS `{}` (`基金代码` varchar(20) PRIMARY KEY,`基金简称` varchar(100),`最新规模-万` float,`实时价格` float,`涨跌幅` float,`成交额-万` float,`净值日期` VARCHAR(10),`单位净值` float,`累计净值` float,`折溢价率` float ,`申购状态` VARCHAR(20),`申赎状态` varchar(20),`基金经理` VARCHAR(200),`成立日期` VARCHAR(20), `管理人名称` VARCHAR(200),`更新时间` VARCHAR(20));'.format(today)
 
-cursor.execute(create_table)
-conn.commit()
+    cursor.execute(create_table)
+    conn.commit()
 
-def fetch_fund_data():
-    '''
-    第一次运行
-    :return:
-    '''
+
     for p in range(1,114):
         print('page ',p)
         params = (
@@ -53,9 +51,9 @@ def fetch_fund_data():
         query_string = js.get('data')
         time.sleep(5*random.random())
 
-        insert_data = 'insert into `{}` VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'.format(today)
+        insert_data = 'insert into `{}` VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'.format(today)
         check_code_exists = 'select count(*) from `{}` WHERE `基金代码`=%s'.format(today)
-
+        update_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         for code in query_string.split(','):
 
             cursor.execute(check_code_exists,(code[2:]))
@@ -89,14 +87,55 @@ def fetch_fund_data():
                 jjjl=info.get('jjjl')
                 clrq=info.get('clrq')
                 glrmc=info.get('glrmc')
+                jzrq=info.get('jzrq')
 
                 try:
-                    cursor.execute(insert_data,(jjdm,jjjc,float(zxgm),float(zxjg),float(jgzffd),float(cj_total_amount),float(dwjz),float(ljjz),float(zyjl),sgzt,shzt,jjjl,clrq,glrmc))
+                    cursor.execute(insert_data,(jjdm,jjjc,float(zxgm),float(zxjg),float(jgzffd),float(cj_total_amount),jzrq,float(dwjz),float(ljjz),float(zyjl),sgzt,shzt,jjjl,clrq,glrmc,update_time))
                 except Exception as e:
                     print(e)
                     conn.rollback()
                 else:
                     conn.commit()
 
+def jsl_fund_info():
+    client = pymongo.MongoClient(host='127.0.0.1',port=27017)
+    today = datetime.datetime.now().strftime('%Y-%m-%d')
+    doc1 = client['fund_daily'][f'jsl_stock_lof_{today}']
+    doc2 = client['fund_daily'][f'jsl_index_lof_{today}']
+
+    url='https://www.jisilu.cn/data/lof/stock_lof_list/?___jsl=LST___t=1582355333844&rp=25'
+
+    index_lof ='https://www.jisilu.cn/data/lof/index_lof_list/?___jsl=LST___t=1582356112906&rp=25'
+
+    r = requests.get(url=url,headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36'})
+    js = r.json()
+    rows = js.get('rows')
+
+    for item in rows:
+        cell = item.get('cell')
+        try:
+            doc1.insert_one(cell)
+        except Exception as e:
+            print(e)
+
+    r2 = requests.get(url=index_lof, headers={
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36'})
+    js = r2.json()
+    rows = js.get('rows')
+
+    for item in rows:
+        cell = item.get('cell')
+        try:
+            doc2.insert_one(cell)
+        except Exception as e:
+            print(e)
+
 if __name__=='__main__':
-    fetch_fund_data()
+
+    start = time.time()
+    # tencent_info()
+    jsl_fund_info()
+    end=time.time()
+
+
+    print('Time used: {}'.format(end-start))
