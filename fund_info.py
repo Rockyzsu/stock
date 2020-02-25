@@ -9,8 +9,13 @@ import time
 
 from settings import get_mysql_conn
 # 基金数据爬虫
+now = datetime.datetime.now()
+today = now.strftime('%Y-%m-%d')
+_time = now.strftime('%H:%M:%S')
 
-today = datetime.datetime.now().strftime('%Y-%m-%d')
+if _time< '11:30:00':
+    today +='morning'
+
 headers = {
     'Connection': 'keep-alive',
     'Pragma': 'no-cache',
@@ -98,7 +103,7 @@ def tencent_info():
                     conn.commit()
 
 def jsl_fund_info():
-    client = pymongo.MongoClient(host='127.0.0.1',port=27017)
+    client = pymongo.MongoClient(host='192.168.10.48',port=17001)
     today = datetime.datetime.now().strftime('%Y-%m-%d')
     doc1 = client['fund_daily'][f'jsl_stock_lof_{today}']
     doc2 = client['fund_daily'][f'jsl_index_lof_{today}']
@@ -133,7 +138,7 @@ def jsl_fund_info():
 if __name__=='__main__':
 
     start = time.time()
-    # tencent_info()
+    tencent_info()
     jsl_fund_info()
     end=time.time()
 
