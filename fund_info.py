@@ -6,7 +6,7 @@ import demjson
 import pymongo
 import requests
 import time
-
+from realtme_jjjz import update_jj
 from settings import get_mysql_conn
 # 基金数据爬虫
 now = datetime.datetime.now()
@@ -15,6 +15,10 @@ _time = now.strftime('%H:%M:%S')
 
 if _time< '11:30:00':
     today +='morning'
+elif _time < '14:45:00':
+    today +='noon'
+else:
+    today+='close'
 
 headers = {
     'Connection': 'keep-alive',
@@ -101,6 +105,7 @@ def tencent_info():
                     conn.rollback()
                 else:
                     conn.commit()
+    conn.close()
 
 def jsl_fund_info():
     client = pymongo.MongoClient(host='192.168.10.48',port=17001)
@@ -144,3 +149,5 @@ if __name__=='__main__':
 
 
     print('Time used: {}'.format(end-start))
+    print(datetime.datetime.today())
+    update_jj(today)
