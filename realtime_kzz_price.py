@@ -57,10 +57,10 @@ while 1:
         break
     try:
         response = session.post('https://www.jisilu.cn/data/cbnew/cb_list/', headers=headers, params=params, cookies=cookies, data=data,timeout=3)
-    except:
-        print('网络超时')
+    except Exception as e:
+        print(e)
         continue
-        
+
     ret = response.json()
 
     for body_dict in ret.get('rows',[]):
@@ -78,10 +78,12 @@ while 1:
             full_price=item.get('full_price')
             remium_rt=item.get('premium_rt')
             increase_rt=item.get('increase_rt')
+            sincrease_rt=item.get('sincrease_rt')
 
             print('name ==>',bond_nm.replace('转债',''))
             print('price ==>',full_price)
             print('pecent ==>',increase_rt)
             print('yjl ==>',remium_rt)
+            print('正骨percent ==>',sincrease_rt)
             print('\n')
 
