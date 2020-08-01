@@ -9,9 +9,7 @@ import time
 import datetime
 import requests
 import pandas as pd
-from settings import DBSelector,llogger,is_holiday
-import six
-# from send_mail import sender_139
+from settings import DBSelector,llogger,is_holiday,send_from_aliyun
 from sqlalchemy import VARCHAR
 import os
 DB=DBSelector()
@@ -20,26 +18,25 @@ DB=DBSelector()
 
 # 爬取集思录 可转债的数据
 class Jisilu(object):
-    def __init__(self,check_holiday=True,remote='qq'):
+    def __init__(self,check_holiday=False,remote='qq'):
         if check_holiday:
             self.check_holiday()
         self.date = datetime.datetime.now().strftime('%Y-%m-%d')
         # self.date = '2020-02-07' # 用于调整时间
 
-        # py2
-        if six.PY2:
-            self.timestamp = long(time.time() * 1000)
-        else:
-            self.timestamp = int(time.time() * 1000)
+
+        self.timestamp = int(time.time() * 1000)
         self.headers = {
             'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
             'X-Requested-With': 'XMLHttpRequest'}
+        self.logger = llogger('log/' + 'jisilu.log')
 
         self.url = 'https://www.jisilu.cn/data/cbnew/cb_list/?___jsl=LST___t={}'.format(self.timestamp)
         self.pre_release_url = 'https://www.jisilu.cn/data/cbnew/pre_list/?___jsl=LST___t={}'.format(self.timestamp)
         self.remote = remote
+
         self.engine = DB.get_engine('db_jisilu', self.remote)
-        self.logger = llogger('log/' + 'jisilu.log')
+
     def check_holiday(self):
         if is_holiday():
             self.logger.info("Holidy")
@@ -56,8 +53,8 @@ class Jisilu(object):
                 else:
                     return r
             except Exception as e:
-                logger.info(e)
-                sender_139('jisilu可转债', '异常信息>>>>{}'.format(e))
+                self.logger.info(e)
+                send_from_aliyun(title='jisilu可转债', content='异常信息>>>>{}'.format(e))
                 continue
         return None
 
@@ -188,6 +185,7 @@ class Jisilu(object):
             df.to_sql('tb_bond_jisilu'.format(self.date), engine2, if_exists='replace', dtype={'可转债代码': VARCHAR(10)})
         except Exception as e:
             self.logger.info(e)
+            send_from_aliyun(title='jisilu可转债',content='写入数据库出错')
 
     # 这个数据最好晚上10点执行
     def history_data(self):
@@ -319,7 +317,6 @@ class Jisilu(object):
 
 #
 def main():
-    logger.info('Start')
     obj = Jisilu(check_holiday=False)
     obj.current_data()
     # obj.history_data()
