@@ -11,9 +11,7 @@ import requests
 import pandas as pd
 from settings import DBSelector,llogger,is_holiday,send_from_aliyun
 from sqlalchemy import VARCHAR
-import os
 DB=DBSelector()
-
 
 
 # 爬取集思录 可转债的数据
@@ -24,7 +22,6 @@ class Jisilu(object):
             self.check_holiday()
         self.date = datetime.datetime.now().strftime('%Y-%m-%d')
         # self.date = '2020-02-07' # 用于调整时间
-
 
         self.timestamp = int(time.time() * 1000)
         self.headers = {
@@ -186,6 +183,9 @@ class Jisilu(object):
         except Exception as e:
             self.logger.info(e)
             send_from_aliyun(title='jisilu可转债',content='写入数据库出错')
+
+
+
 
     # 这个数据最好晚上10点执行
     def history_data(self):
