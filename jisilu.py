@@ -19,6 +19,7 @@ DB=DBSelector()
 # 爬取集思录 可转债的数据
 class Jisilu(object):
     def __init__(self,check_holiday=False,remote='qq'):
+        self.logger = llogger('log/' + 'jisilu.log')
         if check_holiday:
             self.check_holiday()
         self.date = datetime.datetime.now().strftime('%Y-%m-%d')
@@ -29,7 +30,6 @@ class Jisilu(object):
         self.headers = {
             'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
             'X-Requested-With': 'XMLHttpRequest'}
-        self.logger = llogger('log/' + 'jisilu.log')
 
         self.url = 'https://www.jisilu.cn/data/cbnew/cb_list/?___jsl=LST___t={}'.format(self.timestamp)
         self.pre_release_url = 'https://www.jisilu.cn/data/cbnew/pre_list/?___jsl=LST___t={}'.format(self.timestamp)
