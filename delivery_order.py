@@ -13,16 +13,20 @@ import datetime
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from settings import get_engine, get_mysql_conn
-
-engine = get_engine('db_stock', 'local')
+from settings import DBSelector
+import fire
+DB=DBSelector()
+engine = DB.get_engine('db_stock', 'qq')
+conn =DB.get_mysql_conn('db_stock','qq')
 pd.set_option('display.max_rows', None)
 
+class DeliveryOrder():
 
-class Delivery_Order():
+    def __init__(self):
+        self.gj_table='tb_delivery_gj_django'
+        self.hb_table ='tb_delivery_hb_django'
 
-    def __init__(self,path):
-
+    def setpath(self,path):
         path = os.path.join(os.getcwd(), path)
         if os.path.exists(path) == False:
             os.mkdir(path)
@@ -81,12 +85,12 @@ class Delivery_Order():
         df = df.fillna(0)
         # df = df[(df['操作'] != '申购配号') & (df['操作'] != '拆出质押购回') & (df['操作'] != '质押回购拆出')]
         df = df.sort_values(by='成交日期', ascending=False)
-        conn = get_mysql_conn('db_stock', 'local')
+        # conn = get_mysql_conn('db_stock', 'local')
         cursor = conn.cursor()
-        insert_cmd = '''
-               insert into tb_delivery_hb_django (成交日期,证券代码,证券名称,委托类别,成交数量,成交价格,成交金额,发生金额,佣金,印花税,过户费,其他费) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'''
-        check_dup = '''
-               select * from tb_delivery_hb_django where 成交日期=%s and 证券代码=%s and 委托类别=%s and 成交数量=%s and 发生金额=%s
+        insert_cmd = f'''
+               insert into {self.hb_table} (成交日期,证券代码,证券名称,委托类别,成交数量,成交价格,成交金额,发生金额,佣金,印花税,过户费,其他费) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'''
+        check_dup = f'''
+               select * from {self.hb_table} where 成交日期=%s and 证券代码=%s and 委托类别=%s and 成交数量=%s and 发生金额=%s
                '''
         for index, row in df.iterrows():
             date = row['成交日期']
@@ -319,12 +323,11 @@ class Delivery_Order():
         df=df.fillna(0)
         df=df[(df['操作']!='申购配号') & (df['操作']!='拆出质押购回') & (df['操作']!='质押回购拆出')]
         df = df.sort_values(by='成交日期', ascending=False)
-        conn = get_mysql_conn('db_stock', 'local')
         cursor = conn.cursor()
-        insert_cmd = '''
-        insert into tb_delivery_gj_django (成交日期,证券代码,证券名称,操作,成交数量,成交均价,成交金额,余额,发生金额,手续费,印花税,过户费,本次金额,其他费用,交易市场) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'''
-        check_dup = '''
-        select * from tb_delivery_gj_django where 成交日期=%s and 证券代码=%s and 操作=%s and 成交数量=%s and 余额=%s
+        insert_cmd = f'''
+        insert into {self.gj_table} (成交日期,证券代码,证券名称,操作,成交数量,成交均价,成交金额,余额,发生金额,手续费,印花税,过户费,本次金额,其他费用,交易市场) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'''
+        check_dup = f'''
+        select * from {self.gj_table} where 成交日期=%s and 证券代码=%s and 操作=%s and 成交数量=%s and 余额=%s
         '''
         for index, row in df.iterrows():
             date=row['成交日期']
@@ -369,7 +372,6 @@ class Delivery_Order():
 
     # 数据同步到另一个django数据库
     def data_sync(self):
-        conn = get_mysql_conn('db_stock', 'local')
         cursor = conn.cursor()
         # 最新的数据库
         select_cmd = '''select * from tb_delivery_gj'''
@@ -453,18 +455,15 @@ def bank_account():
     # print(df['2018'])
 
 
-def main():
-    if len(sys.argv)<2:
-        print('python delivery_order.py GJ/HB filename\n')
-        exit()
+def main(broker,name):
     # 国金
-    if sys.argv[1]=='GJ':
+    obj = DeliveryOrder()
 
-        filename=sys.argv[2]
+    if broker=='GJ':
         path='private/2020/GJ'
-        obj = Delivery_Order(path)
+        obj.setpath(path)
         # obj.data_sync()
-        obj.years_gj_each_month_day(filename=filename)
+        obj.years_gj_each_month_day(filename=name)
         # obj.years_gj_each_month()
         # obj.years_gj()
         # obj.years_ht()
@@ -472,13 +471,11 @@ def main():
         # obj.pretty()
 
     # 华宝
-    elif sys.argv[1]=='HB':
+    elif broker=='HB':
         path='private/2020/HB'
-        obj = Delivery_Order(path)
         # obj.data_sync()
-        filename=sys.argv[2]
-        obj.merge_data_HuaBao(filename=filename)
-
+        obj.setpath(path)
+        obj.merge_data_HuaBao(filename=name)
 
 if __name__ == '__main__':
-    main()
+    fire.Fire(main)

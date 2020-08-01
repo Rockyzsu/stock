@@ -9,21 +9,21 @@ import time
 import datetime
 import requests
 import pandas as pd
-from settings import get_engine, llogger, is_holiday,get_mysql_conn
+from settings import DBSelector,llogger,is_holiday
 import six
 # from send_mail import sender_139
 from sqlalchemy import VARCHAR
 import os
-engine = get_engine('db_jisilu')
+DB=DBSelector()
+engine = DB.get_engine('db_jisilu','local')
 logger = llogger('log/'+'jisilu.log')
 
 
 # 爬取集思录 可转债的数据
 class Jisilu(object):
-    def __init__(self):
-
-        self.check_holiday()
-
+    def __init__(self,check_holiday=True):
+        if check_holiday:
+            self.check_holiday()
         self.date = datetime.datetime.now().strftime('%Y-%m-%d')
         # self.date = '2020-02-07' # 用于调整时间
 
@@ -183,7 +183,7 @@ class Jisilu(object):
         try:
 
             df.to_sql('tb_jsl_{}'.format(self.date), engine, if_exists='replace', dtype={'可转债代码': VARCHAR(10)})
-            engine2=get_engine('db_stock')
+            engine2=DB.get_engine('db_stock','local')
             df.to_sql('tb_bond_jisilu'.format(self.date), engine2, if_exists='replace', dtype={'可转债代码': VARCHAR(10)})
         except Exception as e:
             logger.info(e)
@@ -191,7 +191,7 @@ class Jisilu(object):
     # 这个数据最好晚上10点执行
     def history_data(self):
 
-        conn = get_mysql_conn('db_stock',local='local')
+        conn = DB.get_mysql_conn('db_stock','qq')
         cursor = conn.cursor()
 
         check_table = '''
@@ -319,13 +319,10 @@ class Jisilu(object):
 #
 def main():
     logger.info('Start')
-    obj = Jisilu()
+    obj = Jisilu(check_holiday=False)
     obj.current_data()
     # obj.history_data()
 
 
 if __name__ == '__main__':
-    if is_holiday():
-        logger.info("Holidy")
-        # exit()
     main()
