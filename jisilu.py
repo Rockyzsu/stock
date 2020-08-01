@@ -15,13 +15,12 @@ import six
 from sqlalchemy import VARCHAR
 import os
 DB=DBSelector()
-engine = DB.get_engine('db_jisilu','local')
-logger = llogger('log/'+'jisilu.log')
+
 
 
 # 爬取集思录 可转债的数据
 class Jisilu(object):
-    def __init__(self,check_holiday=True):
+    def __init__(self,check_holiday=True,remote='qq'):
         if check_holiday:
             self.check_holiday()
         self.date = datetime.datetime.now().strftime('%Y-%m-%d')
@@ -38,13 +37,15 @@ class Jisilu(object):
 
         self.url = 'https://www.jisilu.cn/data/cbnew/cb_list/?___jsl=LST___t={}'.format(self.timestamp)
         self.pre_release_url = 'https://www.jisilu.cn/data/cbnew/pre_list/?___jsl=LST___t={}'.format(self.timestamp)
-
+        self.remote = remote
+        self.engine = DB.get_engine('db_jisilu', self.remote)
+        self.logger = llogger('log/' + 'jisilu.log')
     def check_holiday(self):
         if is_holiday():
-            logger.info("Holidy")
+            self.logger.info("Holidy")
             exit(0)
         else:
-            logger.info("Start")
+            self.logger.info("Start")
 
     def download(self, url, data, retry=5):
         for i in range(retry):
@@ -182,11 +183,11 @@ class Jisilu(object):
         df = df.set_index('可转债代码', drop=True)
         try:
 
-            df.to_sql('tb_jsl_{}'.format(self.date), engine, if_exists='replace', dtype={'可转债代码': VARCHAR(10)})
-            engine2=DB.get_engine('db_stock','local')
+            df.to_sql('tb_jsl_{}'.format(self.date), self.engine, if_exists='replace', dtype={'可转债代码': VARCHAR(10)})
+            engine2=DB.get_engine('db_stock',self.remote)
             df.to_sql('tb_bond_jisilu'.format(self.date), engine2, if_exists='replace', dtype={'可转债代码': VARCHAR(10)})
         except Exception as e:
-            logger.info(e)
+            self.logger.info(e)
 
     # 这个数据最好晚上10点执行
     def history_data(self):
@@ -215,7 +216,7 @@ class Jisilu(object):
             conn.commit()
         except Exception as e:
 
-            logger.error('创建数据库失败{}'.format(e))
+            self.logger.error('创建数据库失败{}'.format(e))
 
         post_data = {'cb_type_Y': 'Y',
                      'progress': '',
@@ -250,7 +251,7 @@ class Jisilu(object):
                 try:
                     cursor.execute(check_exist,(bond_id))
                 except Exception as e:
-                    logger.error('查询重复数据错误 {}'.format(e))
+                    self.logger.error('查询重复数据错误 {}'.format(e))
 
                 else:
                     ret = cursor.fetchall()
@@ -263,7 +264,7 @@ class Jisilu(object):
                         try:
                             cursor.execute(check_update, (bond_id))
                         except Exception as e:
-                            logger.error('查询重复数据错误 {}'.format(e))
+                            self.logger.error('查询重复数据错误 {}'.format(e))
 
                         else:
                             ret = cursor.fetchall()
@@ -280,7 +281,7 @@ class Jisilu(object):
                                     cursor.execute(update_sql,update_v)
                                     conn.commit()
                                 except Exception as e:
-                                    logger.error(e)
+                                    self.logger.error(e)
 
                     # 插入
                     else:
@@ -294,7 +295,7 @@ class Jisilu(object):
                             cursor.execute(insert_sql, v)
                             conn.commit()
                         except Exception as e:
-                            logger.error(e)
+                            self.logger.error(e)
                             conn.rollback()
 
 
@@ -311,7 +312,7 @@ class Jisilu(object):
         try:
             ret = float(x)*ration
         except Exception as e:
-            logger.error('转换失败{}'.format(e))
+            self.logger.error('转换失败{}'.format(e))
             ret = None
 
         return ret
