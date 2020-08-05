@@ -8,12 +8,11 @@ import datetime
 import json
 import random
 import re
-
 import requests
 import time
 
-from settings import get_mysql_conn, llogger
-import tushare as ts
+from settings import DBSelector, llogger
+DB = DBSelector()
 
 headers = {
     'Connection': 'keep-alive',
@@ -29,13 +28,10 @@ headers = {
 
 def update_jj(table):
     # table='2020-02-25' # 用于获取code列
-
-    conn = get_mysql_conn('db_fund', local='local')
+    conn = DB.get_mysql_conn('db_fund', 'qq')
     # today=datetime.datetime.now().strftime('%Y-%m-%d')
-    # print(today)
-    logger = llogger(f'{table}_realtime.log')
+    logger = llogger(f'log/{table}_realtime.log')
     query = 'select `基金代码`,`基金简称`,`实时价格` from `{}`'.format(table)
-    # print(query)
     cursor = conn.cursor()
     cursor.execute(query)
     session = requests.Session()
@@ -53,6 +49,7 @@ def update_jj(table):
         conn.rollback()
     else:
         conn.commit()
+
     try:
         cursor.execute(add_column2)
     except Exception as e:
@@ -61,25 +58,19 @@ def update_jj(table):
         conn.commit()
 
     for item in ret:
-        # pass
-        # print(item[0])
 
         code = item[0]
         realtime_price = item[2]
         s_resp = session.get(url.format(code), headers=headers)
-        # print(s_resp.text)
-        print()
-        print(code)
         content = re.search('LOAD_\d+_\d+=(.*)', s_resp.text).group(1)
-        # print(content)
         js = json.loads(content)
-        # print(js)
         try:
             data_list = js.get('data').get('data')
         except Exception as e:
+            logger.error(e)
+            print(js)
             continue
 
-        # print(data_list)
         last_one = data_list[-1]
         time_ = last_one[0]
 
@@ -88,5 +79,5 @@ def update_jj(table):
         print(f'溢价率-{yjl}')
         cursor.execute(update_sql, (jj_, yjl, code))
         conn.commit()
-
+    logger.info('更新成功')
     conn.close()

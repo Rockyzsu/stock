@@ -7,18 +7,13 @@ Contact: weigesysu@qq.com
 # 每天的涨跌停
 import re
 import time
-import xlrd
 import xlwt
-import sys
 import os
-import settings
 from settings import is_holiday, DATA_PATH
 import pandas as pd
-from settings import llogger,DBSelector
+from settings import llogger,DBSelector,send_from_aliyun
 import requests
-# from send_mail import sender_139
 import datetime
-import tushare as ts
 
 logger = llogger('log/zdt.log')
 
@@ -187,10 +182,10 @@ class GetZDT(object):
             title = '昨天涨停个股今天{}\n的平均涨幅{}\n'.format(current, avg)
             content = '昨天涨停个股今天{}\n的平均涨幅{}\n涨幅中位数{}\n涨幅最小{}\n'.format(current,avg,median,min_v)
 
-            # try:
-            #     (title, content)
-            # except Exception as e:
-            #     print(e)
+            try:
+                send_from_aliyun(title, content)
+            except Exception as e:
+                print(e)
 
     # 昨日涨停今日的状态，今日涨停
 
@@ -233,12 +228,12 @@ if __name__ == '__main__':
     #         print(ret)
     #         continue
 
-    check = False
+    check = True
 
     if check and is_holiday():
         logger.info('Holiday')
         exit()
 
     logger.info("start")
-    obj = GetZDT('20200731')
+    obj = GetZDT(None)
     obj.storedata()

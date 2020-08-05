@@ -8,16 +8,13 @@ import datetime
 import time
 import tushare as ts
 import os
-from settings import get_engine,llogger,is_holiday,DATA_PATH
+from settings import DBSelector,llogger,is_holiday,DATA_PATH
 import pandas as pd
 logger = llogger('log/collect_data.log')
 
 # 获取市场全貌
 
-class SaveData():
-
-    today = datetime.datetime.now().strftime("%Y-%m-%d")
-    daily_engine = get_engine('db_daily')
+class SaveData(object):
 
     def __init__(self):
         work_space=DATA_PATH
@@ -25,15 +22,17 @@ class SaveData():
             os.mkdir(work_space)
         os.chdir(work_space)
 
+        self.today = datetime.datetime.now().strftime("%Y-%m-%d")
+        self.daily_engine = DBSelector().get_engine('db_daily','qq')
 
-    @staticmethod
-    def daily_market():
+    def daily_market(self):
         df = ts.get_today_all()
         try:
-            df.to_sql(SaveData.today,SaveData.daily_engine,if_exists='replace')
+            df.to_sql(self.today,self.daily_engine,if_exists='replace')
         except Exception as e:
             logger.info(e)
-        logger.info("Save {} data to MySQL".format(SaveData.today))
+        else:
+            logger.info("Save {} data to MySQL".format(self.today))
 
     #获取解禁股
     def get_classified_stock(self,year=None,month=None):
@@ -42,7 +41,7 @@ class SaveData():
         self.save_to_excel(df,filename)
 
     def basic_info(self,retry=5):
-        engine = get_engine('db_stock')
+        engine = DBSelector().get_engine('db_stock')
 
         # 需要添加异常处理 重试次数
         count = 0
@@ -70,7 +69,6 @@ class SaveData():
                     continue
 
 
-
     def save_to_excel(self,df,filename,encoding='gbk'):
         try:
             df.to_csv('temp.csv',encoding=encoding,index=False)
@@ -87,6 +85,5 @@ def main():
     obj.basic_info()
 
 if __name__=='__main__':
-
     main()
     logger.info('完成')

@@ -4,12 +4,16 @@
 # @File : SPSIOP_PRICE.py
 # 获取SPSIOP的价格，每天早上美股收盘
 import datetime
-
 import requests
 import pymongo
-from settings import send_aliyun, llogger,QQ_MAIL
-
-client = pymongo.MongoClient('192.168.10.48', 17001)
+from settings import llogger,_json_data,send_from_aliyun
+host = _json_data['mongo']['qq']['host']
+port = _json_data['mongo']['qq']['port']
+user = _json_data['mongo']['qq']['user']
+to_mail = _json_data['mail']['qq']['user']
+password = _json_data['mongo']['qq']['password']
+# host='127.0.0.1'
+client = pymongo.MongoClient(host=host, port=port)
 doc = client['db_stock']['SPSIOP']
 # 先访问一下雪球首页得到cookies
 logger = llogger('log/huabaoyouqi.log')
@@ -47,9 +51,8 @@ def get_price():
         d={'日期':today,'估值':predict_v}
         client['db_stock']['huabaoyouqi_predict'].insert_one(d)
         title=f'{today}华宝估值{predict_v}'
-        send_aliyun(title,'',QQ_MAIL)
+        send_from_aliyun(title,'')
     else:
-
         logger.error('获取估值失败')
 
 
@@ -65,7 +68,7 @@ def qdii_info():
     doc = client['DB_QDII'][today]
 
     try:
-        doc.insert(new_rows)
+        doc.insert_one(new_rows)
 
     except Exception as e:
         logger.error(e)
