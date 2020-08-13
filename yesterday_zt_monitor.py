@@ -65,23 +65,23 @@ def monitor():
 '''
 
 
-def plot_yesterday_zt(type_name='zrzt', current=datetime.datetime.now()):
+def plot_yesterday_zt(type_name='zrzt', current=datetime.datetime.now().strftime('%Y%m%d')):
     engine = DB.get_engine('db_zdt','qq')
     table_name = type_name
-    table = '{}{}'.format(current.strftime('%Y%m%d'), table_name)
+    table = '{}{}'.format(current, table_name)
     try:
         df = pd.read_sql(table, engine)
     except Exception as e:
         logger.error('table_name >>> {}{}'.format(current,table_name))
         logger.error(e)
         return
-    start_data = current + datetime.timedelta(days=-200)
+    start_data = datetime.datetime.now() + datetime.timedelta(days=-200)
     start_data=start_data.strftime('%Y-%m-%d')
     for i in range(len(df)):
         code = df.iloc[i]['代码']
         name = df.iloc[i]['名称']
 
-        plot_stock_line(api,code, name, table_name=table_name, current=current.strftime('%Y%m%d'), start=start_data, save=True)
+        plot_stock_line(api,code, name, table_name=table_name, current=current, start=start_data, save=True)
 
 
 if __name__ == '__main__':
