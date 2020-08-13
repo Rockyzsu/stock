@@ -18,27 +18,32 @@ import tushare as ts
 import matplotlib as mpl
 from mpl_finance import candlestick2_ochl, volume_overlay
 import matplotlib.pyplot as plt
-from settings import get_engine
-
-mpl.rcParams['font.sans-serif'] = ['simhei']
-mpl.rcParams['axes.unicode_minus'] = False
+from settings import DBSelector
 from settings import llogger
+import sys
+
+if sys.platform=='linux':
+    # centos的配置, 根据自定义拷贝的字体
+    mpl.rcParams['font.sans-serif'] = ['Microsoft YaHei']
+else:
+    mpl.rcParams['font.sans-serif'] = ['simhei']
+
+
+mpl.rcParams['axes.unicode_minus'] = False
 
 logger = llogger('log/plot_line.log')
-
-engine = get_engine('db_stock', 'local')
+DB = DBSelector()
+engine = DB.get_engine('db_stock', 'qq')
 base_info = pd.read_sql('tb_basic_info', engine, index_col='index')
 
 
-def plot_stock_line(api,code, name, table_name, current, start='2017-10-01', save=False):
-    title = '{} {} {} {}'.format(current, code, name, table_name)
+def plot_stock_line(api,code, name, table_name, current, start='2019-10-01', save=False):
+    title = '{}_{}_{}_{}'.format(current, code, name, table_name)
     title = title.replace('*', '_')
 
 
     if os.path.exists(title + '.png'):
         return
-
-
 
     if code is None and name is not None:
         code = base_info[base_info['name'] == name]['code'].values[0]
@@ -88,10 +93,10 @@ def plot_stock_line(api,code, name, table_name, current, start='2017-10-01', sav
     ax.legend(loc=2)
     ax.grid(True)
     # df['vol'].plot(kind='bar')
-    volume_overlay(ax2, df['open'], df['close'], df['vol'], width=1, alpha=0.8, colordown='g', colorup='r')
-    ax2.set_xticks(range(0, len(df), 5))
+    volume_overlay(ax2, df['open'], df['close'], df['vol'], width=0.75, alpha=0.8, colordown='g', colorup='r')
+    ax2.set_xticks(range(0, len(df), 20))
     # ax.set_xticklabels(df['date'][::5])
-    ax2.set_xticklabels(df['datetime'][::5])
+    ax2.set_xticklabels(df['datetime'][::20])
     plt.setp(ax2.get_xticklabels(), rotation=30, horizontalalignment='right')
     ax2.grid(True)
     plt.subplots_adjust(hspace=0.3)
