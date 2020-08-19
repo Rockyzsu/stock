@@ -7,52 +7,62 @@ Contact: weigesysu@qq.com
 # 分析新股的开板时机
 import tushare as ts
 import os
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
-class New_Stock_Break():
-    def __init__(self):
+
+class NewStockBreak():
+    def __init__(self,start_date=20170101,end_date=20170401):
         #为了文件整齐，新建一个文件夹data用来专门存放数据
         current = os.getcwd()
-        folder = os.path.join(current, 'data')
+        folder = os.path.join(current, 'new_stock')
         if os.path.exists(folder) == False:
             os.mkdir(folder)
         os.chdir(folder)
         #调用tushare接口，获取A股信息
-        #df0=ts.get_stock_basics()
-        df0=pd.read_csv('bases.csv',dtype={'code':np.str})
+        df0=ts.get_stock_basics()
+        # df0=pd.read_csv('bases.csv',dtype={'code':np.str})
         self.bases=df0.sort_values('timeToMarket',ascending=False)
 
         #获取样本， 获取最近一个年的新股情况
-
-        self.cxg=self.bases[(self.bases['timeToMarket']>20170101) & (self.bases['timeToMarket']<20170401)]
-        self.codes= self.cxg['code'].values
+        self.cxg=self.bases[(self.bases['timeToMarket']>start_date) & (self.bases['timeToMarket']<end_date)]
+        # self.codes= self.cxg['code'].values 官方接口修改
+        self.codes = self.cxg.index.values
 
     def calc_open_by_percent(self,code):
+        # 计算换手率
         cont=100000000
         #total_vol=self.bases[self.bases['code']==code]['totals'].values[0]
-        acutal_vol=self.bases[self.bases['code']==code]['outstanding'].values[0]
+        acutal_vol=self.bases.loc[code]['outstanding']
         all_vol= acutal_vol*cont
-        df1=ts.get_k_data(code)
+        df_k_data=ts.get_k_data(code)
         i=1
-        while 1:
-            s=df1.ix[i]
-            if s['high']!=s['low']:
-                #date=s['date']
-                break
-            i=i+1
+        found = False
+        df_k_data=df_k_data.sort_index(axis=0,ascending=True,by=['date'])
+        while i<365:
+            try:
+                s=df_k_data.iloc[i]
 
-        j=i-1
-        date_end=df1.ix[j]['date']
-        date_start=df1.ix[0]['date']
-        df3=df1[(df1['date']>=date_start) & (df1['date']<=date_end)]
-        v_total_break=df3['volume'].sum()
-        l=len(df3)
-        print(l)
-        print(v_total_break)
-        rate=v_total_break*100*100.00/all_vol #手和股 注意
-        print(round(rate,6))
-        return rate,l
+            except IndexError:
+                print('single positional indexer is out-of-bounds')
+                break
+            except Exception as e:
+                print(e)
+                break
+            else:
+                if s['high']!=s['low']:
+                    found = True
+                    break
+                i=i+1
+        if found:
+            date_end=df_k_data.iloc[i]['date']
+            date_start=df_k_data.iloc[0]['date']
+            df3=df_k_data[(df_k_data['date']>=date_start) & (df_k_data['date']<=date_end)]
+            v_total_break=df3['volume'].sum()
+            day=len(df3)
+            rate=round(v_total_break*100*100.00/all_vol,2) #手和股 注意
+        else:
+            rate,day = 0,0
+        # 换手率与天数
+        return rate,day
 
 
     def calc_open_day(self,code):
@@ -109,19 +119,18 @@ class New_Stock_Break():
         print(max_v)
         print(max_line)
 
-    def getData(self):
-                #self.calc_open_day('603096')
+    def getData(self,filename):
         result=[]
         max_line=[]
         k=[]
         for i in self.codes:
-            print(i)
-            name=self.bases[self.bases['code']==i]['name'].values[0]
-            rate,l=self.calc_open_by_percent(i)
-            if rate is not None:
+            print(f'正处理{i}')
+            name=self.bases.loc[i]['name']
+            rate,day=self.calc_open_by_percent(i)
+            if rate:
                 result.append(rate)
-                max_line.append([name,l,rate])
-                k.append(l)
+                max_line.append([name,day,rate])
+                k.append(day)
 
         #作图用的
         #x=range(len(result))
@@ -130,20 +139,20 @@ class New_Stock_Break():
         #plt.bar(x,result)
         #lt.show()
 
-        f=open('2017-05-cixin.csv','w')
-        for x in max_line:
-            #f.write(';'.join(x))
-            f.write(x[0])
-            f.write('-')
-            f.write(str(x[1]))
-            f.write('-')
-            f.write(str(x[2]))
-            f.write('\n')
+        with open(filename,'w') as f:
+            for x in max_line:
+                #f.write(';'.join(x))
+                f.write(x[0])
+                f.write(';')
+                f.write(str(x[1]))
+                f.write(';')
+                f.write(str(x[2]))
+                f.write('\n')
 
-        f.close()
 
 def main():
-    obj=New_Stock_Break()
-    obj.getData()
+    obj=NewStockBreak(start_date=20200101,end_date=20200701)
+    obj.getData('cxg.txt')
 
-main()
+if __name__ == '__main__':
+    main()

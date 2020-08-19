@@ -7,7 +7,7 @@ import pymongo
 import requests
 import time
 from realtme_jjjz import update_jj
-from settings import get_mysql_conn
+from settings import DBSelector,_json_data
 # 基金数据爬虫
 now = datetime.datetime.now()
 today = now.strftime('%Y-%m-%d')
@@ -31,7 +31,8 @@ headers = {
     'Accept-Language': 'zh,en;q=0.9,en-US;q=0.8',
 }
 
-conn = get_mysql_conn('db_fund', local='local')
+DB = DBSelector()
+conn = DB.get_mysql_conn('db_fund', 'qq')
 cursor = conn.cursor()
 
 def tencent_info():
@@ -108,7 +109,10 @@ def tencent_info():
     conn.close()
 
 def jsl_fund_info():
-    client = pymongo.MongoClient(host='192.168.10.48',port=17001)
+    host = _json_data['mongo']['qq']['host']
+    host='127.0.0.1'
+    port = _json_data['mongo']['qq']['port']
+    client = pymongo.MongoClient(host=host,port=port)
     today = datetime.datetime.now().strftime('%Y-%m-%d')
     doc1 = client['fund_daily'][f'jsl_stock_lof_{today}']
     doc2 = client['fund_daily'][f'jsl_index_lof_{today}']

@@ -7,24 +7,23 @@ Contact: weigesysu@qq.com
 # 每天的涨跌停
 import re
 import time
-import xlrd
 import xlwt
-import sys
 import os
-import settings
 from settings import is_holiday, DATA_PATH
 import pandas as pd
-from settings import llogger,get_mysql_conn,get_engine
+from settings import llogger,DBSelector,send_from_aliyun
 import requests
-# from send_mail import sender_139
 import datetime
-import tushare as ts
 
 logger = llogger('log/zdt.log')
 
 class GetZDT(object):
 
     def __init__(self,today):
+        '''
+        today 格式 20200701
+        :param today:
+        '''
         self.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/64.0.3282.167 Chrome/64.0.3282.167 Safari/537.36"
 
         if today is None:
@@ -54,6 +53,7 @@ class GetZDT(object):
                             "Host": "hqdata.jrj.com.cn",
                             "Referer": "http://stock.jrj.com.cn/tzzs/zrztjrbx.shtml"
                             }
+        self.DB = DBSelector()
 
     def getdata(self, url, headers, retry=5):
         for i in range(retry):
@@ -140,7 +140,7 @@ class GetZDT(object):
         w.save(excel_filename)
 
     def save_to_dataframe(self, data, indexx, choice, post_fix):
-        engine = get_engine('db_zdt')
+        engine = self.DB.get_engine('db_zdt','qq')
         if not data:
             exit()
         data_len = len(data)
@@ -182,10 +182,10 @@ class GetZDT(object):
             title = '昨天涨停个股今天{}\n的平均涨幅{}\n'.format(current, avg)
             content = '昨天涨停个股今天{}\n的平均涨幅{}\n涨幅中位数{}\n涨幅最小{}\n'.format(current,avg,median,min_v)
 
-            # try:
-            #     sender_139(title, content)
-            # except Exception as e:
-            #     print(e)
+            try:
+                send_from_aliyun(title, content)
+            except Exception as e:
+                print(e)
 
     # 昨日涨停今日的状态，今日涨停
 
@@ -228,13 +228,12 @@ if __name__ == '__main__':
     #         print(ret)
     #         continue
 
+    check = True
 
-    if is_holiday():
+    if check and is_holiday():
         logger.info('Holiday')
         exit()
 
     logger.info("start")
     obj = GetZDT(None)
-    # obj = GetZDT('20200207')
-
     obj.storedata()

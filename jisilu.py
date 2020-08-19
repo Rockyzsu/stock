@@ -9,42 +9,37 @@ import time
 import datetime
 import requests
 import pandas as pd
-from settings import get_engine, llogger, is_holiday,get_mysql_conn
-import six
-# from send_mail import sender_139
+from settings import DBSelector,llogger,is_holiday,send_from_aliyun
 from sqlalchemy import VARCHAR
-import os
-engine = get_engine('db_jisilu')
-logger = llogger('log/'+'jisilu.log')
+DB=DBSelector()
 
 
 # 爬取集思录 可转债的数据
 class Jisilu(object):
-    def __init__(self):
-
-        self.check_holiday()
-
+    def __init__(self,check_holiday=False,remote='qq'):
+        self.logger = llogger('log/' + 'jisilu.log')
+        if check_holiday:
+            self.check_holiday()
         self.date = datetime.datetime.now().strftime('%Y-%m-%d')
         # self.date = '2020-02-07' # 用于调整时间
 
-        # py2
-        if six.PY2:
-            self.timestamp = long(time.time() * 1000)
-        else:
-            self.timestamp = int(time.time() * 1000)
+        self.timestamp = int(time.time() * 1000)
         self.headers = {
             'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
             'X-Requested-With': 'XMLHttpRequest'}
 
         self.url = 'https://www.jisilu.cn/data/cbnew/cb_list/?___jsl=LST___t={}'.format(self.timestamp)
         self.pre_release_url = 'https://www.jisilu.cn/data/cbnew/pre_list/?___jsl=LST___t={}'.format(self.timestamp)
+        self.remote = remote
+
+        self.engine = DB.get_engine('db_jisilu', self.remote)
 
     def check_holiday(self):
         if is_holiday():
-            logger.info("Holidy")
+            self.logger.info("Holidy")
             exit(0)
         else:
-            logger.info("Start")
+            self.logger.info("Start")
 
     def download(self, url, data, retry=5):
         for i in range(retry):
@@ -55,8 +50,8 @@ class Jisilu(object):
                 else:
                     return r
             except Exception as e:
-                logger.info(e)
-                sender_139('jisilu可转债', '异常信息>>>>{}'.format(e))
+                self.logger.info(e)
+                send_from_aliyun(title='jisilu可转债', content='异常信息>>>>{}'.format(e))
                 continue
         return None
 
@@ -182,16 +177,20 @@ class Jisilu(object):
         df = df.set_index('可转债代码', drop=True)
         try:
 
-            df.to_sql('tb_jsl_{}'.format(self.date), engine, if_exists='replace', dtype={'可转债代码': VARCHAR(10)})
-            engine2=get_engine('db_stock')
+            df.to_sql('tb_jsl_{}'.format(self.date), self.engine, if_exists='replace', dtype={'可转债代码': VARCHAR(10)})
+            engine2=DB.get_engine('db_stock',self.remote)
             df.to_sql('tb_bond_jisilu'.format(self.date), engine2, if_exists='replace', dtype={'可转债代码': VARCHAR(10)})
         except Exception as e:
-            logger.info(e)
+            self.logger.info(e)
+            send_from_aliyun(title='jisilu可转债',content='写入数据库出错')
+
+
+
 
     # 这个数据最好晚上10点执行
     def history_data(self):
 
-        conn = get_mysql_conn('db_stock',local='local')
+        conn = DB.get_mysql_conn('db_stock','qq')
         cursor = conn.cursor()
 
         check_table = '''
@@ -215,7 +214,7 @@ class Jisilu(object):
             conn.commit()
         except Exception as e:
 
-            logger.error('创建数据库失败{}'.format(e))
+            self.logger.error('创建数据库失败{}'.format(e))
 
         post_data = {'cb_type_Y': 'Y',
                      'progress': '',
@@ -250,7 +249,7 @@ class Jisilu(object):
                 try:
                     cursor.execute(check_exist,(bond_id))
                 except Exception as e:
-                    logger.error('查询重复数据错误 {}'.format(e))
+                    self.logger.error('查询重复数据错误 {}'.format(e))
 
                 else:
                     ret = cursor.fetchall()
@@ -263,7 +262,7 @@ class Jisilu(object):
                         try:
                             cursor.execute(check_update, (bond_id))
                         except Exception as e:
-                            logger.error('查询重复数据错误 {}'.format(e))
+                            self.logger.error('查询重复数据错误 {}'.format(e))
 
                         else:
                             ret = cursor.fetchall()
@@ -280,7 +279,7 @@ class Jisilu(object):
                                     cursor.execute(update_sql,update_v)
                                     conn.commit()
                                 except Exception as e:
-                                    logger.error(e)
+                                    self.logger.error(e)
 
                     # 插入
                     else:
@@ -294,7 +293,7 @@ class Jisilu(object):
                             cursor.execute(insert_sql, v)
                             conn.commit()
                         except Exception as e:
-                            logger.error(e)
+                            self.logger.error(e)
                             conn.rollback()
 
 
@@ -311,21 +310,17 @@ class Jisilu(object):
         try:
             ret = float(x)*ration
         except Exception as e:
-            logger.error('转换失败{}'.format(e))
+            self.logger.error('转换失败{}'.format(e))
             ret = None
 
         return ret
 
 #
 def main():
-    logger.info('Start')
-    obj = Jisilu()
+    obj = Jisilu(check_holiday=False)
     obj.current_data()
     # obj.history_data()
 
 
 if __name__ == '__main__':
-    if is_holiday():
-        logger.info("Holidy")
-        # exit()
     main()
