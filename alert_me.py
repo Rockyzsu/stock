@@ -8,15 +8,15 @@ import time
 import pandas as pd
 import numpy as np
 import os
-import tkinter
-import tkinter.messagebox  # 弹窗库
+# import tkinter
+# import tkinter.messagebox  # 弹窗库
 import threading
 from jsl_monitor import ReachTargetJSL
 import config
 
 def show_box(msg):
-    tkinter.messagebox.showinfo('注意', msg)
-
+    pass
+    # tkinter.messagebox.showinfo('注意', msg)
 
 dirname = os.path.dirname(__file__)
 full_name = os.path.join(

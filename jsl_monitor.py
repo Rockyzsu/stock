@@ -100,7 +100,7 @@ class ReachTargetJSL():
                     t.start()
                     '''
                     text = f'{bond_id}{bond_nm} 异动，转债涨幅：{increase_rt}'
-                    t = threading.Thread(target=send_sms, args=(text,))
+                    t = threading.Thread(target=self.send_msg, args=(text,))
                     t.start()
                     self.logger.info(f'{bond_nm} 涨停')
                     self.history.add(bond_id)
@@ -110,4 +110,4 @@ class ReachTargetJSL():
     def send_msg(self, text):
         url = f"https://sc.ftqq.com/{config.WECHAT_ID}.send?text=" + text
         res = requests.get(url)
-        # send_sms(text)
+        send_sms(text)
