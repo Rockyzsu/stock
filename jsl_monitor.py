@@ -49,7 +49,7 @@ class ReachTargetJSL():
             'bond_ids': '',
             'rp': '50'
         }
-        self.history = HistorySet()
+        self.history = HistorySet(expire=config.EXPIRE_TIME)
 
     def get(self):
         try:
@@ -99,7 +99,8 @@ class ReachTargetJSL():
                     t = threading.Thread(target=show_box, args=(bond_nm,))
                     t.start()
                     '''
-                    text = f'{bond_id}{bond_nm} 异动，转债涨幅：{increase_rt}'
+                    str_content = '负'+increase_rt if float(increase_rt.replace('%',''))<0 else increase_rt
+                    text = f'{bond_id}{bond_nm} 异动，转债涨幅：{str_content}'
                     t = threading.Thread(target=self.send_msg, args=(text,))
                     t.start()
                     self.logger.info(f'{bond_nm} 涨停')

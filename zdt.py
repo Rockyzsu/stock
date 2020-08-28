@@ -179,11 +179,14 @@ class GetZDT(object):
             min_v = round(df['今日涨幅'].min(), 2)
 
             current = datetime.datetime.now().strftime('%Y-%m-%d')
-            title = '昨天涨停个股今天{}\n的平均涨幅{}\n'.format(current, avg)
-            content = '昨天涨停个股今天{}\n的平均涨幅{}\n涨幅中位数{}\n涨幅最小{}\n'.format(current,avg,median,min_v)
+            title = '昨涨停今天{}平均涨{}\n'.format(current, avg)
+            content = '<p>昨天涨停今天<font color="red">{}</font></p>' \
+                      '<p>平均涨幅 <font color="red">{}</font></p>' \
+                      '<p>涨幅中位数 <font color="red">{}</font></p>' \
+                      '<p>涨幅最小 <font color="red">{}</font></p>'.format(current,avg,median,min_v)
 
             try:
-                send_from_aliyun(title, content)
+                send_from_aliyun(title, content,types='html')
             except Exception as e:
                 print(e)
 

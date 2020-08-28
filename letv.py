@@ -3,7 +3,7 @@ import tushare as ts
 import os
 cwd=os.getcwd()
 os.chdir(os.path.join(cwd,'data'))
-
+# 大单监控
 def main():
     df = ts.get_today_ticks('300104')
     total_vol=df['volume'].sum()*100

@@ -20,5 +20,7 @@ codes.txt
 .vscode/
 settings.py
 keys/
+data/
 email_list.py
 config.json
+.ipynb_checkpoints

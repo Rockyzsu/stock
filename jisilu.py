@@ -72,37 +72,8 @@ class Jisilu(object):
             cell_list.append(pd.Series(item.get('cell')))
         df = pd.DataFrame(cell_list)
 
-        # 下面的数据暂时不需要
         if adjust_no_use:
-            # del df['active_fl']
-            # del df['adq_rating']
-            # del df['list_dt']
-            # del df['left_put_year']
-            # del df['owned']
-            # del df['put_dt']
-            # del df['real_force_redeem_price']
-            # del df['redeem_dt']
-            # del df['apply_cd']
-            # del df['force_redeem']
-            # del df['stock_id']
-            # del df['full_price']
-            # del df['pre_bond_id']
-            # del df['ytm_rt']
-            # del df['ytm_rt_tax']
-            # del df['repo_cd']
-            # del df['last_time']
-            # del df['pinyin']
-            # del df['put_real_days']
-            # del df['price_tips']
-            # del df['btype']
-            # del df['repo_valid']
-            # del df['repo_valid_to']
-            # del df['repo_valid_from']
-            # del df['repo_discount_rt']
-            # del df['adjust_tc']
-            # del df['cpn_desc']
-            # del df['market']
-            # del df['stock_net_value']
+
 
             # 类型转换 部分含有%
 
@@ -163,16 +134,15 @@ class Jisilu(object):
                               'convert_amt_ratio': '转债剩余占总市值比',
                               'curr_iss_amt': '剩余规模', 'orig_iss_amt': '发行规模',
                               'ration_rt': '股东配售率',
+                              'redeem_flag':'发出强赎公告',
+                              'redeem_dt':'强赎日期',
+                              'redeem_flag':'强赎标志'
                               }
 
             df = df.rename(columns=rename_columns)
             df = df[list(rename_columns.values())]
             df['更新日期'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
 
-        # dfx = df[['可转债代码', '可转债名称', '可转债涨幅', '可转债价格', '正股名称', '正股代码',
-        #           '正股涨跌幅', '正股现价', '最新转股价', '溢价率', '评级',
-        #           '转股起始日', '回售起始日', '回售触发价', '剩余时间',
-        #           '更新日期']]
 
         df = df.set_index('可转债代码', drop=True)
         try:

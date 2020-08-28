@@ -68,7 +68,6 @@ def update_jj(table):
             data_list = js.get('data').get('data')
         except Exception as e:
             logger.error(e)
-            print(js)
             continue
 
         last_one = data_list[-1]
