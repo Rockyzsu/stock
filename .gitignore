@@ -11,7 +11,6 @@ stock_list.txt
 bases.csv
 *.csv
 *.xls
-*.png
 config.py
 conf.py
 send_mail.py

@@ -30,11 +30,18 @@
 
 ###
 您的支持就是我最大的动力！
+
+关注开发者公众号： 可转债量化分析
+![gzh](resource/gongzhonghao.png)
+
 如果您觉得本示例对你有用，作为对作者的打赏，可以扫描以下支付宝红包,这是作者的免费红包二维码，领取了到店铺支付时使用，可抵扣相应金额。
 
 ![alipay](resource/redbag.jpg )
+
+
 
 如果您真的很感激作者，也可以直接扫描以下二维码打赏作者。
 
 ![weixin](resource/weixin.png)    
 ![alipay](resource/MyAlipay.jpg)  
+
