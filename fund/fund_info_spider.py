@@ -7,6 +7,7 @@ import pymongo
 import requests
 import time
 import sys
+
 sys.path.append('..')
 from settings import DBSelector, _json_data, send_from_aliyun, llogger
 
@@ -24,7 +25,7 @@ else:
     today += 'close'
 
 NOTIFY_HOUR = 13
-
+MAX_PAGE = 114
 
 headers = {
     'Connection': 'keep-alive',
@@ -41,8 +42,8 @@ DB = DBSelector()
 conn = DB.get_mysql_conn('db_fund', 'qq')
 cursor = conn.cursor()
 base_dir = os.path.dirname(os.path.abspath(__file__))
-log_path = os.path.join(base_dir,'..', 'log')
-logger = llogger(os.path.join(log_path,'fund_info.log'))
+log_path = os.path.join(base_dir, '..', 'log')
+logger = llogger(os.path.join(log_path, 'fund_info.log'))
 
 
 class FundSpider(object):
@@ -51,15 +52,19 @@ class FundSpider(object):
         self.create_tb()
 
     def create_tb(self):
-        create_table = 'create table if not EXISTS `{}` (`基金代码` varchar(20) PRIMARY KEY,`基金简称` varchar(100),`最新规模-万` float,`实时价格` float,`涨跌幅` float,`成交额-万` float,`净值日期` VARCHAR(10),`单位净值` float,`累计净值` float,`折溢价率` float ,`申购状态` VARCHAR(20),`申赎状态` varchar(20),`基金经理` VARCHAR(200),`成立日期` VARCHAR(20), `管理人名称` VARCHAR(200),`实时估值` INT,`更新时间` VARCHAR(20));'.format(
+        create_table = 'create table if not EXISTS `{}` (`基金代码` varchar(20) PRIMARY KEY,`基金简称` varchar(100),`最新规模-万` float,' \
+                       '`实时价格` float,`涨跌幅` float,`成交额-万` float,`净值日期` VARCHAR(10),`单位净值` float,`累计净值` float,`折溢价率` float ,`申购状态` VARCHAR(20),`申赎状态` varchar(20),`基金经理` VARCHAR(200),' \
+                       '`成立日期` VARCHAR(20), `管理人名称` VARCHAR(200),`实时估值` INT,`QDII` INT ,`更新时间` VARCHAR(20));'.format(
             today)
         try:
             cursor.execute(create_table)
-        except:
-            pass
+        except Exception as e:
+            conn.rollback()
+            print(e)
         else:
             conn.commit()
-    def convert(self,float_str):
+
+    def convert(self, float_str):
         try:
             return_float = float(float_str)
         except:
@@ -71,13 +76,13 @@ class FundSpider(object):
         insert_data = 'insert into `{}` VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'.format(today)
         update_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         is_realtime = 1
-        zxgm=self.convert(zxgm)
-        zxjg=self.convert(zxjg)
-        jgzffd=self.convert(jgzffd)
-        cj_total_amount=self.convert(cj_total_amount)
-        dwjz=self.convert(dwjz)
-        ljjz=self.convert(ljjz)
-        zyjl=self.convert(zyjl)
+        zxgm = self.convert(zxgm)
+        zxjg = self.convert(zxjg)
+        jgzffd = self.convert(jgzffd)
+        cj_total_amount = self.convert(cj_total_amount)
+        dwjz = self.convert(dwjz)
+        ljjz = self.convert(ljjz)
+        zyjl = self.convert(zyjl)
 
         try:
             cursor.execute(insert_data, (
@@ -99,7 +104,7 @@ class FundSpider(object):
 
     def crawl(self):
         code_set = set()
-        for p in range(1, 114):
+        for p in range(1, MAX_PAGE):
             params = (
                 ('appn', 'rank'),
                 ('t', 'ranklof/chr'),
@@ -112,8 +117,11 @@ class FundSpider(object):
             session = requests.Session()
             response = session.get('http://stock.gtimg.cn/data/index.php', headers=headers, params=params, verify=False)
             ls_data = re.search('var list_data=(.*?);', response.text, re.S)
-            ret = ls_data.group(1)
-            js = demjson.decode(ret)
+
+            if ls_data:
+                ret = ls_data.group(1)
+
+            js = demjson.decode(ret) # 解析json的库
             detail_url = 'http://gu.qq.com/{}'
             query_string = js.get('data')
             time.sleep(5 * random.random())
@@ -247,10 +255,10 @@ class FundSpider(object):
         query = f'select `折溢价率`,`单位净值` from `{table}` where `基金代码`=%s'
         cursor.execute(query, code)
         ret = cursor.fetchone()
-        yjl,jz = ret[0], ret[1]
-        yjl = round(yjl,3)
-        jz = round(jz,3)
-        return yjl,jz
+        yjl, jz = ret[0], ret[1]
+        yjl = round(yjl, 3)
+        jz = round(jz, 3)
+        return yjl, jz
 
     def notify(self, today):
 
@@ -258,24 +266,24 @@ class FundSpider(object):
 
         if now.hour > NOTIFY_HOUR:
             # 下午才会发通知
-            query_sql = '''select `基金代码`,`基金简称`,`实时价格`,`实时净值`,`溢价率` from `{}` where `申购状态`='开放' and `申赎状态`='开放' and !(`实时价格`=1 and `涨跌幅`=0 and `成交额-万`=0) order by `溢价率` limit 10'''.format(
+            query_sql = '''select `基金代码`,`基金简称`,`实时价格`,`实时净值`,`溢价率`,`净值日期` from `{}` where `申购状态`='开放' and `申赎状态`='开放' and !(`实时价格`=1 and `涨跌幅`=0 and `成交额-万`=0) order by `溢价率` limit 10'''.format(
                 today)
             cursor.execute(query_sql)
             ret = cursor.fetchall()
             html = '<div><table border="1">' \
-                   '<tr><th>基金代码</th><th>基金简称</th><th>实时价格</th><th>实时净值</th><th>溢价率</th></tr>'
+                   '<tr><th>基金代码</th><th>基金简称</th><th>实时价格</th><th>实时净值</th><th>溢价率</th><th>净值日期</th></tr>'
             for i in ret:
                 html += f'<tr><td>{i[0]}</td><td>{i[1]}</td><td>{i[2]}</td><td>{i[3]}</td><td>{i[4]}</td></tr>'
             html += '</table></div>'
 
-            query_sql = '''select `基金代码`,`基金简称`,`实时价格`,`实时净值`,`溢价率` from `{}` where `申购状态`='开放' and `申赎状态`='开放'  and `溢价率` is not null and !(`实时价格`=1 and `涨跌幅`=0 and `成交额-万`=0) order by `折溢价率` desc limit 10'''.format(
+            query_sql = '''select `基金代码`,`基金简称`,`实时价格`,`实时净值`,`溢价率`,`净值日期` from `{}` where `申购状态`='开放' and `申赎状态`='开放'  and `溢价率` is not null and !(`实时价格`=1 and `涨跌幅`=0 and `成交额-万`=0) order by `溢价率` desc limit 10'''.format(
                 today)
             cursor.execute(query_sql)
             ret = cursor.fetchall()
             html += '<div><table border="1">' \
-                    '<tr><th>基金代码</th><th>基金简称</th><th>实时价格</th><th>实时净值</th><th>溢价率</th></tr>'
+                    '<tr><th>基金代码</th><th>基金简称</th><th>实时价格</th><th>实时净值</th><th>溢价率</th><th>净值日期</th></tr>'
             for i in ret:
-                html += f'<tr><td>{i[0]}</td><td>{i[1]}</td><td>{i[2]}</td><td>{i[3]}</td><td>{i[4]}</td></tr>'
+                html += f'<tr><td>{i[0]}</td><td>{i[1]}</td><td>{i[2]}</td><td>{i[3]}</td><td>{i[4]}</td><td>{i[5]}</td></tr>'
             html += '</table></div>'
 
             title = f'{today} 基金折溢价'
@@ -293,12 +301,16 @@ class JSLFund(object):
     '''
     集思录的指数
     '''
+
     def __init__(self):
 
         host = _json_data['mongo']['qq']['host']
         # host='127.0.0.1'
         port = _json_data['mongo']['qq']['port']
-        client = pymongo.MongoClient(host=host, port=port)
+        user = _json_data['mongo']['qq']['user']
+        password = _json_data['mongo']['qq']['password']
+        connect_uri = f'mongodb://{user}:{password}@{host}:{port}'
+        client = pymongo.MongoClient(connect_uri)
         today_ = datetime.datetime.now().strftime('%Y-%m-%d')
         self.doc1 = client['fund_daily'][f'jsl_stock_lof_{today_}']
         self.doc2 = client['fund_daily'][f'jsl_index_lof_{today_}']
@@ -340,12 +352,10 @@ class JSLFund(object):
 
 
 if __name__ == '__main__':
-
     tencent_spider = FundSpider()
     tencent_spider.crawl()
     tencent_spider.update_jinzhi(today)
     tencent_spider.notify(today)
 
-    # jsl_spider = JSLFund()
-    # jsl_spider.crawl()
-
+    jsl_spider = JSLFund()
+    jsl_spider.crawl()

@@ -10,7 +10,7 @@ from settings import llogger, market_status, send_sms
 class ReachTargetJSL():
     def __init__(self):
 
-        self.logger = llogger('jsl_monitor')
+        self.logger = llogger('log/jsl_monitor')
         self.session = requests.Session()
         self.cookies = config.jsl_cookies
 
@@ -43,7 +43,7 @@ class ReachTargetJSL():
             'ytm_rt': '',
             'rating_cd': '',
             'is_search': 'Y',
-            'btype': '',
+            'btype': 'C',
             'listed': 'Y',
             'sw_cd': '',
             'bond_ids': '',
@@ -66,7 +66,7 @@ class ReachTargetJSL():
 
         string = string.replace('%', '')
         try:
-            string = float(string)
+            string = round(float(string),1)
         except:
             return 0
         else:
@@ -76,6 +76,7 @@ class ReachTargetJSL():
 
         while market_status():
             ret = self.get()
+
             if not ret:
                 time.sleep(5)
                 continue
@@ -86,12 +87,13 @@ class ReachTargetJSL():
                 bond_id = item.get('bond_id', '').strip()
 
                 full_price = item.get('full_price')
-                remium_rt = item.get('premium_rt')
+                premium_rt = self.__convert__(item.get('premium_rt'))
 
                 sincrease_rt = item.get('sincrease_rt')
                 sincrease_rt = self.__convert__(sincrease_rt)
 
                 increase_rt = item.get('increase_rt')
+                curr_iss_amt = self.__convert__(item.get('curr_iss_amt')) # 剩余规模
 
                 if abs(sincrease_rt) >= config.MONITOR_PERCENT and self.history.is_expire(bond_id):
                     '''
@@ -100,7 +102,8 @@ class ReachTargetJSL():
                     t.start()
                     '''
                     str_content = '负'+increase_rt if float(increase_rt.replace('%',''))<0 else increase_rt
-                    text = f'{bond_id}{bond_nm} 异动，转债涨幅：{str_content}'
+                    str_content = str_content.replace('%','')
+                    text = f'{bond_nm[:2]}-债{str_content}-股{sincrease_rt}-规模{curr_iss_amt}-溢{premium_rt}'
                     t = threading.Thread(target=self.send_msg, args=(text,))
                     t.start()
                     self.logger.info(f'{bond_nm} 涨停')
@@ -110,5 +113,8 @@ class ReachTargetJSL():
 
     def send_msg(self, text):
         url = f"https://sc.ftqq.com/{config.WECHAT_ID}.send?text=" + text
-        res = requests.get(url)
-        send_sms(text)
+        try:
+            res = requests.get(url)
+        except Exception as e:
+            print(e)
+        # send_sms(text)

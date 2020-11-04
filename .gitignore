@@ -23,3 +23,4 @@ data/
 email_list.py
 config.json
 .ipynb_checkpoints
+log/jsl_monitor

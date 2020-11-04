@@ -12,9 +12,9 @@ import os
 import datetime
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from settings import DBSelector
 import fire
+
 DB=DBSelector()
 engine = DB.get_engine('db_stock', 'qq')
 conn =DB.get_mysql_conn('db_stock','qq')
@@ -458,9 +458,9 @@ def bank_account():
 def main(broker,name):
     # 国金
     obj = DeliveryOrder()
-
+    base_path = 'private/2020/'
     if broker=='GJ':
-        path='private/2020/GJ'
+        path = base_path+broker
         obj.setpath(path)
         # obj.data_sync()
         obj.years_gj_each_month_day(filename=name)
@@ -472,8 +472,8 @@ def main(broker,name):
 
     # 华宝
     elif broker=='HB':
-        path='private/2020/HB'
         # obj.data_sync()
+        path = base_path+broker
         obj.setpath(path)
         obj.merge_data_HuaBao(filename=name)
 

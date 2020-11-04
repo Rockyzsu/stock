@@ -6,21 +6,26 @@ __author__ = 'rocky'
 import tushare as ts
 import datetime
 import pandas as pd
-from settings import get_engine, get_mysql_conn
+from settings import DBSelector,_json_data
 import pymongo
 from config import token
-from filter_stock import Filter_Stock
-MONGO_HOST = '10.18.6.46'
-MONGO_PORT = 27001
+# from filter_stock import Filter_Stock
 
+db = DBSelector()
+INFO = _json_data['mongo']['arm']
+host = INFO['host']
+port = INFO['port']
+user = INFO['user']
+password = INFO['password']
 
 class BreakPoint(object):
 
     def __init__(self):
-        self.engine = get_engine('db_stock', local=True)
-        self.conn = get_mysql_conn('db_stock', local='local')
+        self.engine = db.get_engine('db_stock', 'qq')
+        self.conn = db.get_mysql_conn('db_stock', 'qq')
         self.info = pd.read_sql('tb_basic_info', con=self.engine, index_col='code')
-        self.db = pymongo.MongoClient(MONGO_HOST, MONGO_PORT)
+        connect_uri = f'mongodb://{user}:{password}@{host}:{port}'
+        self.db = pymongo.MongoClient(connect_uri)
         self.doc = self.db['db_stock']['break_low_high']
         ts.set_token(token)
         self.pro = ts.pro_api()

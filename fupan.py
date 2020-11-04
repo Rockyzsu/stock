@@ -8,7 +8,7 @@ http://30daydo.com
 Contact: weigesysu@qq.com
 '''
 
-from settings import get_engine
+from settings import DBSelector
 import pandas as pd
 import pymongo
 
@@ -18,7 +18,7 @@ db = client['stock']
 doc = db['industry']
 today = '2018-05-08'
 # today = datetime.datetime.now().strftime('%Y-%m-%d')
-daily_engine = get_engine('db_daily')
+daily_engine = DBSelector().get_engine('db_daily','qq')
 daily_df = pd.read_sql(today, daily_engine, index_col='index')
 
 

@@ -13,7 +13,9 @@ user = _json_data['mongo']['qq']['user']
 to_mail = _json_data['mail']['qq']['user']
 password = _json_data['mongo']['qq']['password']
 # host='127.0.0.1'
-client = pymongo.MongoClient(host=host, port=port)
+
+connect_uri = f'mongodb://{user}:{password}@{host}:{port}'
+client = pymongo.MongoClient(connect_uri)
 doc = client['db_stock']['SPSIOP']
 # 先访问一下雪球首页得到cookies
 logger = llogger('log/huabaoyouqi.log')

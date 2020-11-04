@@ -22,10 +22,13 @@ class CloseEndFundCls():
         self.headers = {
             'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
             'X-Requested-With': 'XMLHttpRequest'}
-        ip=_json_data['mongo']['qq']['host']
+        host=_json_data['mongo']['qq']['host']
         port=_json_data['mongo']['qq']['port']
-        uri=f'mongodb://{ip}:{port}'
-        self.db = pymongo.MongoClient(uri)
+        user=_json_data['mongo']['qq']['user']
+        password=_json_data['mongo']['qq']['password']
+
+        connect_uri = f'mongodb://{user}:{password}@{host}:{port}'
+        self.db = pymongo.MongoClient(connect_uri)
         today = datetime.datetime.now().strftime('%Y-%m-%d')
         self.doc = self.db['closed_end_fund'][today]
 
