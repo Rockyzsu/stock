@@ -4,7 +4,7 @@ import time
 import config
 from history_set import HistorySet
 import threading
-from settings import llogger, market_status, send_sms
+from settings import llogger, market_status, notify
 
 
 class ReachTargetJSL():
@@ -104,17 +104,9 @@ class ReachTargetJSL():
                     str_content = '负'+increase_rt if float(increase_rt.replace('%',''))<0 else increase_rt
                     str_content = str_content.replace('%','')
                     text = f'{bond_nm[:2]}-债{str_content}-股{sincrease_rt}-规模{curr_iss_amt}-溢{premium_rt}'
-                    t = threading.Thread(target=self.send_msg, args=(text,))
+                    t = threading.Thread(target=notify, args=(text,))
                     t.start()
                     self.logger.info(f'{bond_nm} 涨停')
                     self.history.add(bond_id)
 
             time.sleep(config.ACCESS_INTERVAL)
-
-    def send_msg(self, text):
-        url = f"https://sc.ftqq.com/{config.WECHAT_ID}.send?text=" + text
-        try:
-            res = requests.get(url)
-        except Exception as e:
-            print(e)
-        # send_sms(text)
