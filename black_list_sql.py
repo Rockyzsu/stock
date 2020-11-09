@@ -1,6 +1,7 @@
 # -*-coding=utf-8-*-
 # 股市黑名单
-from settings import get_mysql_conn,llogger,DATA_PATH
+
+from settings import llogger,DATA_PATH,DBSelector
 import os
 import codecs
 
@@ -75,14 +76,15 @@ def main():
     # 本地更新
     logger.info('update local')
     db_name = 'db_stock'
-    conn = get_mysql_conn(db_name, local='local')
+    DB = DBSelector()
+    conn = DB.get_mysql_conn(db_name, 'qq')
     create_tb(conn)
     update_data(filename,conn)
 
     # 远程更新
     # db_name = 'db_stock'
     logger.info('update remote')
-    remote_conn = get_mysql_conn('qdm225205669_db', local='ali')
+    remote_conn = DB.get_mysql_conn('qdm225205669_db', 'qq')
     create_tb(remote_conn)
     update_data(filename,remote_conn)
 

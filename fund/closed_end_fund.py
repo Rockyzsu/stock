@@ -4,20 +4,20 @@
 # @File : closed_end_fund.py
 
 # 抓取封闭式基金数据
+
 import datetime
 import requests
-from settings import llogger,DBSelector,_json_data
+from settings import DBSelector,_json_data
 import pymongo
-
-logger = llogger('log/fund.log')
+from BaseService import  BaseService
 RETRY =0
 db = DBSelector()
 
-class CloseEndFundCls():
+class CloseEndFundCls(BaseService):
 
     def __init__(self):
 
-
+        super(CloseEndFundCls,self).__init__('log/fund.log')
         self.url ='https://www.jisilu.cn/data/cf/cf_list/'
         self.headers = {
             'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -33,6 +33,7 @@ class CloseEndFundCls():
         self.doc = self.db['closed_end_fund'][today]
 
     def crawl(self):
+
         global RETRY
         while RETRY < 5:
             try:
@@ -40,7 +41,7 @@ class CloseEndFundCls():
                      headers=self.headers)
 
             except Exception as e:
-                logger.error(e)
+                self.logger.error(e)
                 RETRY+=1
                 continue
             else:
@@ -61,7 +62,7 @@ class CloseEndFundCls():
         try:
             self.doc.insert_many(row_list)
         except Exception as e:
-            logger.error(e)
+            self.logger.error(e)
             return False
         else:
             return True
@@ -70,11 +71,11 @@ class CloseEndFundCls():
         content = self.crawl()
 
         if content is None:
-            logger.error('爬取内容为空')
+            self.logger.error('爬取内容为空')
             return
 
         if self.save(content):
-            logger.info('保存成功')
+            self.logger.info('保存成功')
         else:
-            logger.info('保存失败')
+            self.logger.info('保存失败')
 

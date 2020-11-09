@@ -11,13 +11,14 @@ import requests
 import pandas as pd
 from settings import DBSelector,llogger,is_holiday,send_from_aliyun
 from sqlalchemy import VARCHAR
+from BaseService import BaseService
 DB=DBSelector()
 
-
 # 爬取集思录 可转债的数据
-class Jisilu(object):
+class Jisilu(BaseService):
     def __init__(self,check_holiday=False,remote='qq'):
-        self.logger = llogger('log/' + 'jisilu.log')
+        super(Jisilu,self).__init__(logfile='log/jisilu.log')
+
         if check_holiday:
             self.check_holiday()
         self.date = datetime.datetime.now().strftime('%Y-%m-%d')
@@ -27,11 +28,9 @@ class Jisilu(object):
         self.headers = {
             'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
             'X-Requested-With': 'XMLHttpRequest'}
-
         self.url = 'https://www.jisilu.cn/data/cbnew/cb_list/?___jsl=LST___t={}'.format(self.timestamp)
         self.pre_release_url = 'https://www.jisilu.cn/data/cbnew/pre_list/?___jsl=LST___t={}'.format(self.timestamp)
         self.remote = remote
-
         self.engine = DB.get_engine('db_jisilu', self.remote)
 
     def check_holiday(self):
@@ -42,6 +41,7 @@ class Jisilu(object):
             self.logger.info("Start")
 
     def download(self, url, data, retry=5):
+
         for i in range(retry):
             try:
                 r = requests.post(url, headers=self.headers, data=data)
@@ -53,20 +53,29 @@ class Jisilu(object):
                 self.logger.info(e)
                 send_from_aliyun(title='jisilu可转债', content='异常信息>>>>{}'.format(e))
                 continue
+
         return None
 
-    def current_data(self, adjust_no_use=True):
+    def daily_update(self, adjust_no_use=True):
+
         post_data = {
             'btype': 'C',
             'listed': 'Y',
             'rp': '50',
             'is_search': 'N',
         }
+
         js = self.download(self.url, data=post_data)
         if not js:
             return None
+
         ret = js.json()
         bond_list = ret.get('rows', {})
+        self.data_parse(bond_list,adjust_no_use)
+
+
+    def data_parse(self,bond_list,adjust_no_use):
+
         cell_list = []
         for item in bond_list:
             cell_list.append(pd.Series(item.get('cell')))
@@ -74,9 +83,7 @@ class Jisilu(object):
 
         if adjust_no_use:
 
-
             # 类型转换 部分含有%
-
             df['premium_rt'] = df['premium_rt'].map(lambda x: float(x.replace('%', '')))
             df['price'] = df['price'].astype('float64')
             df['convert_price'] = df['convert_price'].astype('float64')
@@ -112,8 +119,8 @@ class Jisilu(object):
             df['volume'] = df['volume'].map(convert_float)
             df['convert_amt_ratio'] = df['convert_amt_ratio'].map(remove_percent)
             df['ration_rt'] = df['ration_rt'].map(convert_float)
-            df['increase_rt']=df['increase_rt'].map(remove_percent)
-            df['sincrease_rt']=df['sincrease_rt'].map(remove_percent)
+            df['increase_rt'] = df['increase_rt'].map(remove_percent)
+            df['sincrease_rt'] = df['sincrease_rt'].map(remove_percent)
 
             rename_columns = {'bond_id': '可转债代码', 'bond_nm': '可转债名称', 'price': '可转债价格', 'stock_nm': '正股名称',
                               'stock_cd': '正股代码',
@@ -134,25 +141,25 @@ class Jisilu(object):
                               'convert_amt_ratio': '转债剩余占总市值比',
                               'curr_iss_amt': '剩余规模', 'orig_iss_amt': '发行规模',
                               'ration_rt': '股东配售率',
-                              'redeem_flag':'发出强赎公告',
-                              'redeem_dt':'强赎日期',
-                              'redeem_flag':'强赎标志'
+                              'redeem_flag': '发出强赎公告',
+                              'redeem_dt': '强赎日期',
                               }
 
             df = df.rename(columns=rename_columns)
             df = df[list(rename_columns.values())]
             df['更新日期'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
 
-
         df = df.set_index('可转债代码', drop=True)
+
         try:
 
             df.to_sql('tb_jsl_{}'.format(self.date), self.engine, if_exists='replace', dtype={'可转债代码': VARCHAR(10)})
-            engine2=DB.get_engine('db_stock',self.remote)
+            engine2 = DB.get_engine('db_stock', self.remote)
             df.to_sql('tb_bond_jisilu'.format(self.date), engine2, if_exists='replace', dtype={'可转债代码': VARCHAR(10)})
+
         except Exception as e:
             self.logger.info(e)
-            send_from_aliyun(title='jisilu可转债',content='写入数据库出错')
+            send_from_aliyun(title='jisilu可转债', content='写入数据库出错')
 
 
 
@@ -288,7 +295,7 @@ class Jisilu(object):
 #
 def main():
     obj = Jisilu(check_holiday=False)
-    obj.current_data()
+    obj.daily_update()
     # obj.history_data()
 
 

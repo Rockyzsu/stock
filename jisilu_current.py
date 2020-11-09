@@ -6,4 +6,4 @@ from jisilu import Jisilu
 
 if __name__ == '__main__':
     obj = Jisilu(check_holiday=True)
-    obj.current_data()
+    obj.daily_update()
