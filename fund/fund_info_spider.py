@@ -52,9 +52,14 @@ class FundSpider(BaseService):
         self.session = requests.Session()
 
     def create_table(self):
-        create_table = 'create table if not EXISTS `{}` (`基金代码` varchar(20) PRIMARY KEY,`基金简称` varchar(100),`最新规模-万` float,' \
-                       '`实时价格` float,`涨跌幅` float,`成交额-万` float,`净值日期` VARCHAR(10),`单位净值` float,`累计净值` float,`折溢价率` float ,`申购状态` VARCHAR(20),`申赎状态` varchar(20),`基金经理` VARCHAR(200),' \
-                       '`成立日期` VARCHAR(20), `管理人名称` VARCHAR(200),`实时估值` INT,`QDII` INT ,`更新时间` VARCHAR(20));'.format(
+        create_table = 'create table if not EXISTS `{}` (`基金代码` varchar(20) PRIMARY KEY,`基金简称` ' \
+                       'varchar(100),`最新规模-万` float,' \
+                       '`实时价格` float,`涨跌幅` float,`成交额-万` float,' \
+                       '`净值日期` VARCHAR(10),`单位净值` float,`累计净值` ' \
+                       'float,`折溢价率` float ,`申购状态` VARCHAR(20),`申赎状态` varchar(20),' \
+                       '`基金经理` VARCHAR(200),' \
+                       '`成立日期` VARCHAR(20), `管理人名称` VARCHAR(200),' \
+                       '`实时估值` INT,`更新时间` VARCHAR(20));'.format(
             TODAY)
         try:
             cursor.execute(create_table)
@@ -86,11 +91,14 @@ class FundSpider(BaseService):
         zyjl = self.convert(zyjl)
 
         insert_data = 'insert into `{}` VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'.format(TODAY)
+
         try:
             cursor.execute(insert_data, (
-                jjdm, jjjc, zxgm, zxjg, jgzffd, cj_total_amount, jzrq, dwjz,
+                jjdm, jjjc, zxgm, zxjg, jgzffd,
+                cj_total_amount, jzrq, dwjz,
                 ljjz,
-                zyjl, sgzt, shzt, jjjl, clrq, glrmc, is_realtime, update_time))
+                zyjl, sgzt, shzt, jjjl, clrq,
+                glrmc, is_realtime, update_time))
         except Exception as e:
             self.logger.info(e)
             conn.rollback()
@@ -103,7 +111,7 @@ class FundSpider(BaseService):
         ret = cursor.fetchone()
         return ret
 
-    def get(self, url, params, retry=5):
+    def get(self, url, params, retry=5, js=False):
         start = 0
         while start < retry:
             try:
@@ -114,7 +122,10 @@ class FundSpider(BaseService):
                 start += 1
 
             else:
-                content = response.text
+                if js:
+                    content = response.json()
+                else:
+                    content = response.text
 
                 return content
 
@@ -145,11 +156,11 @@ class FundSpider(BaseService):
                 continue
 
             js = demjson.decode(ret)  # 解析json的库
-            detail_url = 'http://gu.qq.com/{}'
             query_string = js.get('data')
             time.sleep(5 * random.random())
 
             for code in query_string.split(','):
+
                 if code not in code_set:
                     code_set.add(code)
                 else:
@@ -158,22 +169,20 @@ class FundSpider(BaseService):
                 ret = self.check_exist(code)
                 if ret[0] > 0:
                     continue
-                try:
-                    r = self.session.get(detail_url.format(code), headers=headers)
-                except:
-                    time.sleep(10)
-                    try:
-                        r = self.session.get(detail_url.format(code), headers=headers)
-                    except:
-                        continue
 
-                jjdm, jjjc, zxgm, zxjg, jgzffd, cj_total_amount, jzrq, dwjz, ljjz, zyjl, sgzt, shzt, jjjl, clrq, glrmc = self.parse_html(
-                    r)
-                self.insert_data(jjdm, jjjc, zxgm, zxjg, jgzffd, cj_total_amount, jzrq, dwjz, ljjz, zyjl, sgzt,
-                                 shzt, jjjl, clrq, glrmc)
+                detail_url = 'http://gu.qq.com/{}'
+                content = self.get(url=detail_url.format(code), params=None)
+                self.parse_content_and_save(content)
 
-    def parse_html(self, r):
-        search_str = re.search('<script>SSR\["hqpanel"\]=(.*?)</script>', r.text)
+    def parse_content_and_save(self, content):
+
+        jjdm, jjjc, zxgm, zxjg, jgzffd, cj_total_amount, jzrq, dwjz, ljjz, zyjl, sgzt, shzt, jjjl, clrq, glrmc = self.parse_html(
+            content)
+        self.insert_data(jjdm, jjjc, zxgm, zxjg, jgzffd, cj_total_amount, jzrq, dwjz, ljjz, zyjl, sgzt,
+                         shzt, jjjl, clrq, glrmc)
+
+    def parse_html(self, content):
+        search_str = re.search('<script>SSR\["hqpanel"\]=(.*?)</script>', content)
 
         if search_str:
             s = search_str.group(1)
@@ -240,25 +249,19 @@ class FundSpider(BaseService):
         # TODAY=datetime.datetime.now().strftime('%Y-%m-%d')
         self.change_table_field(table)
 
-        url = 'http://web.ifzq.gtimg.cn/fund/newfund/fundSsgz/getSsgz?app=web&symbol=jj{}'
-        ret = self.get_fund_info(table)
+        all_fund_info = self.get_fund_info(table)
 
-        for item in ret:
+        for item in all_fund_info:
             code = item[0]
             is_realtime = 1
             realtime_price = item[2]
-            try:
-                resp = self.session.get(url.format(code), headers=headers)
-            except:
-                time.sleep(5)
-                try:
-                    resp = self.session.get(url.format(code), headers=headers)
-                except:
-                    continue
 
-            js = resp.json()
+            url = 'http://web.ifzq.gtimg.cn/fund/newfund/fundSsgz/getSsgz?app=web&symbol=jj{}'
+            js = self.get(url=url.format(code), params=None, js=True)
             data = js.get('data')
+
             if data:
+
                 try:
                     data_list = data.get('data')
                 except Exception as e:
