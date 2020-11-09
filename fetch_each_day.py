@@ -19,7 +19,7 @@ class FetchDaily(object):
     def __init__(self):
 
         self.today = datetime.datetime.now().strftime('%Y-%m-%d')
-        # self.today = '2020-02-07'
+        # self.TODAY = '2020-02-07'
         self.path = DATA_PATH
         if not os.path.exists(self.path):
             try:

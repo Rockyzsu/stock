@@ -149,7 +149,7 @@ class Jubi_web():
         signature = hmac.new(md5, message, digestmod=hashlib.sha256).digest()
         # print(signature)
 
-        # req=requests.post(url,data={'signature':signature,'key':public_key,'nonce':nonce,'coin':'zet'})
+        # req=requests.post(stock_url,data={'signature':signature,'key':public_key,'nonce':nonce,'coin':'zet'})
         req = requests.post(url, data={'coin': coin})
         print(req.status_code)
         print(req.text)

@@ -21,7 +21,7 @@ class GetZDT(object):
 
     def __init__(self,today):
         '''
-        today 格式 20200701
+        TODAY 格式 20200701
         :param today:
         '''
         self.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/64.0.3282.167 Chrome/64.0.3282.167 Safari/537.36"

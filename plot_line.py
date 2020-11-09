@@ -102,7 +102,7 @@ def plot_stock_line(api,code, name, table_name, current, start='2019-10-01', sav
     plt.subplots_adjust(hspace=0.3)
 
     if save:
-        # path = os.path.join(os.path.dirname(__file__),'data',today)
+        # path = os.path.join(os.path.dirname(__file__),'data',TODAY)
         fig.savefig(title + '.png')
     else:
         plt.show()

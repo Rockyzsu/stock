@@ -246,12 +246,12 @@ def main():
     # print(v, ratio)
 
     ## 涨跌幅分布 #####
-    # today=datetime.datetime.now().strftime("%Y-%m-%d")
-    # today_tendency(today)
+    # TODAY=datetime.datetime.now().strftime("%Y-%m-%d")
+    # today_tendency(TODAY)
 
     ## 分析涨停的区域分布 ####
-    # today = datetime.datetime.now().strftime("%Y%m%d")
-    # zt_location(today)
+    # TODAY = datetime.datetime.now().strftime("%Y%m%d")
+    # zt_location(TODAY)
 
     ## 显示百分比价格
     # show_percentage(121)

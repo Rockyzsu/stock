@@ -17,7 +17,7 @@ client = pymongo.MongoClient('raspberrypi')
 db = client['stock']
 doc = db['industry']
 today = '2018-05-08'
-# today = datetime.datetime.now().strftime('%Y-%m-%d')
+# TODAY = datetime.datetime.now().strftime('%Y-%m-%d')
 daily_engine = DBSelector().get_engine('db_daily','qq')
 daily_df = pd.read_sql(today, daily_engine, index_col='index')
 

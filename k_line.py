@@ -177,8 +177,8 @@ def update_daily():
     today = datetime.datetime.now().strftime('%Y-%m-%d')
     cmd = 'select * from `{}`;'.format(today)
     cursor.execute(cmd)
-    #today = '2017-11-17'
-    #daily_df = pd.read_sql_table(today,daily_conn,index_col='index')
+    #TODAY = '2017-11-17'
+    #daily_df = pd.read_sql_table(TODAY,daily_conn,index_col='index')
     days_info = cursor.fetchall()
     for i in days_info:
         code = i[1]

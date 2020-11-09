@@ -11,8 +11,8 @@ class SqliteDb():
 
     def __init__(self,dbname):
         '''
-        self.today = time.strftime("%Y-%m-%d")
-        self.DBname = self.today + '.db'
+        self.TODAY = time.strftime("%Y-%m-%d")
+        self.DBname = self.TODAY + '.db'
         self.conn = sqlite3.connect(self.DBname)
         '''
         today = time.strftime("_%Y_%m_%d")
@@ -27,7 +27,7 @@ class SqliteDb():
     def store_break(self,price_data):
 
         #data 是创新高(低)的个股信息  dataframe
-        #print(today)
+        #print(TODAY)
         #create_tb = 'CREATE TABLE STOCK (date TEXT,id text PRIMARY KEY, p_change REAL,turnover REAL);'
 
         #conn.commit()

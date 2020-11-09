@@ -70,7 +70,7 @@ def save_sql():
                     # pass
                     url_link = re.findall(r'---> (.*)', s)[0]
                     # if url_link:
-                    #     print('url', url_link[0])
+                    #     print('stock_url', url_link[0])
                 # date_times='h'
                 # titles='h'
                 # url_link='h'
