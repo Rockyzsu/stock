@@ -252,34 +252,41 @@ class FundSpider(BaseService):
         all_fund_info = self.get_fund_info(table)
 
         for item in all_fund_info:
-            code = item[0]
-            is_realtime = 1
-            realtime_price = item[2]
-
-            url = 'http://web.ifzq.gtimg.cn/fund/newfund/fundSsgz/getSsgz?app=web&symbol=jj{}'
-            js = self.get(url=url.format(code), params=None, js=True)
-            data = js.get('data')
-
-            if data:
-
-                try:
-                    data_list = data.get('data')
-                except Exception as e:
-                    self.logger.error(e)
-                    continue
-
-                else:
-                    last_one = data_list[-1]
-                    jz = last_one[1]
-                    yjl = -1 * round((jz - realtime_price) / realtime_price * 100, 2)
-
-            else:
-                is_realtime = 0
-                yjl, jz = self.get_fund(table, code)
-
-            self.udpate_db(table, jz, yjl, is_realtime, code)
+           jz, yjl, is_realtime, code = self.get_netvalue(table,item)
+           self.udpate_db(table, jz, yjl, is_realtime, code)
 
         self.logger.info('更新成功')
+
+    def get_netvalue(self,table,item):
+        # 获取净值
+        code = item[0]
+        is_realtime = 1
+        realtime_price = item[2]
+
+        url = 'http://web.ifzq.gtimg.cn/fund/newfund/fundSsgz/getSsgz?app=web&symbol=jj{}'
+        js = self.get(url=url.format(code), params=None, js=True)
+        data = js.get('data')
+
+        if data:
+
+            try:
+                data_list = data.get('data')
+            except Exception as e:
+                self.logger.error(e)
+                jz = None
+                yjl = None
+
+            else:
+                last_one = data_list[-1]
+                jz = last_one[1]
+                yjl = -1 * round((jz - realtime_price) / realtime_price * 100, 2)
+
+        else:
+            is_realtime = 0
+            yjl, jz = self.get_fund(table, code)
+
+        return jz, yjl, is_realtime, code
+
 
     def get_fund(self, table, code):
         query = f'select `折溢价率`,`单位净值` from `{table}` where `基金代码`=%s'
