@@ -4,7 +4,7 @@ from loguru import logger
 import requests
 import config
 
-class BaseService:
+class BaseService(object):
 
     def __init__(self, logfile='default.log'):
         self.logger = logger
@@ -20,8 +20,8 @@ class BaseService:
     def get_filename(self, url):
         return url.split('/')[-1]
 
-    def notify(self,text):
-            url = f"https://sc.ftqq.com/{config.WECHAT_ID}.send?text=" + text
+    def notify(self,title='',desp=''):
+            url = f"https://sc.ftqq.com/{config.WECHAT_ID}.send?text={title}&desp={desp}"
             try:
                 res = requests.get(url)
             except Exception as e:
@@ -40,3 +40,6 @@ class BaseService:
     def post(self):
         raise NotImplemented
 
+if __name__ == '__main__':
+    obj = BaseService()
+    obj.notify(title='hello', desp='world')

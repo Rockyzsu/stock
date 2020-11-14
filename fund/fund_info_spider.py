@@ -2,12 +2,10 @@ import random
 import re
 import datetime
 import demjson
-import os
 import pymongo
 import requests
 import time
 import sys
-
 sys.path.append('..')
 from settings import DBSelector, _json_data, send_from_aliyun
 from BaseService import BaseService
@@ -318,12 +316,12 @@ class FundSpider(BaseService):
 
         html += body
         result_asc = self.query_fund_data(today, 'asc')
-        html = self.html_formator(html, result_asc)
+        html = self.html_formator(result_asc,html )
 
         html += body
 
         result_desc = self.query_fund_data(today, 'desc')
-        html = self.html_formator(html, result_desc)
+        html = self.html_formator(result_desc,html )
         return html
 
     def notify(self, today):

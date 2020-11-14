@@ -9,7 +9,7 @@ import time
 import datetime
 import requests
 import pandas as pd
-from settings import DBSelector,llogger,is_holiday,send_from_aliyun
+from settings import DBSelector,is_holiday,send_from_aliyun
 from sqlalchemy import VARCHAR
 from BaseService import BaseService
 DB=DBSelector()
@@ -21,6 +21,7 @@ class Jisilu(BaseService):
 
         if check_holiday:
             self.check_holiday()
+
         self.date = datetime.datetime.now().strftime('%Y-%m-%d')
         # self.date = '2020-02-07' # 用于调整时间
 

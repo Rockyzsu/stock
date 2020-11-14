@@ -5,5 +5,5 @@
 from jisilu import Jisilu
 
 if __name__ == '__main__':
-    obj = Jisilu(check_holiday=True)
+    obj = Jisilu(check_holiday=False)
     obj.daily_update()

@@ -63,7 +63,7 @@ def predict_price():
         send_from_aliyun(title, '')
 
     else:
-        notify('华宝油气获取估值失败')
+        notify(title='华宝油气获取估值失败')
 
 
 def qdii_info():
