@@ -7,36 +7,37 @@ import pandas as pd
 import os, datetime, math
 import numpy as np
 import logging
-from settings import get_engine, MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASSWORD, REDIS_HOST, get_mysql_conn
+from settings import DBSelector, MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASSWORD, REDIS_HOST
 import redis
 from threading import Thread
-import MySQLdb
-from basic_market_info import SaveData
-engine = get_engine('history')
+from BaseService import  BaseService
+
+DB = DBSelector()
+engine = DB.get_engine('history', 'qq')
 conn = ts.get_apis()
 MYSQL_DB = 'history'
-cursor = get_mysql_conn(MYSQL_DB).cursor()
+cursor = DB.get_mysql_conn(MYSQL_DB, 'qq').cursor()
 
 
 # pd.set_option('display.max_rows', None)
 
-class Kline():
+class Kline(BaseService):
     def __init__(self):
-        logging.info('tushare version: {}'.format(ts.__version__))
+        super(Kline, self).__init__('log/kline.log')
+
         path = os.path.join(os.getcwd(), 'data')
         self.today_date = datetime.datetime.now().strftime('%Y-%m-%d')
-        logging.info(self.today_date)
+
         if not os.path.exists(path):
             os.mkdir(path)
         os.chdir(path)
-        # self.conn=ts.get_apis()
 
     def store_base_data(self, target):
         self.all_info = ts.get_stock_basics()
         self.all_info = self.all_info.reset_index()
         print(self.all_info)
         if target == 'sql':
-            self.all_info.to_sql('tb_baseinfo', engine,if_exists='replace')
+            self.all_info.to_sql('tb_baseinfo', engine, if_exists='replace')
 
         elif target == 'csv':
             self.all_info.to_csv('baseInfo.csv')
@@ -87,31 +88,31 @@ class Kline():
         low = float(row['low'])
         # print(low)
         high = float(row['high'])
-        p = min(closed,open_p)
+        p = min(closed, open_p)
         try:
             diff = (p - low) * 1.00 / (high - low)
-            diff=round(diff,3)
+            diff = round(diff, 3)
         except ZeroDivisionError:
             diff = 0
         if diff > ratio:
-                xiayinxian_engine = get_engine('db_selection')
-                date,code,name,ocupy_ration ,standards = row['datetime'],row['code'],row['name'],diff,ratio
-                df = pd.DataFrame(
-                    {'datetime': [date], 'code': [code], 'name': [name], 'ocupy_ration': [ocupy_ration],
-                     'standards': [standards]})
-                try:
-                    df1=pd.read_sql_table('xiayingxian',xiayinxian_engine,index_col='index')
-                    df = pd.concat([df1, df])
-                except Exception as e:
-                    print(e)
-                    #return None
+            xiayinxian_engine = DB.get_engine('db_selection','qq')
+            date, code, name, ocupy_ration, standards = row['datetime'], row['code'], row['name'], diff, ratio
+            df = pd.DataFrame(
+                {'datetime': [date], 'code': [code], 'name': [name], 'ocupy_ration': [ocupy_ration],
+                 'standards': [standards]})
+            try:
+                df1 = pd.read_sql_table('xiayingxian', xiayinxian_engine, index_col='index')
+                df = pd.concat([df1, df])
+            except Exception as e:
+                print(e)
+                # return None
 
-                df = df.reset_index(drop=True)
-                df.to_sql('xiayingxian',xiayinxian_engine,if_exists='replace')
-                return row
+            df = df.reset_index(drop=True)
+            df.to_sql('xiayingxian', xiayinxian_engine, if_exists='replace')
+            return row
 
     def store_data_not(self):
-        df = self.xiayingxian()
+        df = self._xiayingxian()
         df.to_csv('xiayinxian.csv')
 
     # 把股票代码放入redis
@@ -138,74 +139,33 @@ class Kline():
                 data_row = data[0]
             except Exception as e:
                 continue
-            d = dict(zip(('datetime','code', 'name', 'open', 'close', 'high', 'low'), data_row[1:8]))
+            d = dict(zip(('datetime', 'code', 'name', 'open', 'close', 'high', 'low'), data_row[1:8]))
             self._xiayingxian(d, 0.7)
 
 
-# 把股票代码放到redis
-def add_code_redis():
-    rds = redis.StrictRedis(REDIS_HOST, 6379, db=0)
-    rds_1 = redis.StrictRedis(REDIS_HOST, 6379, db=1)
-    df = ts.get_stock_basics()
-    df = df.reset_index()
+    # 把股票代码放到redis
+    def add_code_redis(self):
+        rds = redis.StrictRedis(REDIS_HOST, 6379, db=0)
+        rds_1 = redis.StrictRedis(REDIS_HOST, 6379, db=1)
+        df = ts.get_stock_basics()
+        df = df.reset_index()
 
-    # 清理数据库
-    if rds.dbsize() != 0:
-        rds.flushdb()
-    if rds_1.dbsize() != 0:
-        rds_1.flushdb()
+        # 清理数据库
+        if rds.dbsize() != 0:
+            rds.flushdb()
+        if rds_1.dbsize() != 0:
+            rds_1.flushdb()
 
-    for i in range(len(df)):
-        code, name, timeToMarket = df.loc[i]['code'], df.loc[i]['name'], df.loc[i]['timeToMarket']
-        # print(str(timeToMarket))
-        d = dict({code: ':'.join([name, str(timeToMarket)])})
-        # print(d)
-        rds.set(code, name)
-        rds_1.lpush('codes', d)
+        for i in range(len(df)):
+            code, name, timeToMarket = df.loc[i]['code'], df.loc[i]['name'], df.loc[i]['timeToMarket']
+            # print(str(timeToMarket))
+            d = dict({code: ':'.join([name, str(timeToMarket)])})
+            # print(d)
+            rds.set(code, name)
+            rds_1.lpush('codes', d)
 
 
-def update_daily():
-    '''
-    每天更新行情
-    :return:
-    '''
-    # 运行静态方法
-    SaveData.daily_market()
-    time.sleep(20)
-    daily_conn = get_mysql_conn('daily')
-    cursor = daily_conn.cursor()
-    today = datetime.datetime.now().strftime('%Y-%m-%d')
-    cmd = 'select * from `{}`;'.format(today)
-    cursor.execute(cmd)
-    #TODAY = '2017-11-17'
-    #daily_df = pd.read_sql_table(TODAY,daily_conn,index_col='index')
-    days_info = cursor.fetchall()
-    for i in days_info:
-        code = i[1]
-        name = i[2]
-        close = i[4]
-        opens = i[5]
-        high = i[6]
-        low = i[7]
-        vol = i[9]
-        amount = i[11]
 
-        try:
-            history_conn = get_mysql_conn('history')
-            history_cur = history_conn.cursor()
-            history_cur.execute('select count(*) from `{}`;'.format(code))
-        except Exception as e:
-            print(e)
-            continue
-        l=history_cur.fetchone()
-        df = pd.DataFrame(columns=['datetime', 'code', 'name', 'open', 'close', 'high', 'low', 'vol', 'amount'])
-        df.loc[l] = [today, code, name, opens, close, high, low, vol, amount]
-        try:
-            df.to_sql(code, engine, if_exists='append')
-            print(code)
-        except Exception as e:
-            print(df)
-            print(e)
 
 def get_hist_data(code, name, start_data):
     try:
@@ -215,13 +175,13 @@ def get_hist_data(code, name, start_data):
     except Exception as e:
         print(e)
         return
-    hist_con = get_engine('history')
+    hist_con = DB.get_engine('history')
     df.insert(1, 'name', name)
     df = df.reset_index()
-    #print(df)
-    df2=pd.read_sql_table(code,hist_con,index_col='index')
+    df2 = pd.read_sql_table(code, hist_con, index_col='index')
+
     try:
-        new_df = pd.concat([df,df2])
+        new_df = pd.concat([df, df2])
         new_df = new_df.reset_index(drop=True)
         new_df.to_sql(code, engine, if_exists='replace')
     except Exception as e:
@@ -239,7 +199,7 @@ class StockThread(Thread):
         self.loops()
 
     def loops(self):
-        #start_date = datetime.datetime.now().strftime('%Y-%m-%d')
+        # start_date = datetime.datetime.now().strftime('%Y-%m-%d')
         start_date = '2017-11-21'
 
         while 1:
@@ -261,6 +221,7 @@ class StockThread(Thread):
 
 THREAD_NUM = 4
 
+
 def StoreData():
     threads = []
     for i in range(THREAD_NUM):
@@ -277,8 +238,7 @@ def StoreData():
 def main():
     obj = Kline()
 
-    #obj.get_hist_line('2017-11-17')
-
+    # obj.get_hist_line('2017-11-17')
 
     # obj.get_hist_line('2017-11-16')
     # obj.get_hist_line('2017-11-15')
@@ -291,14 +251,12 @@ def main():
     # 获取股票的前复权数据, 使用bar函数
     # obj.store_hist_data()
     # 存放股票的代码和名字
-    #add_code_redis()
+    # add_code_redis()
     # obj.redis_init()
     # 保存历史数据
-    #StoreData()
+    # StoreData()
 
-    # 把每天的数据更新到数据库
-    update_daily()
-    print("Done")
+
 
 if __name__ == '__main__':
     main()

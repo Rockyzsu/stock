@@ -10,7 +10,7 @@
 * filter_stock.py 通过不同的因子策略选股，常见的如市盈率，流通量，股东数，基金持股数等
 * foreign_exchange.py 获取美元汇率的每天走势并存入Mysql
 * get_break_high.py --获取当天破50天新高的股票。为什么不获取60天呢？ 因为大家都在用，用的人多了就不准了。 
-* ipo_speed.py 统计每天IPO新股发行速度与大盘的相关性
+* ipospeed.py 统计每天IPO新股发行速度与大盘的相关性
 * ipo_stock.py 新股统计
 * jisilu.py 获取集思录的可转债行情
 * jubi.py -获取国内山寨币平台的实时数据

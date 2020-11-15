@@ -74,7 +74,6 @@ def get_name_number():
 def main():
     filename = os.path.join(DATA_PATH, 'blacklist.csv')
     # 本地更新
-    logger.info('update local')
     db_name = 'db_stock'
     DB = DBSelector()
     conn = DB.get_mysql_conn(db_name, 'qq')
@@ -83,7 +82,6 @@ def main():
 
     # 远程更新
     # db_name = 'db_stock'
-    logger.info('update remote')
     remote_conn = DB.get_mysql_conn('qdm225205669_db', 'qq')
     create_tb(remote_conn)
     update_data(filename,remote_conn)

@@ -8,15 +8,16 @@ import datetime
 import time
 import tushare as ts
 import os
-from settings import DBSelector,llogger,is_holiday,DATA_PATH
+from settings import DBSelector,DATA_PATH
 import pandas as pd
-logger = llogger('log/collect_data.log')
+from BaseService import BaseService
 
 # 获取市场全貌
 
-class SaveData(object):
+class BasicMarket(BaseService):
 
-    def __init__(self):
+    def __init__(self,logpath='log/collect_data.log'):
+        super(BasicMarket, self).__init__(logpath)
         work_space=DATA_PATH
         if os.path.exists(work_space) ==False:
             os.mkdir(work_space)
@@ -30,9 +31,9 @@ class SaveData(object):
         try:
             df.to_sql(self.today,self.daily_engine,if_exists='replace')
         except Exception as e:
-            logger.info(e)
+            self.logger.info(e)
         else:
-            logger.info("Save {} data to MySQL".format(self.today))
+            self.logger.info("Save {} data to MySQL".format(self.today))
 
     #获取解禁股
     def get_classified_stock(self,year=None,month=None):
@@ -40,7 +41,13 @@ class SaveData(object):
         filename='{}-{}-classified_stock.xls'.format(year,month)
         self.save_to_excel(df,filename)
 
-    def basic_info(self,retry=5):
+    def get_basic_info(self, retry=5):
+        '''
+        保存全市场数据
+        :param retry:
+        :return:
+        '''
+
         engine = DBSelector().get_engine('db_stock')
 
         # 需要添加异常处理 重试次数
@@ -51,7 +58,7 @@ class SaveData(object):
                 df = ts.get_stock_basics()
 
             except Exception as e:
-                logger.info(e)
+                self.logger.info(e)
                 time.sleep(10)
                 count+=1
                 continue
@@ -61,13 +68,14 @@ class SaveData(object):
                     df['更新日期']=datetime.datetime.now()
 
                     df.to_sql('tb_basic_info',engine,if_exists='replace')
-                    logger.info('入库成功')
                     break
                 else:
                     count+=1
                     time.sleep(10)
                     continue
 
+        if count==retry:
+            self.notify(title='获取股市市场全景数据失败',desp=f'{self.__class__}')
 
     def save_to_excel(self,df,filename,encoding='gbk'):
         try:
@@ -76,14 +84,13 @@ class SaveData(object):
             df.to_excel(filename,encoding=encoding)
             return True
         except Exception as e:
-            logger.info("Save to excel faile")
-            logger.info(e)
+            self.logger.info("Save to excel faile")
+            self.logger.info(e)
             return None
 
 def main():
-    obj=SaveData()
-    obj.basic_info()
+    obj=BasicMarket()
+    obj.get_basic_info()
 
 if __name__=='__main__':
     main()
-    logger.info('完成')
