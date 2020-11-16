@@ -130,13 +130,14 @@ class GetZDT(BaseService):
             df = df.set_index('序号')
             formula = lambda x: round(x * 100, 3)
             df['最大涨幅'] = df['最大涨幅'].map(formula)
-            df['最大跌幅'] = df['最大跌幅'].map(formula)
+            df['最大跌幅'] =    df['最大跌幅'].map(formula)
             df['今日开盘涨幅'] = df['今日开盘涨幅'].map(formula)
             df['昨日涨停强度'] = df['昨日涨停强度'].map(lambda x: round(x, 0))
             df['今日涨停强度'] = df['今日涨停强度'].map(lambda x: round(x, 0))
             try:
                 df.to_sql(self.today + post_fix, engine, if_exists='fail')
             except Exception as e:
+                self.notify(f'{self.__class__} 出错')
                 self.logger.info(e)
 
             avg = round(df['今日涨幅'].mean(), 2)

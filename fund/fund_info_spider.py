@@ -7,7 +7,7 @@ import requests
 import time
 import sys
 sys.path.append('..')
-from settings import DBSelector, _json_data, send_from_aliyun
+from settings import DBSelector,  send_from_aliyun
 from BaseService import BaseService
 
 # 基金数据爬虫
@@ -45,7 +45,7 @@ cursor = conn.cursor()
 class FundSpider(BaseService):
 
     def __init__(self):
-        super(FundSpider, self).__init__('fundspider.log')
+        super(FundSpider, self).__init__('../log/fundspider.log')
         self.create_table()
         self.session = requests.Session()
 
@@ -324,7 +324,7 @@ class FundSpider(BaseService):
         html = self.html_formator(result_desc,html )
         return html
 
-    def notify(self, today):
+    def notice_me(self, today):
 
         now = datetime.datetime.now()
 
@@ -351,11 +351,11 @@ class JSLFund(BaseService):
     '''
 
     def __init__(self):
-        super(JSLFund, self).__init__('jslfund.log')
-
+        super(JSLFund, self).__init__('../log/jslfund.log')
+        print(self.__class__.__name__)
         today_ = datetime.datetime.now().strftime('%Y-%m-%d')
 
-        client = self.mongo_client()
+        client = DB.mongo('qq')
 
         self.jsl_stock_lof = client['fund_daily'][f'jsl_stock_lof_{today_}']
         self.jsl_index_lof = client['fund_daily'][f'jsl_index_lof_{today_}']
@@ -365,16 +365,7 @@ class JSLFund(BaseService):
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36'}
 
-    def mongo_client(self):
-        mongo = _json_data['mongo']['qq']
-        host = ['host']
-        port = mongo['port']
-        user = mongo['user']
-        password = mongo['password']
-
-        connect_uri = f'mongodb://{user}:{password}@{host}:{port}'
-        client = pymongo.MongoClient(connect_uri)
-        return client
+        self.logger.info(f'start...')
 
     def get(self, url, retry=5):
 
@@ -406,7 +397,7 @@ class JSLFund(BaseService):
             mongo_doc = self.jsl_stock_lof
         else:
             url = self.index_lof_url
-            mongo_doc = self.jsl_stock_lof
+            mongo_doc = self.jsl_index_lof
 
         return_js = self.get(url=url)
         rows = return_js.get('rows')
@@ -424,7 +415,7 @@ def main():
     tencent_spider = FundSpider()
     tencent_spider.crawl()
     tencent_spider.update_netvalue(TODAY)
-    tencent_spider.notify(TODAY)
+    tencent_spider.notice_me(TODAY)
 
     jsl_spider = JSLFund()
     jsl_spider.crawl()
