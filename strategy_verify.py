@@ -13,7 +13,6 @@ import sqlite3
 import sqlite3,sys,cookielib,datetime
 
 
-
 def create_table(strategy):
     work_path=os.path.join(os.getcwd(),'data')
 
