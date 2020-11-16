@@ -2,13 +2,13 @@ import random
 import re
 import datetime
 import demjson
-import pymongo
 import requests
 import time
 import sys
 sys.path.append('..')
-from settings import DBSelector,  send_from_aliyun
-from BaseService import BaseService
+from configure.settings import DBSelector,  send_from_aliyun
+from common.BaseService import BaseService
+from configure.util import notify
 
 # 基金数据爬虫
 
@@ -59,13 +59,8 @@ class FundSpider(BaseService):
                        '`成立日期` VARCHAR(20), `管理人名称` VARCHAR(200),' \
                        '`实时估值` INT,`更新时间` VARCHAR(20));'.format(
             TODAY)
-        try:
-            cursor.execute(create_table)
-        except Exception as e:
-            conn.rollback()
-            self.logger.error(e)
-        else:
-            conn.commit()
+
+        self.execute(create_table,(),conn)
 
     def convert(self, float_str):
 
@@ -89,19 +84,13 @@ class FundSpider(BaseService):
         zyjl = self.convert(zyjl)
 
         insert_data = 'insert into `{}` VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'.format(TODAY)
-
-        try:
-            cursor.execute(insert_data, (
+        self.execute(insert_data,(
                 jjdm, jjjc, zxgm, zxjg, jgzffd,
                 cj_total_amount, jzrq, dwjz,
                 ljjz,
                 zyjl, sgzt, shzt, jjjl, clrq,
-                glrmc, is_realtime, update_time))
-        except Exception as e:
-            self.logger.info(e)
-            conn.rollback()
-        else:
-            conn.commit()
+                glrmc, is_realtime, update_time),conn)
+
 
     def check_exist(self, code):
         check_code_exists = 'select count(*) from `{}` WHERE `基金代码`=%s'.format(TODAY)
@@ -210,32 +199,17 @@ class FundSpider(BaseService):
     def change_table_field(self, table):
         add_column1 = 'alter table `{}` add column `实时净值` float'.format(table)
         add_column2 = 'alter table `{}` add column `溢价率` float'.format(table)
-        try:
-            cursor.execute(add_column1)
-        except Exception as e:
-            self.logger.error(e)
-            conn.rollback()
-        else:
-            conn.commit()
+        self.execute(add_column1,(),conn)
+        self.execute(add_column2,(),conn)
 
-        try:
-            cursor.execute(add_column2)
-        except Exception as e:
-            self.logger.error(e)
-            conn.rollback()
-        else:
-            conn.commit()
 
     def get_fund_info(self, table):
         query = 'select `基金代码`,`基金简称`,`实时价格` from `{}`'.format(table)
-        cursor.execute(query)
-        ret = cursor.fetchall()
-        return ret
+        return self.execute(query,(),conn)
 
     def udpate_db(self, table, jz, yjl, is_realtime, code):
         update_sql = 'update `{}` set `实时净值`= %s,`溢价率`=%s ,`实时估值`=%s where  `基金代码`=%s'.format(table)
-        cursor.execute(update_sql, (jz, yjl, is_realtime, code))
-        conn.commit()
+        self.execute(update_sql, (jz, yjl, is_realtime, code),conn)
 
     def update_netvalue(self, table):
         '''
@@ -298,9 +272,7 @@ class FundSpider(BaseService):
     def query_fund_data(self, today, order):
         query_sql = '''select `基金代码`,`基金简称`,`实时价格`,`实时净值`,`溢价率`,`净值日期` from `{}` where `申购状态`='开放' and `申赎状态`='开放' and `溢价率` is not null and !(`实时价格`=1 and `涨跌幅`=0 and `成交额-万`=0) order by `溢价率` {} limit 10'''.format(
             today, order)
-        cursor.execute(query_sql)
-        result = cursor.fetchall()
-        return result
+        return self.execute(query_sql,(),conn)
 
     def html_formator(self, ret, html):
 
@@ -352,13 +324,11 @@ class JSLFund(BaseService):
 
     def __init__(self):
         super(JSLFund, self).__init__('../log/jslfund.log')
-        print(self.__class__.__name__)
-        today_ = datetime.datetime.now().strftime('%Y-%m-%d')
 
         client = DB.mongo('qq')
 
-        self.jsl_stock_lof = client['fund_daily'][f'jsl_stock_lof_{today_}']
-        self.jsl_index_lof = client['fund_daily'][f'jsl_index_lof_{today_}']
+        self.jsl_stock_lof = client['fund_daily'][f'jsl_stock_lof_{self.today}']
+        self.jsl_index_lof = client['fund_daily'][f'jsl_index_lof_{self.today}']
 
         self.stock_url = 'https://www.jisilu.cn/data/lof/stock_lof_list/?___jsl=LST___t=1582355333844&rp=25'
         self.index_lof_url = 'https://www.jisilu.cn/data/lof/index_lof_list/?___jsl=LST___t=1582356112906&rp=25'
@@ -408,7 +378,7 @@ class JSLFund(BaseService):
                 mongo_doc.insert_one(cell)
             except Exception as e:
                 self.logger.error(e)
-                self.notify(f'{self.__class__} 写入mongodb出错')
+                notify(title='入mongo出错',desp=f'{self.__class__} 写入mongodb出错')
 
 
 def main():

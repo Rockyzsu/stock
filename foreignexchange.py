@@ -2,16 +2,18 @@
 # @Time : 2018/8/7 13:45
 # @File : foreignexchange.py
 # 实时获取外汇
-import os
 import re
 import datetime
 import requests
-from settings import DBSelector,llogger
-logger = llogger('log/usd.log')
+from common.BaseService import BaseService
+from configure.util import notify
+from configure.settings import DBSelector
 
-class ForeighExchange(object):
+
+class ForeighExchange(BaseService):
 
     def __init__(self):
+        super(ForeighExchange, self).__init__('log/usd.log')
         self.url = 'http://data.bank.hexun.com/other/cms/foreignexchangejson.ashx?callback=ShowDatalist'
         self.update_req = 10
         self.retry = 5
@@ -28,29 +30,19 @@ class ForeighExchange(object):
             sell=re.search('sellPrice1:\'([0-9.]+)\'',ret_str).group(1)
             return (buy,sell)
 
-    def notice(self):
-            buy,sell=self.run()
-            sub = '{}: 美元汇率{}'.format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),buy)
-            logger.info(sub)
-            # sendmail('',sub)
+    def start(self):
+        buy,sell=self.run()
+        sub = '{}: 美元汇率{}'.format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),buy)
+        self.logger.info(sub)
+        conn=DBSelector().get_mysql_conn('db_stock','qq')
+        cmd = 'insert into `usd_ratio` (`price`,`date`) VALUES ({},{!r})'.format(buy,datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        self.execute(cmd,(),conn)
+        notify(title=sub,desp='')
 
-            conn=DBSelector().get_mysql_conn('db_stock','qq')
-            cursor = conn.cursor()
-            cmd = 'insert into `usd_ratio` (`price`,`date`) VALUES ({},{!r})'.format(buy,datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-
-            try:
-                cursor.execute(cmd)
-                conn.commit()
-            except Exception as e:
-                logger.error(e)
-                conn.rollback()
-
-            conn.close()
 
     def fetch_web(self):
 
         for i in range(self.retry):
-
             try:
                 r = requests.get(url=self.url,headers=self.headers)
                 if r.status_code==200:
@@ -59,10 +51,13 @@ class ForeighExchange(object):
                     continue
 
             except Exception as e:
-                logger.error(e)
+                self.logger.error(e)
 
         return None
 
-logger.info('Start')
-obj = ForeighExchange()
-obj.notice()
+def main():
+    obj = ForeighExchange()
+    obj.start()
+
+if __name__ == '__main__':
+    main()

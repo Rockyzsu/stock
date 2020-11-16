@@ -7,7 +7,7 @@ http://30daydo.com
 Email: weigesysu@qq.com
 '''
 from filter_stock import Filter_Stock
-from settings import get_engine,sendmail
+from configure.settings import get_engine,sendmail
 import pandas as pd
 
 

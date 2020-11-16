@@ -7,7 +7,7 @@ __author__ = 'Rocky'
 http://30daydo.com
 Contact: weigesysu@qq.com
 '''
-from settings import get_engine,get_mysql_conn
+from configure.settings import get_engine,get_mysql_conn
 import pandas as pd
 
 def clone_database():

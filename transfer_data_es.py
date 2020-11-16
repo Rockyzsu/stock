@@ -3,7 +3,7 @@
 # @Time : 2019/7/12 18:41
 # @File : transfer_data_es.py
 
-from settings import get_mysql_conn
+from configure.settings import get_mysql_conn
 from elasticsearch import Elasticsearch
 
 es = Elasticsearch('10.18.6.102:9200')

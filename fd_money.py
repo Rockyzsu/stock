@@ -2,7 +2,7 @@
 # @File : fd_money.py
 # 涨停封单数据
 
-from settings import DBSelector
+from configure.settings import DBSelector
 import datetime
 import matplotlib.pyplot as plt
 DB = DBSelector()

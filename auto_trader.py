@@ -10,7 +10,7 @@ import easyquotation
 import easytrader
 import pandas as pd
 from config import PROGRAM_PATH, MONGO_PORT, MONGO_HOST
-from settings import DBSelector
+from configure.settings import DBSelector
 
 SELL = 7  # 配置为8%个点卖
 

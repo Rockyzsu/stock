@@ -6,7 +6,7 @@ __author__ = 'rocky'
 import tushare as ts
 import datetime
 import pandas as pd
-from settings import DBSelector,_json_data
+from configure.settings import DBSelector,_json_data
 import pymongo
 from config import token
 # from filter_stock import Filter_Stock

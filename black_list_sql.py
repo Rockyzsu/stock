@@ -1,7 +1,7 @@
 # -*-coding=utf-8-*-
 # 股市黑名单
 
-from settings import llogger,DATA_PATH,DBSelector
+from configure.settings import llogger,DATA_PATH,DBSelector
 import os
 import codecs
 

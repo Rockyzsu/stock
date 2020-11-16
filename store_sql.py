@@ -6,7 +6,7 @@ import os
 import tushare as ts
 from sqlalchemy import create_engine
 import pandas as pd
-from settings import engine
+from configure.settings import engine
 import MySQLdb
 HOSTNAME='localhost'
 class StoreDB():

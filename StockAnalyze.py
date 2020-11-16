@@ -4,7 +4,7 @@
 @feature: 收盘事后分析
 '''
 
-from settings import get_engine
+from configure.settings import get_engine
 import pandas as pd
 from scipy import stats
 import tushare as ts

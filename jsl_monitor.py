@@ -1,18 +1,21 @@
 # 使用jsl作为数据源
 import requests
 import time
-import config
 from history_set import HistorySet
 import threading
-from settings import llogger, market_status, notify
+from configure.settings import market_status, config
+from common.BaseService import BaseService
+
+ACCESS_INTERVAL = config['jsl_monitor']['ACCESS_INTERVAL']
+MONITOR_PERCENT = config['jsl_monitor']['MONITOR_PERCENT']
+EXPIRE_TIME = config['jsl_monitor']['EXPIRE_TIME']
 
 
-class ReachTargetJSL():
+class ReachTargetJSL(BaseService):
     def __init__(self):
-
-        self.logger = llogger('log/jsl_monitor')
+        super(ReachTargetJSL, self).__init__('log/jsl_monitor.log')
         self.session = requests.Session()
-        self.cookies = config.jsl_cookies
+        self.cookies = None
 
         self.headers = {
             'Sec-Fetch-Mode': 'cors',
@@ -49,11 +52,13 @@ class ReachTargetJSL():
             'bond_ids': '',
             'rp': '50'
         }
-        self.history = HistorySet(expire=config.EXPIRE_TIME)
+
+        self.history = HistorySet(expire=EXPIRE_TIME)
 
     def get(self):
         try:
-            response = self.session.post('https://www.jisilu.cn/data/cbnew/cb_list/', headers=self.headers, params=self.params,
+            response = self.session.post('https://www.jisilu.cn/data/cbnew/cb_list/', headers=self.headers,
+                                         params=self.params,
                                          cookies=self.cookies, data=self.data, timeout=30)
         except Exception as e:
             self.logger.error(e)
@@ -66,7 +71,7 @@ class ReachTargetJSL():
 
         string = string.replace('%', '')
         try:
-            string = round(float(string),1)
+            string = round(float(string), 1)
         except:
             return 0
         else:
@@ -93,20 +98,15 @@ class ReachTargetJSL():
                 sincrease_rt = self.__convert__(sincrease_rt)
 
                 increase_rt = item.get('increase_rt')
-                curr_iss_amt = self.__convert__(item.get('curr_iss_amt')) # 剩余规模
+                curr_iss_amt = self.__convert__(item.get('curr_iss_amt'))  # 剩余规模
 
-                if abs(sincrease_rt) >= config.MONITOR_PERCENT and self.history.is_expire(bond_id):
-                    '''
-                    发送消息
-                    t = threading.Thread(target=show_box, args=(bond_nm,))
-                    t.start()
-                    '''
-                    str_content = '负'+increase_rt if float(increase_rt.replace('%',''))<0 else increase_rt
-                    str_content = str_content.replace('%','')
+                if abs(sincrease_rt) >= MONITOR_PERCENT and self.history.is_expire(bond_id):
+                    str_content = '负' + increase_rt if float(increase_rt.replace('%', '')) < 0 else increase_rt
+                    str_content = str_content.replace('%', '')
                     text = f'{bond_nm[:2]}-债{str_content}-股{sincrease_rt}-规模{curr_iss_amt}-溢{premium_rt}'
-                    t = threading.Thread(target=notify, args=(text,))
+                    t = threading.Thread(target=self.notify, args=(text,))
                     t.start()
                     self.logger.info(f'{bond_nm} 涨停')
                     self.history.add(bond_id)
 
-            time.sleep(config.ACCESS_INTERVAL)
+            time.sleep(ACCESS_INTERVAL)

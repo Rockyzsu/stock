@@ -5,7 +5,7 @@ import datetime
 import random
 import time
 
-from settings import get_mysql_conn,llogger
+from configure.settings import get_mysql_conn,llogger
 import tushare as ts
 table='2020-02-25' # 用于获取code列
 

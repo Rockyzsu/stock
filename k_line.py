@@ -7,10 +7,10 @@ import pandas as pd
 import os, datetime, math
 import numpy as np
 import logging
-from settings import DBSelector, MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASSWORD, REDIS_HOST
+from configure.settings import DBSelector, MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASSWORD, REDIS_HOST
 import redis
 from threading import Thread
-from BaseService import  BaseService
+from common.BaseService import  BaseService
 
 DB = DBSelector()
 engine = DB.get_engine('history', 'qq')

@@ -2,7 +2,7 @@
 import json
 import tushare as ts
 import pandas as pd
-from settings import get_engine
+from configure.settings import get_engine
 import matplotlib.pyplot as plt
 
 # 股权质押数据整理

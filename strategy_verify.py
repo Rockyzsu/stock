@@ -3,16 +3,13 @@ __author__ = 'Rocky'
 '''
 http://30daydo.com
 Contact: weigesysu@qq.com
-'''
-'''
 获取雪球的策略 2017-03-21
 '''
+
 import requests,time,re,os
 from lxml import etree
 from pandas import DataFrame
 import sqlite3
-# -*-coding=utf-8-*-
-__author__ = 'Rocky'
 import sqlite3,sys,cookielib,datetime
 
 

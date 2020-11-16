@@ -7,24 +7,24 @@ Contact: weigesysu@qq.com
 # 每天的涨跌停
 import re
 import time
-import xlwt
 import os
-from settings import DATA_PATH
+from configure.util import notify
+from configure.settings import config_dict
 import pandas as pd
-from settings import DBSelector, send_from_aliyun
+from configure.settings import DBSelector, send_from_aliyun
 import requests
 import datetime
-from BaseService import BaseService
+from common.BaseService import BaseService
 
 
 class GetZDT(BaseService):
 
-    def __init__(self, today=None, logpath='log/zdt.log'):
+    def __init__(self, today=None):
         '''
         TODAY 格式 20200701
         :param today:
         '''
-        super(GetZDT, self).__init__(logpath)
+        super(GetZDT, self).__init__('log/zdt.log')
 
         if today:
             self.today = today
@@ -33,7 +33,7 @@ class GetZDT(BaseService):
 
         self.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/64.0.3282.167 Chrome/64.0.3282.167 Safari/537.36"
 
-        self.path = DATA_PATH
+        self.path = config_dict('data_path')
 
         self.zdt_url = 'http://home.flashdata2.jrj.com.cn/limitStatistic/ztForce/' + \
                        self.today + ".js"
@@ -73,7 +73,7 @@ class GetZDT(BaseService):
                     self.logger.info('failed to get content, retry: {}'.format(i))
                     continue
             except Exception as e:
-                self.notify(title='获取涨跌停数据出错', desp=f'{self.__class__}')
+                notify(title='获取涨跌停数据出错', desp=f'{self.__class__}')
                 self.logger.error(e)
                 time.sleep(60)
                 continue
@@ -96,7 +96,7 @@ class GetZDT(BaseService):
                 t2 = list(eval(t2))
                 return t2
             except Exception as e:
-                self.notify(title='获取涨跌停数据出错', desp=f'{self.__class__}')
+                notify(title='获取涨跌停数据出错', desp=f'{self.__class__}')
                 self.logger.info(e)
                 return None
         else:
@@ -106,8 +106,6 @@ class GetZDT(BaseService):
     def save_to_dataframe(self, data, index, choice, post_fix):
         engine = self.DB.get_engine('db_zdt', 'qq')
         data_len = len(data)
-        filename = os.path.join(
-            self.path, self.today + "_" + post_fix + ".xls")
 
         if choice == 1:
             for i in range(data_len):
@@ -115,50 +113,58 @@ class GetZDT(BaseService):
 
         df = pd.DataFrame(data, columns=index)
 
-
         # 今日涨停
         if choice == 1:
-            df['今天的日期'] = self.today
-            df.to_excel(filename, encoding='gbk')
-            try:
-                df.to_sql(self.today + post_fix, engine, if_exists='fail')
-            except Exception as e:
-                self.logger.info(e)
-
+            self.today_(df,post_fix, engine)
         # 昨日涨停
         if choice == 2:
-            df = df.set_index('序号')
-            formula = lambda x: round(x * 100, 3)
-            df['最大涨幅'] = df['最大涨幅'].map(formula)
-            df['最大跌幅'] =    df['最大跌幅'].map(formula)
-            df['今日开盘涨幅'] = df['今日开盘涨幅'].map(formula)
-            df['昨日涨停强度'] = df['昨日涨停强度'].map(lambda x: round(x, 0))
-            df['今日涨停强度'] = df['今日涨停强度'].map(lambda x: round(x, 0))
-            try:
-                df.to_sql(self.today + post_fix, engine, if_exists='fail')
-            except Exception as e:
-                self.notify(f'{self.__class__} 出错')
-                self.logger.info(e)
+            self.yesterday(df,post_fix, engine)
 
-            avg = round(df['今日涨幅'].mean(), 2)
-            median = round(df['今日涨幅'].median(), 2)
-            min_v = round(df['今日涨幅'].min(), 2)
-            min_index = df['今日涨幅'].argmin()
-            min_percent_name = df.iloc[min_index]['名称']
-            current = datetime.datetime.now().strftime('%Y-%m-%d')
-            title = '昨涨停今天{}平均涨{}\n'.format(current, avg)
-            content = '<p>昨天涨停今天<font color="red">{}</font></p>' \
-                      '<p>平均涨幅 <font color="red">{}</font></p>' \
-                      '<p>涨幅中位数 <font color="red">{}</font></p>' \
-                      '<p>涨幅最小 <font color="red">{}</font></p>' \
-                      '<p>涨幅最小股 <font color="red">{}</font></p>'.format(current, avg, median, min_v,min_percent_name)
+    # 今日涨停存储
+    def today_(self,df,post_fix, engine):
+        filename = os.path.join(
+            self.path, self.today + "_" + post_fix + ".xls")
 
-            try:
-                send_from_aliyun(title, content, types='html')
-            except Exception as e:
-                print(e)
+        df['今天的日期'] = self.today
+        df.to_excel(filename, encoding='gbk')
+        try:
+            df.to_sql(self.today + post_fix, engine, if_exists='fail')
+        except Exception as e:
+            self.logger.info(e)
+
 
     # 昨日涨停今日的状态，今日涨停
+    def yesterday(self,df,post_fix, engine):
+        df = df.set_index('序号')
+        formula = lambda x: round(x * 100, 3)
+        df['最大涨幅'] = df['最大涨幅'].map(formula)
+        df['最大跌幅'] = df['最大跌幅'].map(formula)
+        df['今日开盘涨幅'] = df['今日开盘涨幅'].map(formula)
+        df['昨日涨停强度'] = df['昨日涨停强度'].map(lambda x: round(x, 0))
+        df['今日涨停强度'] = df['今日涨停强度'].map(lambda x: round(x, 0))
+        try:
+            df.to_sql(self.today + post_fix, engine, if_exists='fail')
+        except Exception as e:
+            notify(f'{self.__class__} 出错')
+            self.logger.info(e)
+
+        avg = round(df['今日涨幅'].mean(), 2)
+        median = round(df['今日涨幅'].median(), 2)
+        min_v = round(df['今日涨幅'].min(), 2)
+        min_index = df['今日涨幅'].argmin()
+        min_percent_name = df.iloc[min_index]['名称']
+        current = datetime.datetime.now().strftime('%Y-%m-%d')
+        title = '昨涨停今天{}平均涨{}\n'.format(current, avg)
+        content = '<p>昨天涨停今天<font color="red">{}</font></p>' \
+                  '<p>平均涨幅 <font color="red">{}</font></p>' \
+                  '<p>涨幅中位数 <font color="red">{}</font></p>' \
+                  '<p>涨幅最小 <font color="red">{}</font></p>' \
+                  '<p>涨幅最小股 <font color="red">{}</font></p>'.format(current, avg, median, min_v, min_percent_name)
+
+        try:
+            send_from_aliyun(title, content, types='html')
+        except Exception as e:
+            self.logger.error(e)
 
     def storedata(self):
         zdt_content = self.getdata(self.zdt_url, headers=self.header_zdt)
@@ -173,27 +179,5 @@ class GetZDT(BaseService):
 
 
 if __name__ == '__main__':
-    # 填补以前的数据
-    # date_list = [i for i in list(pd.date_range('20180921','20190101'))]
-    # conn = get_mysql_conn('db_zdt','local')
-    # cursor = conn.cursor()
-    # for d in date_list:
-    #     x=datetime.datetime.strftime(d, '%Y%m%d')
-    #     y=datetime.datetime.strftime(d, '%Y-%m-%d')
-    #     if ts.is_holiday(y):
-    #         continue
-    #     print(y)
-    #     check_cmd ='select 1 from `{}zdt`'.format(x)
-    #     try:
-    #         cursor.execute(check_cmd)
-    #     except Exception as e:
-    #         print(e)
-    #         obj = GetZDT(x)
-    #         obj.storedata()
-    #     else:
-    #         ret = cursor.fetchone()
-    #         print(ret)
-    #         continue
-
     obj = GetZDT()
     obj.storedata()

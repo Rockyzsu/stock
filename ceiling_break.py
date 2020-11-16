@@ -12,8 +12,8 @@ import datetime
 import tushare as ts
 import pandas as pd
 import threading
-from BaseService import BaseService
-from settings import DBSelector, trading_time
+from common.BaseService import BaseService
+from configure.settings import DBSelector, notify
 
 EXCEPTION_TIME_OUT = 60
 NORMAL_TIME_OUT = 3
@@ -65,7 +65,7 @@ class BreakMonitor(BaseService):
             if self.percent(float(df.iloc[0]['price']), float(df.iloc[0]['pre_close'])) < 9:
                 if self.send == True:
                     title = f'{code}已经板了'
-                    self.notify(title)
+                    notify(title)
                     break
 
             if v <= 1000:
@@ -74,7 +74,7 @@ class BreakMonitor(BaseService):
                 print(self.bases[self.bases['code'] == code]['name'].values[0])
                 if self.send == True:
                     title = f'{code}开板了'
-                    self.notify(title)
+                    notify(title)
 
             time.sleep(10)
 

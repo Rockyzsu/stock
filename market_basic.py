@@ -7,7 +7,7 @@ Contact: weigesysu@qq.com
 股市基本面
 '''
 
-from settings import  get_engine
+from configure.settings import  get_engine
 
 import tushare as ts
 

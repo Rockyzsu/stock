@@ -8,7 +8,7 @@ http://30daydo.com
 Contact: weigesysu@qq.com
 '''
 
-from settings import DBSelector
+from configure.settings import DBSelector
 import pandas as pd
 import pymongo
 

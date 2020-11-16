@@ -12,7 +12,7 @@ import os
 import datetime
 import pandas as pd
 import numpy as np
-from settings import DBSelector
+from configure.settings import DBSelector
 import fire
 
 DB=DBSelector()

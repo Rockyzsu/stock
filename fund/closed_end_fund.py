@@ -7,30 +7,29 @@
 
 import datetime
 import requests
-from settings import DBSelector,_json_data
-import pymongo
-from BaseService import  BaseService
-RETRY =0
-db = DBSelector()
+import sys
+
+sys.path.append('..')
+from configure.settings import DBSelector
+from common.BaseService import BaseService
+from configure.util import notify
+RETRY = 0
+DB = DBSelector()
+
 
 class CloseEndFundCls(BaseService):
 
     def __init__(self):
 
-        super(CloseEndFundCls,self).__init__('log/fund.log')
-        self.url ='https://www.jisilu.cn/data/cf/cf_list/'
+        super(CloseEndFundCls, self).__init__('log/closd_fund.log')
+        self.url = 'https://www.jisilu.cn/data/cf/cf_list/'
         self.headers = {
             'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
             'X-Requested-With': 'XMLHttpRequest'}
-        host=_json_data['mongo']['qq']['host']
-        port=_json_data['mongo']['qq']['port']
-        user=_json_data['mongo']['qq']['user']
-        password=_json_data['mongo']['qq']['password']
 
-        connect_uri = f'mongodb://{user}:{password}@{host}:{port}'
-        self.db = pymongo.MongoClient(connect_uri)
-        today = datetime.datetime.now().strftime('%Y-%m-%d')
-        self.doc = self.db['closed_end_fund'][today]
+        self.client = DB.mongo('qq')
+
+        self.doc = self.client['closed_end_fund'][self.today]
 
     def crawl(self):
 
@@ -38,27 +37,21 @@ class CloseEndFundCls(BaseService):
         while RETRY < 5:
             try:
                 r = requests.get(url=self.url,
-                     headers=self.headers)
+                                 headers=self.headers)
 
             except Exception as e:
                 self.logger.error(e)
-                RETRY+=1
+                RETRY += 1
                 continue
             else:
-                if r.status_code==200:
+                if r.status_code == 200:
                     js_data = r.json()
                     return js_data
 
             RETRY += 1
         return None
 
-
-    def save(self,js_data):
-        rows = js_data.get('rows')
-        row_list =[]
-        for row in rows:
-            cell = row.get('cell')
-            row_list.append(cell)
+    def save_mongo(self, row_list):
         try:
             self.doc.insert_many(row_list)
         except Exception as e:
@@ -73,9 +66,18 @@ class CloseEndFundCls(BaseService):
         if content is None:
             self.logger.error('爬取内容为空')
             return
+        rows = content.get('rows')
+        row_list = list(map(lambda x: x.get('cell'), rows))
 
-        if self.save(content):
-            self.logger.info('保存成功')
-        else:
+        if not self.save_mongo(row_list):
             self.logger.info('保存失败')
+            notify(title='jsl分级入库出错',desp=f'{self.__class__}')
 
+
+def main():
+    spider = CloseEndFundCls()
+    spider.run()
+
+
+if __name__ == '__main__':
+    main()

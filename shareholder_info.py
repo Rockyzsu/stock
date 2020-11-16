@@ -8,7 +8,7 @@ import time
 import pymysql
 import tushare as ts
 import config
-from settings import get_mysql_conn
+from configure.settings import get_mysql_conn
 
 conn = get_mysql_conn('db_stock', 'local')
 cursor = conn.cursor()
