@@ -3,6 +3,9 @@
 # @File : realtime_monitor_ts.py
 # @Author : Rocky C@www.30daydo.com
 import tushare as ts
+import sys
+
+sys.path.append('..')
 from configure.settings import DBSelector
 from common.BaseService import BaseService
 import datetime
@@ -25,6 +28,7 @@ DIFF_V = 40  # quote 接口以千为单位
 
 file = 'D:\OneDrive\Stock\gj_hold.xls'
 
+# TODO 需要修复一些移除的函数
 
 class ReachTarget(BaseService):
 

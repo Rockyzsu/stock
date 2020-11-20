@@ -45,7 +45,7 @@ cursor = conn.cursor()
 class FundSpider(BaseService):
 
     def __init__(self):
-        super(FundSpider, self).__init__('../log/fundspider.log')
+        super(FundSpider, self).__init__(f'../log/{self.__class__.__name__}.log')
         self.create_table()
         self.session = requests.Session()
 
@@ -323,7 +323,7 @@ class JSLFund(BaseService):
     '''
 
     def __init__(self):
-        super(JSLFund, self).__init__('../log/jslfund.log')
+        super(JSLFund, self).__init__(f'../log/{self.__class__.__name__}.log')
 
         client = DB.mongo('qq')
 

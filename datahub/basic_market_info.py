@@ -7,10 +7,10 @@ Contact: weigesysu@qq.com
 import datetime
 import time
 import tushare as ts
-import os
+import sys
+sys.path.append('..')
 from configure.settings import DBSelector,config_dict
 from configure.util import notify
-import pandas as pd
 from common.BaseService import BaseService
 
 # 获取市场全貌

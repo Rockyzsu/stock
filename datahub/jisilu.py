@@ -4,7 +4,8 @@ __author__ = 'Rocky'
 http://30daydo.com
 Contact: weigesysu@qq.com
 '''
-
+import sys
+sys.path.append('..')
 import re
 import time
 import datetime

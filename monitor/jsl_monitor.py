@@ -1,10 +1,12 @@
 # 使用jsl作为数据源
 import requests
+import sys
+sys.path.append('..')
 import time
-from history_set import HistorySet
 import threading
 from configure.settings import market_status, config
-from common.BaseService import BaseService
+from common.BaseService import BaseService,HistorySet
+from configure.util import read_web_headers_cookies
 
 ACCESS_INTERVAL = config['jsl_monitor']['ACCESS_INTERVAL']
 MONITOR_PERCENT = config['jsl_monitor']['MONITOR_PERCENT']
@@ -13,28 +15,12 @@ EXPIRE_TIME = config['jsl_monitor']['EXPIRE_TIME']
 
 class ReachTargetJSL(BaseService):
     def __init__(self):
-        super(ReachTargetJSL, self).__init__('log/jsl_monitor.log')
+        super(ReachTargetJSL, self).__init__(f'log/{self.__class__.__name__}.log')
         self.session = requests.Session()
-        self.cookies = None
-
-        self.headers = {
-            'Sec-Fetch-Mode': 'cors',
-            'Origin': 'https://www.jisilu.cn',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Accept-Language': 'zh,en;q=0.9,en-US;q=0.8',
-            'X-Requested-With': 'XMLHttpRequest',
-            'Connection': 'keep-alive',
-            'Pragma': 'no-cache',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36',
-            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-            'Accept': 'application/json, text/javascript, */*; q=0.01',
-            'Cache-Control': 'no-cache',
-            'Referer': 'https://www.jisilu.cn/data/cbnew/',
-            'Sec-Fetch-Site': 'same-origin',
-        }
-
+        self.headers , self.cookies = read_web_headers_cookies('jsl',headers=True,cookies=False)
+        ts = int(time.time()*1000)
         self.params = (
-            ('___jsl', 'LST___t=1579488785838'),
+            ('___jsl', f'LST___t={ts}'),
         )
 
         self.data = {
