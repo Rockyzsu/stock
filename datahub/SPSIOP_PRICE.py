@@ -4,7 +4,8 @@
 # @File : SPSIOP_PRICE.py
 # 获取SPSIOP的价格，每天早上美股收盘
 # 先获取xop的前一天的涨幅，然后在前一天华宝油气的基础上相加
-
+import sys
+sys.path.append('..')
 import datetime
 import requests
 from common.BaseService import BaseService

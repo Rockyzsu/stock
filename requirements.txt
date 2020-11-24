@@ -4,7 +4,7 @@ loguru
 rsa
 itchat
 twilio
-reids
+redis
 pymongo
 pymysql
 pypinyin

@@ -37,13 +37,12 @@ def get_basic_info():
     base_info = pd.read_sql('tb_basic_info', engine, index_col='index')
     return base_info
 
-def plot_stock_line(api,code, name, table_name, current, start='2019-10-01', save=False):
+def plot_stock_line(api,code, name, table_type, current, root_path,start='2019-10-01', save=False):
 
-    title = '{}_{}_{}_{}'.format(current, code, name, table_name)
-    title = title.replace('*', '_')
-
-
-    if os.path.exists(title + '.png'):
+    title = '{}_{}_{}_{}'.format(current, code, name, table_type).replace('*', '_')
+    filename = title + '.png'
+    full_path = os.path.join(root_path,current,filename)
+    if os.path.exists(full_path):
         return
 
     base_info = get_basic_info()
@@ -104,7 +103,7 @@ def plot_stock_line(api,code, name, table_name, current, start='2019-10-01', sav
 
     if save:
         # path = os.path.join(os.path.dirname(__file__),'data',TODAY)
-        fig.savefig(title + '.png')
+        fig.savefig(full_path)
     else:
         plt.show()
 

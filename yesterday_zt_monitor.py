@@ -6,7 +6,7 @@
 import datetime
 import matplotlib
 matplotlib.use("Pdf")
-from configure.settings import DBSelector
+from configure.settings import DBSelector,config_dict
 import pandas as pd
 import tushare as ts
 from plot_line import plot_stock_line
@@ -19,15 +19,16 @@ class PlotYesterdayZT(BaseService):
 
     def __init__(self):
         super(PlotYesterdayZT, self).__init__('log/yester_zdt.log')
+        self.image_path = config_dict('data_path')
 
-    def get_data(self,table,current):
+    def get_data(self,table):
         DB = DBSelector()
         engine = DB.get_engine('db_zdt', 'qq')
 
         try:
             df = pd.read_sql(table, engine)
         except Exception as e:
-            self.logger.error('table_name >>> {}{}'.format(current, table))
+            self.logger.error('table_name >>> {}'.format(table))
             self.logger.error(e)
             return None
         else:
@@ -37,15 +38,14 @@ class PlotYesterdayZT(BaseService):
 
         start_data = datetime.datetime.now() + datetime.timedelta(days=-200)
         start_data=start_data.strftime('%Y-%m-%d')
-        table_name = type_name
-        table = f'{current}{table_name}'
+        table = f'{current}{type_name}'
 
-        df = self.get_data(table,current)
+        df = self.get_data(table)
 
         for i in range(len(df)):
             code = df.iloc[i]['代码']
             name = df.iloc[i]['名称']
-            plot_stock_line(api,code, name, table_name=table_name, current=current, start=start_data, save=True)
+            plot_stock_line(api,code, name, table_type=type_name, current=current, root_path=self.image_path,start=start_data, save=True)
 
 
 def main():
