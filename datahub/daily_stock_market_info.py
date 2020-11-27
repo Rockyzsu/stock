@@ -10,12 +10,14 @@ import pandas as pd
 import time
 from configure.util import notify
 import os
+import sys
+sys.path.append('../..')
 from common.BaseService import BaseService
 from configure.settings import DBSelector,config_dict
 
 class FetchDaily(BaseService):
     def __init__(self):
-        super(FetchDaily, self).__init__('log/fetch_each_day.log')
+        super(FetchDaily, self).__init__(f'../log/{self.__class__.__name__}.log')
 
         self.path = config_dict('data_path')
         self.check_path(self.path)

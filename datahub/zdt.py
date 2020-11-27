@@ -5,6 +5,8 @@ http://30daydo.com
 Contact: weigesysu@qq.com
 '''
 # 每天的涨跌停
+import sys
+sys.path.append('..')
 import re
 import time
 import os
@@ -32,13 +34,9 @@ class GetZDT(BaseService):
             self.today = time.strftime("%Y%m%d")
 
         self.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/64.0.3282.167 Chrome/64.0.3282.167 Safari/537.36"
-
         self.path = config_dict('data_path')
-
-        self.zdt_url = 'http://home.flashdata2.jrj.com.cn/limitStatistic/ztForce/' + \
-                       self.today + ".js"
+        self.zdt_url = f'http://home.flashdata2.jrj.com.cn/limitStatistic/ztForce/{self.today}.js'
         self.zrzt_url = 'http://hqdata.jrj.com.cn/zrztjrbx/limitup.js'
-
         self.host = "home.flashdata2.jrj.com.cn"
         self.reference = "http://stock.jrj.com.cn/tzzs/zdtwdj/zdforce.shtml"
 
@@ -59,7 +57,7 @@ class GetZDT(BaseService):
 
         self.DB = DBSelector()
 
-    def getdata(self, url, headers, retry=5):
+    def download(self, url, headers, retry=5):
 
         for i in range(retry):
             try:
@@ -102,8 +100,7 @@ class GetZDT(BaseService):
         else:
             return None
 
-
-    def save_to_dataframe(self, data, index, choice, post_fix):
+    def convert_dataframe(self, data, index, choice, post_fix):
         engine = self.DB.get_engine('db_zdt', 'qq')
         data_len = len(data)
 
@@ -115,13 +112,13 @@ class GetZDT(BaseService):
 
         # 今日涨停
         if choice == 1:
-            self.today_(df,post_fix, engine)
+            self.today_zt(df, post_fix, engine)
         # 昨日涨停
         if choice == 2:
-            self.yesterday(df,post_fix, engine)
+            self.yesterday_zt(df, post_fix, engine)
 
     # 今日涨停存储
-    def today_(self,df,post_fix, engine):
+    def today_zt(self, df, post_fix, engine):
         filename = os.path.join(
             self.path, self.today + "_" + post_fix + ".xls")
 
@@ -132,9 +129,8 @@ class GetZDT(BaseService):
         except Exception as e:
             self.logger.info(e)
 
-
     # 昨日涨停今日的状态，今日涨停
-    def yesterday(self,df,post_fix, engine):
+    def yesterday_zt(self, df, post_fix, engine):
         df = df.set_index('序号')
         formula = lambda x: round(x * 100, 3)
         df['最大涨幅'] = df['最大涨幅'].map(formula)
@@ -142,12 +138,20 @@ class GetZDT(BaseService):
         df['今日开盘涨幅'] = df['今日开盘涨幅'].map(formula)
         df['昨日涨停强度'] = df['昨日涨停强度'].map(lambda x: round(x, 0))
         df['今日涨停强度'] = df['今日涨停强度'].map(lambda x: round(x, 0))
+
         try:
             df.to_sql(self.today + post_fix, engine, if_exists='fail')
         except Exception as e:
             notify(f'{self.__class__} 出错')
             self.logger.info(e)
 
+        title,content = self.generate_html(df)
+        try:
+            send_from_aliyun(title, content, types='html')
+        except Exception as e:
+            self.logger.error(e)
+
+    def generate_html(self,df):
         avg = round(df['今日涨幅'].mean(), 2)
         median = round(df['今日涨幅'].median(), 2)
         min_v = round(df['今日涨幅'].min(), 2)
@@ -161,23 +165,17 @@ class GetZDT(BaseService):
                   '<p>涨幅最小 <font color="red">{}</font></p>' \
                   '<p>涨幅最小股 <font color="red">{}</font></p>'.format(current, avg, median, min_v, min_percent_name)
 
-        try:
-            send_from_aliyun(title, content, types='html')
-        except Exception as e:
-            self.logger.error(e)
-
-    def storedata(self):
-        zdt_content = self.getdata(self.zdt_url, headers=self.header_zdt)
+        return title,content
+    def start(self):
+        zdt_content = self.download(self.zdt_url, headers=self.header_zdt)
         zdt_js = self.convert_json(zdt_content)
-        self.save_to_dataframe(zdt_js, self.zdt_indexx, 1, 'zdt')
-
+        self.convert_dataframe(zdt_js, self.zdt_indexx, 1, 'zdt')
         # 昨日涨停数据会如果不是当天获取会失效
-        zrzt_content = self.getdata(self.zrzt_url, headers=self.header_zrzt)
-
+        zrzt_content = self.download(self.zrzt_url, headers=self.header_zrzt)
         zrzt_js = self.convert_json(zrzt_content)
-        self.save_to_dataframe(zrzt_js, self.zrzt_indexx, 2, 'zrzt')
+        self.convert_dataframe(zrzt_js, self.zrzt_indexx, 2, 'zrzt')
 
 
 if __name__ == '__main__':
     obj = GetZDT()
-    obj.storedata()
+    obj.start()

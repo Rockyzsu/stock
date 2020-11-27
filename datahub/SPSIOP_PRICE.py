@@ -14,7 +14,7 @@ from configure.settings import  send_from_aliyun,DBSelector
 
 
 DB = DBSelector()
-client = DB.mongo('qq')
+client = DB.mongo(location_type='qq',async_type=False)
 
 doc = client['db_stock']['SPSIOP']
 
@@ -34,7 +34,7 @@ today = datetime.datetime.now().strftime('%Y-%m-%d')
 class SPSIOP(BaseService):
 
     def __init__(self):
-        super(SPSIOP, self).__init__('log/huabaoyouqi.log')
+        super(SPSIOP, self).__init__('../log/huabaoyouqi.log')
 
     def predict_price(self):
 

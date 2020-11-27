@@ -48,6 +48,7 @@ class FundSpider(BaseService):
         super(FundSpider, self).__init__(f'../log/{self.__class__.__name__}.log')
         self.create_table()
         self.session = requests.Session()
+        self.logger.info('start...')
 
     def create_table(self):
         create_table = 'create table if not EXISTS `{}` (`基金代码` varchar(20) PRIMARY KEY,`基金简称` ' \
@@ -325,7 +326,7 @@ class JSLFund(BaseService):
     def __init__(self):
         super(JSLFund, self).__init__(f'../log/{self.__class__.__name__}.log')
 
-        client = DB.mongo('qq')
+        client = DB.mongo(location_type='qq',async_type=False)
 
         self.jsl_stock_lof = client['fund_daily'][f'jsl_stock_lof_{self.today}']
         self.jsl_index_lof = client['fund_daily'][f'jsl_index_lof_{self.today}']

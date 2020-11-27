@@ -27,7 +27,7 @@ class CloseEndFundCls(BaseService):
             'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
             'X-Requested-With': 'XMLHttpRequest'}
 
-        self.client = DB.mongo('qq')
+        self.client = DB.mongo(location_type='qq',async_type=False)
 
         self.doc = self.client['closed_end_fund'][self.today]
 

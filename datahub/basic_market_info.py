@@ -17,8 +17,8 @@ from common.BaseService import BaseService
 
 class BasicMarket(BaseService):
 
-    def __init__(self,logpath='log/collect_data.log'):
-        super(BasicMarket, self).__init__(logpath)
+    def __init__(self):
+        super(BasicMarket, self).__init__(f'../log/{self.__class__.__name__}.log')
         work_space=config_dict('data_path')
         self.check_path(work_space)
 
@@ -28,7 +28,6 @@ class BasicMarket(BaseService):
         :param retry:
         :return:
         '''
-
         # 需要添加异常处理 重试次数
         count = 0
 
@@ -44,7 +43,7 @@ class BasicMarket(BaseService):
                 break
 
         if count==retry:
-            notify(title='获取股市市场全景数据失败',desp=f'{self.__class__}')
+            notify(title='获取股市市场全景数据失败',desp=f'{self.__class__.__name__}')
             exit(0)
 
         if df is not None:

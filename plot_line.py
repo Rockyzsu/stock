@@ -36,13 +36,23 @@ def get_basic_info():
     engine = DB.get_engine('db_stock', 'qq')
     base_info = pd.read_sql('tb_basic_info', engine, index_col='index')
     return base_info
+def check_path(root_path,current,filename):
+    folder_path = os.path.join(root_path, current)
+    if not os.path.exists(folder_path):
+        os.mkdir(folder_path)
+    full_path = os.path.join(folder_path, filename)
+
+    if os.path.exists(full_path):
+        return None
+    else:
+        return full_path
 
 def plot_stock_line(api,code, name, table_type, current, root_path,start='2019-10-01', save=False):
 
     title = '{}_{}_{}_{}'.format(current, code, name, table_type).replace('*', '_')
     filename = title + '.png'
-    full_path = os.path.join(root_path,current,filename)
-    if os.path.exists(full_path):
+    full_path = check_path(root_path,current,filename)
+    if full_path is None:
         return
 
     base_info = get_basic_info()
