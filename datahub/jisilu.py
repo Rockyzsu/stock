@@ -5,6 +5,7 @@ http://30daydo.com
 Contact: weigesysu@qq.com
 '''
 import sys
+
 sys.path.append('..')
 import re
 import time
@@ -75,7 +76,8 @@ class Jisilu(BaseService):
 
         ret = js.json()
         bond_list = ret.get('rows', {})
-        self.data_parse(bond_list, adjust_no_use)
+        df = self.data_parse(bond_list, adjust_no_use)
+        self.store_mysql(df)
 
     def data_parse(self, bond_list, adjust_no_use):
 
@@ -146,6 +148,7 @@ class Jisilu(BaseService):
                               'ration_rt': '股东配售率',
                               'redeem_flag': '发出强赎公告',
                               'redeem_dt': '强赎日期',
+                              'guarantor': '担保',
                               }
 
             df = df.rename(columns=rename_columns)
@@ -153,7 +156,9 @@ class Jisilu(BaseService):
             df['更新日期'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
 
         df = df.set_index('可转债代码', drop=True)
+        return df
 
+    def store_mysql(self, df):
         try:
 
             df.to_sql('tb_jsl_{}'.format(self.date), self.engine, if_exists='replace', dtype={'可转债代码': VARCHAR(10)})
@@ -182,11 +187,10 @@ class Jisilu(BaseService):
         抓取时间 datetime
         );
         '''
-        self.execute(creat_table,(),conn)
-
+        self.execute(creat_table, (), conn)
 
     def get_conn(self):
-        return self.DB.get_mysql_conn('db_stock','qq')
+        return self.DB.get_mysql_conn('db_stock', 'qq')
 
     # 这个数据最好晚上10点执行
     def release_data(self):
