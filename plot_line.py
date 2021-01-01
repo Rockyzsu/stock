@@ -36,6 +36,7 @@ def get_basic_info():
     engine = DB.get_engine('db_stock', 'qq')
     base_info = pd.read_sql('tb_basic_info', engine, index_col='index')
     return base_info
+
 def check_path(root_path,current,filename):
     folder_path = os.path.join(root_path, current)
     if not os.path.exists(folder_path):

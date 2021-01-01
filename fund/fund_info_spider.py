@@ -9,7 +9,8 @@ sys.path.append('..')
 from configure.settings import DBSelector,  send_from_aliyun
 from common.BaseService import BaseService
 from configure.util import notify
-
+import warnings
+warnings.filterwarnings("ignore")
 # 基金数据爬虫
 
 now = datetime.datetime.now()
@@ -271,7 +272,7 @@ class FundSpider(BaseService):
         return yjl, jz
 
     def query_fund_data(self, today, order):
-        query_sql = '''select `基金代码`,`基金简称`,`实时价格`,`实时净值`,`溢价率`,`净值日期` from `{}` where `申购状态`='开放' and `申赎状态`='开放' and `溢价率` is not null and !(`实时价格`=1 and `涨跌幅`=0 and `成交额-万`=0) order by `溢价率` {} limit 10'''.format(
+        query_sql = '''select `基金代码`,`基金简称`,`实时价格`,`实时净值`,`溢价率`,`净值日期` from `{}` where `申购状态`='开放' and `申赎状态`='开放' and `基金简称` not like '%%债%%' and `溢价率` is not null and !(`实时价格`=1 and `涨跌幅`=0 and `成交额-万`=0) order by `溢价率` {} limit 10'''.format(
             today, order)
         return self.execute(query_sql,(),conn)
 

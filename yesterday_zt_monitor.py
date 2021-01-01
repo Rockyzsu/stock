@@ -12,7 +12,7 @@ import tushare as ts
 from plot_line import plot_stock_line
 from common.BaseService import BaseService
 from configure.util import notify
-
+import fire
 
 # 绘制k线图，今日涨停的k线图
 class PlotYesterdayZT(BaseService):
@@ -48,9 +48,12 @@ class PlotYesterdayZT(BaseService):
             plot_stock_line(api,code, name, table_type=type_name, current=current, root_path=self.image_path,start=start_data, save=True)
 
 
-def main():
+def main(current=None):
     # current='20191016'
-    current = datetime.datetime.now().strftime('%Y%m%d')
+    if current is None:
+        current = datetime.datetime.now().strftime('%Y%m%d')
+    if isinstance(current,int):
+        current=str(current)
     app = PlotYesterdayZT()
     api =ts.get_apis()
     for plot_type in ['zrzt', 'zdt']:
@@ -58,12 +61,14 @@ def main():
         try:
             app.plot_yesterday_zt(api,plot_type, current=current)
         except Exception as e:
+            print(plot_type,'error')
+            print(e)
             notify(title='zdt_plot 出错',desp=f'{__name__}')
             continue
 
     ts.close_apis(conn=api)
 
 if __name__ == '__main__':
-    main()
+    fire.Fire(main)
 
 

@@ -20,7 +20,10 @@ class BasicMarket(BaseService):
     def __init__(self):
         super(BasicMarket, self).__init__(f'../log/{self.__class__.__name__}.log')
         work_space=config_dict('data_path')
+        ts_token=config_dict('ts_token')
         self.check_path(work_space)
+        ts.set_token(ts_token)
+        self.pro = ts.pro_api()
 
     def get_basic_info(self, retry=5):
         '''
@@ -33,7 +36,7 @@ class BasicMarket(BaseService):
 
         while count < retry:
             try:
-                df = ts.get_stock_basics()
+                df = self.pro.stock_basic(exchange='', list_status='', fields='')
             except Exception as e:
                 self.logger.info(e)
                 time.sleep(10)
@@ -47,11 +50,12 @@ class BasicMarket(BaseService):
             exit(0)
 
         if df is not None:
-            df = df.reset_index()
+            df = df.reset_index(drop=True)
+            df.rename(columns={'symbol':'code'},inplace=True)
             df['更新日期'] = datetime.datetime.now()
             engine = DBSelector().get_engine('db_stock','qq')
             try:
-                df.to_sql('tb_basic_info', engine, if_exists='replace',index='index',index_label='id')
+                df.to_sql('tb_basic_info', engine, if_exists='replace')
             except Exception as e:
                 self.logger.error(e)
                 notify(title='mysql入库出错',desp=f'{self.__class__}')
