@@ -158,7 +158,7 @@ class BaseService(object):
         else:
             return True
 
-    def execute(self, cmd, data, conn):
+    def execute(self, cmd, data, conn,logger=None):
 
         cursor = conn.cursor()
 
@@ -168,7 +168,7 @@ class BaseService(object):
             cursor.execute(cmd, data)
         except Exception as e:
             conn.rollback()
-            print('执行数据库错误 {}'.format(e))
+            logger.error('执行数据库错误 {}'.format(e))
             ret = None
         else:
             ret = cursor.fetchall()

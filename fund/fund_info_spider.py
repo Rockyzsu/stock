@@ -23,6 +23,7 @@ elif _time < '14:45:00':
     TODAY += 'noon'
 else:
     TODAY += 'close'
+    # TODAY += 'noon'
 
 NOTIFY_HOUR = 13
 MAX_PAGE = 114
@@ -62,7 +63,7 @@ class FundSpider(BaseService):
                        '`实时估值` INT,`更新时间` VARCHAR(20));'.format(
             TODAY)
 
-        self.execute(create_table,(),conn)
+        self.execute(create_table,(),conn,self.logger)
 
     def convert(self, float_str):
 
@@ -91,7 +92,7 @@ class FundSpider(BaseService):
                 cj_total_amount, jzrq, dwjz,
                 ljjz,
                 zyjl, sgzt, shzt, jjjl, clrq,
-                glrmc, is_realtime, update_time),conn)
+                glrmc, is_realtime, update_time),conn,self.logger)
 
 
     def check_exist(self, code):
@@ -119,6 +120,7 @@ class FundSpider(BaseService):
                 return content
 
         if start == retry:
+            self.logger.error('重试太多')
             return None
 
     def crawl(self):
@@ -137,11 +139,15 @@ class FundSpider(BaseService):
             )
 
             content = self.get(url, params)
+            if content is None:
+                continue
+
             ls_data = re.search('var list_data=(.*?);', content, re.S)
 
             if ls_data:
                 ret = ls_data.group(1)
             else:
+                self.logger.error('解析出错')
                 continue
 
             js = demjson.decode(ret)  # 解析json的库
@@ -161,6 +167,10 @@ class FundSpider(BaseService):
 
                 detail_url = 'http://gu.qq.com/{}'
                 content = self.get(url=detail_url.format(code), params=None)
+                if content is None:
+                    self.logger.error('请求内容为空')
+                    continue
+
                 self.parse_content_and_save(content)
 
     def parse_content_and_save(self, content):
@@ -201,17 +211,17 @@ class FundSpider(BaseService):
     def change_table_field(self, table):
         add_column1 = 'alter table `{}` add column `实时净值` float'.format(table)
         add_column2 = 'alter table `{}` add column `溢价率` float'.format(table)
-        self.execute(add_column1,(),conn)
-        self.execute(add_column2,(),conn)
+        self.execute(add_column1,(),conn,self.logger)
+        self.execute(add_column2,(),conn,self.logger)
 
 
     def get_fund_info(self, table):
         query = 'select `基金代码`,`基金简称`,`实时价格` from `{}`'.format(table)
-        return self.execute(query,(),conn)
+        return self.execute(query,(),conn,self.logger)
 
     def udpate_db(self, table, jz, yjl, is_realtime, code):
         update_sql = 'update `{}` set `实时净值`= %s,`溢价率`=%s ,`实时估值`=%s where  `基金代码`=%s'.format(table)
-        self.execute(update_sql, (jz, yjl, is_realtime, code),conn)
+        self.execute(update_sql, (jz, yjl, is_realtime, code),conn,self.logger)
 
     def update_netvalue(self, table):
         '''
@@ -274,7 +284,7 @@ class FundSpider(BaseService):
     def query_fund_data(self, today, order):
         query_sql = '''select `基金代码`,`基金简称`,`实时价格`,`实时净值`,`溢价率`,`净值日期` from `{}` where `申购状态`='开放' and `申赎状态`='开放' and `基金简称` not like '%%债%%' and `溢价率` is not null and !(`实时价格`=1 and `涨跌幅`=0 and `成交额-万`=0) order by `溢价率` {} limit 10'''.format(
             today, order)
-        return self.execute(query_sql,(),conn)
+        return self.execute(query_sql,(),conn,self.logger)
 
     def html_formator(self, ret, html):
 
@@ -290,14 +300,23 @@ class FundSpider(BaseService):
 
         html += body
         result_asc = self.query_fund_data(today, 'asc')
-        html = self.html_formator(result_asc,html )
+        if self.check_content(result_asc):
+            html = self.html_formator(result_asc,html )
 
         html += body
 
         result_desc = self.query_fund_data(today, 'desc')
-        html = self.html_formator(result_desc,html )
+        if self.check_content(result_desc):
+            html = self.html_formator(result_desc,html )
+
         return html
 
+    def check_content(self,content):
+        if content is None:
+            self.logger.error('获取内容为空')
+            return False
+        else:
+            return True
     def notice_me(self, today):
 
         now = datetime.datetime.now()
