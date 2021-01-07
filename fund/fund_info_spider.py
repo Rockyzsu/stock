@@ -289,7 +289,7 @@ class FundSpider(BaseService):
     def html_formator(self, ret, html):
 
         for row in ret:
-            html += f'<tr><td>{row[0]}</td><td>{row[1]}</td><td>{row[2]}</td><td>{row[3]}</td><td>{row[4]}</td><td>{row[5]}</td></tr>'
+            html += f'<tr><td>{row[0]}</td><td>{row[1].replace("(LOF)","")}</td><td>{row[2]}</td><td>{row[3]}</td><td>{row[4]}</td><td>{row[5]}</td></tr>'
         html += '</table></div>'
         return html
 
