@@ -25,3 +25,4 @@ config.json
 .ipynb_checkpoints
 log/jsl_monitor
 configure/
+release/
