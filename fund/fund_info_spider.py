@@ -5,11 +5,13 @@ import demjson
 import requests
 import time
 import sys
+
 sys.path.append('..')
-from configure.settings import DBSelector,  send_from_aliyun
+from configure.settings import DBSelector, send_from_aliyun
 from common.BaseService import BaseService
 from configure.util import notify
 import warnings
+
 warnings.filterwarnings("ignore")
 # 基金数据爬虫
 
@@ -26,7 +28,7 @@ else:
     # TODAY += 'noon'
 
 NOTIFY_HOUR = 13
-MAX_PAGE = 114
+MAX_PAGE = 50
 
 headers = {
     'Connection': 'keep-alive',
@@ -50,7 +52,8 @@ class FundSpider(BaseService):
         super(FundSpider, self).__init__(f'../log/{self.__class__.__name__}.log')
         self.create_table()
         self.session = requests.Session()
-        self.logger.info('start...')
+        self.logger.info('start...qq fund')
+        self.LAST_TEXT = ''
 
     def create_table(self):
         create_table = 'create table if not EXISTS `{}` (`基金代码` varchar(20) PRIMARY KEY,`基金简称` ' \
@@ -63,7 +66,7 @@ class FundSpider(BaseService):
                        '`实时估值` INT,`更新时间` VARCHAR(20));'.format(
             TODAY)
 
-        self.execute(create_table,(),conn,self.logger)
+        self.execute(create_table, (), conn, self.logger)
 
     def convert(self, float_str):
 
@@ -87,13 +90,12 @@ class FundSpider(BaseService):
         zyjl = self.convert(zyjl)
 
         insert_data = 'insert into `{}` VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'.format(TODAY)
-        self.execute(insert_data,(
-                jjdm, jjjc, zxgm, zxjg, jgzffd,
-                cj_total_amount, jzrq, dwjz,
-                ljjz,
-                zyjl, sgzt, shzt, jjjl, clrq,
-                glrmc, is_realtime, update_time),conn,self.logger)
-
+        self.execute(insert_data, (
+            jjdm, jjjc, zxgm, zxjg, jgzffd,
+            cj_total_amount, jzrq, dwjz,
+            ljjz,
+            zyjl, sgzt, shzt, jjjl, clrq,
+            glrmc, is_realtime, update_time), conn, self.logger)
 
     def check_exist(self, code):
         check_code_exists = 'select count(*) from `{}` WHERE `基金代码`=%s'.format(TODAY)
@@ -141,6 +143,11 @@ class FundSpider(BaseService):
             content = self.get(url, params)
             if content is None:
                 continue
+
+            if content==self.LAST_TEXT:
+                break
+
+            self.LAST_TEXT = content
 
             ls_data = re.search('var list_data=(.*?);', content, re.S)
 
@@ -211,17 +218,16 @@ class FundSpider(BaseService):
     def change_table_field(self, table):
         add_column1 = 'alter table `{}` add column `实时净值` float'.format(table)
         add_column2 = 'alter table `{}` add column `溢价率` float'.format(table)
-        self.execute(add_column1,(),conn,self.logger)
-        self.execute(add_column2,(),conn,self.logger)
-
+        self.execute(add_column1, (), conn, self.logger)
+        self.execute(add_column2, (), conn, self.logger)
 
     def get_fund_info(self, table):
         query = 'select `基金代码`,`基金简称`,`实时价格` from `{}`'.format(table)
-        return self.execute(query,(),conn,self.logger)
+        return self.execute(query, (), conn, self.logger)
 
     def udpate_db(self, table, jz, yjl, is_realtime, code):
         update_sql = 'update `{}` set `实时净值`= %s,`溢价率`=%s ,`实时估值`=%s where  `基金代码`=%s'.format(table)
-        self.execute(update_sql, (jz, yjl, is_realtime, code),conn,self.logger)
+        self.execute(update_sql, (jz, yjl, is_realtime, code), conn, self.logger)
 
     def update_netvalue(self, table):
         '''
@@ -236,12 +242,12 @@ class FundSpider(BaseService):
         all_fund_info = self.get_fund_info(table)
 
         for item in all_fund_info:
-           jz, yjl, is_realtime, code = self.get_netvalue(table,item)
-           self.udpate_db(table, jz, yjl, is_realtime, code)
+            jz, yjl, is_realtime, code = self.get_netvalue(table, item)
+            self.udpate_db(table, jz, yjl, is_realtime, code)
 
         self.logger.info('更新成功')
 
-    def get_netvalue(self,table,item):
+    def get_netvalue(self, table, item):
         # 获取净值
         code = item[0]
         is_realtime = 1
@@ -263,14 +269,16 @@ class FundSpider(BaseService):
             else:
                 last_one = data_list[-1]
                 jz = last_one[1]
-                yjl = -1 * round((jz - realtime_price) / realtime_price * 100, 2)
+                if js is None or realtime_price is None:
+                    yjl = 0
+                else:
+                    yjl = -1 * round((jz - realtime_price) / realtime_price * 100, 2)
 
         else:
             is_realtime = 0
             yjl, jz = self.get_fund(table, code)
 
         return jz, yjl, is_realtime, code
-
 
     def get_fund(self, table, code):
         query = f'select `折溢价率`,`单位净值` from `{table}` where `基金代码`=%s'
@@ -284,12 +292,12 @@ class FundSpider(BaseService):
     def query_fund_data(self, today, order):
         query_sql = '''select `基金代码`,`基金简称`,`实时价格`,`实时净值`,`溢价率`,`净值日期` from `{}` where `申购状态`='开放' and `申赎状态`='开放' and `基金简称` not like '%%债%%' and `溢价率` is not null and !(`实时价格`=1 and `涨跌幅`=0 and `成交额-万`=0) order by `溢价率` {} limit 10'''.format(
             today, order)
-        return self.execute(query_sql,(),conn,self.logger)
+        return self.execute(query_sql, (), conn, self.logger)
 
     def html_formator(self, ret, html):
 
         for row in ret:
-            html += f'<tr><td>{row[0]}</td><td>{row[1].replace("(LOF)","")}</td><td>{row[2]}</td><td>{row[3]}</td><td>{row[4]}</td><td>{row[5]}</td></tr>'
+            html += f'<tr><td>{row[0]}</td><td>{row[1].replace("(LOF)", "")}</td><td>{row[2]}</td><td>{row[3]}</td><td>{row[4]}</td><td>{row[5]}</td></tr>'
         html += '</table></div>'
         return html
 
@@ -301,22 +309,23 @@ class FundSpider(BaseService):
         html += body
         result_asc = self.query_fund_data(today, 'asc')
         if self.check_content(result_asc):
-            html = self.html_formator(result_asc,html )
+            html = self.html_formator(result_asc, html)
 
         html += body
 
         result_desc = self.query_fund_data(today, 'desc')
         if self.check_content(result_desc):
-            html = self.html_formator(result_desc,html )
+            html = self.html_formator(result_desc, html)
 
         return html
 
-    def check_content(self,content):
+    def check_content(self, content):
         if content is None:
             self.logger.error('获取内容为空')
             return False
         else:
             return True
+
     def notice_me(self, today):
 
         now = datetime.datetime.now()
@@ -346,7 +355,7 @@ class JSLFund(BaseService):
     def __init__(self):
         super(JSLFund, self).__init__(f'../log/{self.__class__.__name__}.log')
 
-        client = DB.mongo(location_type='qq',async_type=False)
+        client = DB.mongo(location_type='qq', async_type=False)
 
         self.jsl_stock_lof = client['fund_daily'][f'jsl_stock_lof_{self.today}']
         self.jsl_index_lof = client['fund_daily'][f'jsl_index_lof_{self.today}']
@@ -356,7 +365,7 @@ class JSLFund(BaseService):
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36'}
 
-        self.logger.info(f'start...')
+        self.logger.info(f'start JSL fund...')
 
     def get(self, url, retry=5):
 
@@ -378,14 +387,15 @@ class JSLFund(BaseService):
             return None
 
     def crawl(self):
-        self.parse_json(types='stock')
-        self.parse_json(types='index')
+        for types in ['stock', 'index']:
+            self.parse_json(types=types)
 
     def parse_json(self, types):
 
         if types == 'stock':
             url = self.stock_url
             mongo_doc = self.jsl_stock_lof
+
         else:
             url = self.index_lof_url
             mongo_doc = self.jsl_index_lof
@@ -395,22 +405,10 @@ class JSLFund(BaseService):
 
         for item in rows:
             cell = item.get('cell')
+            cell['crawltime']=datetime.datetime.now()
+            # print(cell)
             try:
                 mongo_doc.insert_one(cell)
             except Exception as e:
                 self.logger.error(e)
-                notify(title='入mongo出错',desp=f'{self.__class__} 写入mongodb出错')
-
-
-def main():
-    tencent_spider = FundSpider()
-    tencent_spider.crawl()
-    tencent_spider.update_netvalue(TODAY)
-    tencent_spider.notice_me(TODAY)
-
-    jsl_spider = JSLFund()
-    jsl_spider.crawl()
-
-
-if __name__ == '__main__':
-    main()
+                notify(title='入mongo出错', desp=f'{self.__class__} 写入mongodb出错')
