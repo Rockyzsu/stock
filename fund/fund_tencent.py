@@ -17,8 +17,8 @@ if __name__ == '__main__':
     elif _time < '14:45:00':
         TODAY += 'noon'
     else:
-        # TODAY += 'close'
-        TODAY += 'noon'
+        TODAY += 'close'
+        # TODAY += 'noon'
 
     app = FundSpider()
     app.crawl()

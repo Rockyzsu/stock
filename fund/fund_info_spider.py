@@ -40,10 +40,12 @@ headers = {
     'Accept-Encoding': 'gzip, deflate',
     'Accept-Language': 'zh,en;q=0.9,en-US;q=0.8',
 }
-
-DB = DBSelector()
-conn = DB.get_mysql_conn('db_fund', 'qq')
-cursor = conn.cursor()
+try:
+    DB = DBSelector()
+    conn = DB.get_mysql_conn('db_fund', 'qq')
+    cursor = conn.cursor()
+except Exception as e:
+    print(e)
 
 
 class FundSpider(BaseService):
@@ -244,6 +246,7 @@ class FundSpider(BaseService):
         for item in all_fund_info:
             jz, yjl, is_realtime, code = self.get_netvalue(table, item)
             self.udpate_db(table, jz, yjl, is_realtime, code)
+            print(f'更新代码{code}')
 
         self.logger.info('更新成功')
 
