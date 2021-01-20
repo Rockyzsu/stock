@@ -272,22 +272,24 @@ class DeliveryOrder():
         # plt.show()
         #
 
+    def file_exists(self,filepath):
+        return True if os.path.exists(filepath) else False
+
     # 单独处理某个文件（单独一个月的数据） 文件格式：国金-保存为xls，然后另存为csv 或者按照天也可以
     def years_gj_each_month_day(self,filename):
-        # filename = 'GJ_2019-05-11-05-16.csv'
+        if not self.file_exists(filename):
+            raise ValueError('路径不存在')
+
         try:
             # 根据不同的格式选用不同的函数
             # t=pd.read_table(filename,encoding='gbk',dtype={'证券代码':np.str})
-            t = pd.read_csv(filename, encoding='gbk', dtype={'证券代码': np.str})
+            df = pd.read_csv(filename, encoding='gbk', dtype={'证券代码': np.str})
             # t = pd.read_excel(filename, encoding='gbk',dtype={'证券代码': np.str})
         except Exception as e:
             print(e)
-            # continue
+            raise ValueError('读取文件错误')
         # fee=t['手续费'].sum()+t['印花税'].sum()+t['其他杂费'].sum()
-        else:
-            # df_list.append(t)
-            # result.append(fee)
-            df = t
+
         # df = pd.concat(df_list)
         df = df.reset_index(drop='True')
 
@@ -457,8 +459,9 @@ def bank_account():
 
 def main(broker,name):
     # 国金
+    year = datetime.date.today().year
     obj = DeliveryOrder()
-    base_path = 'private/2020/'
+    base_path = f'private/{year}/'
     if broker=='GJ':
         path = base_path+broker
         obj.setpath(path)
