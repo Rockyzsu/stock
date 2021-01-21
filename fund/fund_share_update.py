@@ -1,75 +1,99 @@
-import random
+"# -*- coding"
 import re
-import datetime
-import demjson
-import requests
-import time
+
+"""
+@author:xda
+@file:fund_share_update.py
+@time:2021/01/20
+"""
+# 基金份额
 import sys
 
 sys.path.append('..')
 from configure.settings import DBSelector, send_from_aliyun
 from common.BaseService import BaseService
 from configure.util import notify
+import requests
 import warnings
+import datetime
 
 warnings.filterwarnings("ignore")
-# 基金数据爬虫
 
-now = datetime.datetime.now()
-TODAY = now.strftime('%Y-%m-%d')
-_time = now.strftime('%H:%M:%S')
+from sqlalchemy import Column, String, create_engine, INTEGER, VARCHAR, DATE,DateTime
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
 
-if _time < '11:30:00':
-    TODAY += 'morning'
-elif _time < '14:45:00':
-    TODAY += 'noon'
-else:
-    TODAY += 'close'
-    # TODAY += 'noon'
-
-NOTIFY_HOUR = 13
-MAX_PAGE = 50
+# 创建对象的基类:
+Base = declarative_base()
 
 
-try:
-    DB = DBSelector()
-    conn = DB.get_mysql_conn('db_fund', 'qq')
-    cursor = conn.cursor()
-except Exception as e:
-    print(e)
+class FundBaseInfoModel(Base):
+    # 表的名字:
+    __tablename__ = 'LOF_BaseInfo'
+
+    # 表的结构:
+    id = Column(INTEGER, primary_key=True, autoincrement=True)
+    code = Column(VARCHAR(6), comment='基金代码')
+    name = Column(VARCHAR(40), comment='基金名称')
+    category = Column(VARCHAR(8), comment='基金类别')
+    invest_type = Column(VARCHAR(6), comment='投资类别')
+    manager_name = Column(VARCHAR(48), comment='管理人呢名称')
+    issue_date = Column(DATE, comment='上市日期')
+    crawltime = Column(DateTime,comment='爬取日期')
 
 
-class FundSpider(BaseService):
+# class ShareModel(Base):
+#     # 表的名字:
+#     __tablename__ = 'LOF_Share'
+#
+#     # 表的结构:
+#     id = Column(String(20), primary_key=True)
+#     name = Column(String(20))
+#     fund_category = Column()
 
-    def __init__(self):
-        super(FundSpider, self).__init__(f'../log/{self.__class__.__name__}.log')
-        self.create_table()
+
+class FundShare(BaseService):
+
+    def __init__(self, first_use=False):
+        super(FundShare, self).__init__(f'../log/{self.__class__.__name__}.log')
+        # self.create_table()
         self.headers = {
-            'Connection': 'keep-alive',
-            'Pragma': 'no-cache',
-            'Cache-Control': 'no-cache',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36',
-            'Accept': '*/*',
-            # 'Referer': 'http://stockapp.finance.qq.com/mstats/?id=fund_close',
-            'Accept-Encoding': 'gzip, deflate',
-            'Accept-Language': 'zh,en;q=0.9,en-US;q=0.8',
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            "Accept-Encoding": "gzip, deflate",
+            "Accept-Language": "zh,en;q=0.9,en-US;q=0.8,zh-CN;q=0.7",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
+            "Host": "fund.szse.cn",
+            "Pragma": "no-cache",
+            "Referer": "http://fund.szse.cn/marketdata/fundslist/index.html?catalogId=1000_lf&selectJjlb=ETF",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36",
+            "X-Request-Type": "ajax",
+            "X-Requested-With": "XMLHttpRequest",
         }
+        self.url = 'http://fund.szse.cn/api/report/ShowReport/data?SHOWTYPE=JSON&CATALOGID=1000_lf&TABKEY=tab1&PAGENO={}&selectJjlb=LOF&random=0.019172632634173903'
         self.session = requests.Session()
-        self.logger.info('start...qq fund')
+        self.logger.info('start...sz fund')
         self.LAST_TEXT = ''
+        self.engine = self.get_engine()
+        if first_use:
+            self.create_table()
+
+        self.db_session = self.get_session()
+        self.sess = self.db_session()
+
+
+    def get_engine(self):
+        return DBSelector().get_engine('db_stock')
 
     def create_table(self):
-        create_table = 'create table if not EXISTS `{}` (`基金代码` varchar(20) PRIMARY KEY,`基金简称` ' \
-                       'varchar(100),`最新规模-万` float,' \
-                       '`实时价格` float,`涨跌幅` float,`成交额-万` float,' \
-                       '`净值日期` VARCHAR(10),`单位净值` float,`累计净值` ' \
-                       'float,`折溢价率` float ,`申购状态` VARCHAR(20),`申赎状态` varchar(20),' \
-                       '`基金经理` VARCHAR(200),' \
-                       '`成立日期` VARCHAR(20), `管理人名称` VARCHAR(200),' \
-                       '`实时估值` INT,`更新时间` VARCHAR(20));'.format(
-            TODAY)
+        # 初始化数据库连接:
 
-        self.execute(create_table, (), conn, self.logger)
+        Base.metadata.create_all(self.engine)  # 创建表结构
+
+    def get_session(self):
+
+        return sessionmaker(bind=self.engine)
 
     def convert(self, float_str):
 
@@ -106,11 +130,11 @@ class FundSpider(BaseService):
         ret = cursor.fetchone()
         return ret
 
-    def get(self, url, params, retry=5, js=False):
+    def get(self, url, retry=5, js=True):
         start = 0
         while start < retry:
             try:
-                response = self.session.get(url, headers=self.headers, params=params,
+                response = self.session.get(url, headers=self.headers,
                                             verify=False)
             except Exception as e:
                 self.logger.error(e)
@@ -147,7 +171,7 @@ class FundSpider(BaseService):
             if content is None:
                 continue
 
-            if content==self.LAST_TEXT:
+            if content == self.LAST_TEXT:
                 break
 
             self.LAST_TEXT = content
@@ -276,7 +300,7 @@ class FundSpider(BaseService):
                 if js is None or realtime_price is None:
                     yjl = 0
                 else:
-                    yjl = -1 * round(( realtime_price-jz) / jz * 100, 2)
+                    yjl = -1 * round((jz - realtime_price) / realtime_price * 100, 2)
 
         else:
             is_realtime = 0
@@ -350,69 +374,67 @@ class FundSpider(BaseService):
             else:
                 self.logger.info('发送成功')
 
+    def json_parse(self, js_data):
+        data = js_data[0].get('data', [])
 
-class JSLFund(BaseService):
-    '''
-    集思录的指数
-    '''
-
-    def __init__(self):
-        super(JSLFund, self).__init__(f'../log/{self.__class__.__name__}.log')
-
-        client = DB.mongo(location_type='qq', async_type=False)
-
-        self.jsl_stock_lof = client['fund_daily'][f'jsl_stock_lof_{self.today}']
-        self.jsl_index_lof = client['fund_daily'][f'jsl_index_lof_{self.today}']
-
-        self.stock_url = 'https://www.jisilu.cn/data/lof/stock_lof_list/?___jsl=LST___t=1582355333844&rp=25'
-        self.index_lof_url = 'https://www.jisilu.cn/data/lof/index_lof_list/?___jsl=LST___t=1582356112906&rp=25'
-        self.headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36'}
-
-        self.logger.info(f'start JSL fund...')
-
-    def get(self, url, retry=5):
-
-        start = 0
-        while start < retry:
-            try:
-                r = requests.get(
-                    url=url,
-                    headers=self.headers)
-            except Exception as e:
-                self.logger.error(e)
-                start += 1
-
-            else:
-                js = r.json()
-                return js
-
-        if start == retry:
+        if not data:
+            self.stop = True
             return None
 
-    def crawl(self):
-        for types in ['stock', 'index']:
-            self.parse_json(types=types)
+        for item in data:
+            jjlb = item['jjlb']
+            tzlb = item['tzlb']  #
+            ssrq = item['ssrq']
 
-    def parse_json(self, types):
+            name = self.extract_name(item['jjjcurl'])
 
-        if types == 'stock':
-            url = self.stock_url
-            mongo_doc = self.jsl_stock_lof
+            dqgm = self.convert_number(item['dqgm'])  # 当前规模
 
-        else:
-            url = self.index_lof_url
-            mongo_doc = self.jsl_index_lof
+            glrmc = self.extract_glrmc(item['glrmc'])  # 管理人名称
 
-        return_js = self.get(url=url)
-        rows = return_js.get('rows')
+            code = self.extract_code(item['sys_key'])
 
-        for item in rows:
-            cell = item.get('cell')
-            cell['crawltime']=datetime.datetime.now()
-            # print(cell)
-            try:
-                mongo_doc.insert_one(cell)
-            except Exception as e:
-                self.logger.error(e)
-                notify(title='入mongo出错', desp=f'{self.__class__} 写入mongodb出错')
+            yield (jjlb, tzlb, ssrq, dqgm, glrmc, code, name)
+
+    def extract_name(self, name):
+        return re.search('<u>(.*?)</u>', name).group(1)
+
+    def extract_code(self, code):
+        return re.search('<u>(\d{6})</u>', code).group(1)
+
+    def extract_glrmc(self, glrmc):
+        if re.search(('\<a.*?\>(.*?)\</a\>'), glrmc):
+            glrmc = re.search(('\<a.*?\>(.*?)\</a\>'), glrmc).group(1).strip()
+        return glrmc
+
+    def model_process(self, jjlb, tzlb, ssrq, dqgm, glrmc, code, name):
+        print(jjlb, tzlb, ssrq, dqgm, glrmc, code)
+        obj = FundBaseInfoModel(
+            code=code,
+            name=name,
+            category=jjlb,
+            invest_type=tzlb,
+            manager_name=glrmc,
+            issue_date=ssrq,
+        )
+
+        self.sess.add(obj)
+        self.sess.commit()
+
+    def convert_number(self, s):
+        return float(s.replace(',', ''))
+
+    def run(self):
+        page = 1
+        self.stop = False
+        while not self.stop:
+            content = self.get(self.url.format(page))
+            for item in self.json_parse(content):
+                self.model_process(*item)
+
+            page += 1
+
+
+if __name__ == '__main__':
+    app = FundShare(first_use=True)
+    app.run()
