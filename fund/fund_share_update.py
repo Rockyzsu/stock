@@ -336,8 +336,8 @@ class SHFundShare(Fund):
                 code=code,
                 name=name,
                 category=type_,
-                invest_type=None,
-                manager_name=None,
+                invest_type='',
+                manager_name='',
                 issue_date=None,
             )
             try:
