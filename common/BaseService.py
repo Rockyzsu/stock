@@ -1,5 +1,6 @@
 #-*-coding=utf-8-*-
 import datetime
+import json
 import os
 import re
 import requests
@@ -176,6 +177,9 @@ class BaseService(object):
 
         return ret
 
+    def jsonp2json(self,str_):
+        return json.loads(str_[str_.find('{'):str_.rfind('}')+1])
+
 
 class HistorySet(object):
 
@@ -199,6 +203,7 @@ class HistorySet(object):
             return True
         else:
             return False
+
 
 
 if __name__ == '__main__':
