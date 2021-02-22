@@ -1,4 +1,4 @@
-#-*-coding=utf-8-*-
+# -*-coding=utf-8-*-
 import datetime
 import json
 import os
@@ -22,7 +22,6 @@ class BaseService(object):
         '''
         self.today = datetime.datetime.now().strftime('%Y-%m-%d')
 
-
     def check_path(self, path):
         if not os.path.exists(path):
             try:
@@ -33,24 +32,24 @@ class BaseService(object):
     def get_url_filename(self, url):
         return url.split('/')[-1]
 
-
     def save_iamge(self, content, path):
         with open(path, 'wb') as fp:
             fp.write(content)
 
-    def get(self, _josn=False, binary=False, retry=5):
+    def get(self, url, _josn=False, binary=False, retry=5):
 
         start = 0
         while start < retry:
 
             try:
                 r = requests.get(
-                    url=self.url,
+                    url=url,
                     params=self.params,
                     headers=self.headers,
                     cookies=self.cookie)
 
             except Exception as e:
+                print(e)
                 start += 1
                 continue
 
@@ -65,19 +64,20 @@ class BaseService(object):
 
         return None
 
-    def post(self, post_data, _josn=False, binary=False, retry=5):
+    def post(self, url, post_data, _josn=False, binary=False, retry=5):
 
         start = 0
         while start < retry:
 
             try:
                 r = requests.post(
-                    url=self.url,
+                    url=url,
                     headers=self.headers,
                     data=post_data
                 )
 
             except Exception as e:
+                print(e)
                 start += 1
                 continue
 
@@ -91,6 +91,10 @@ class BaseService(object):
                 return result
 
         return None
+
+    @property
+    def headers(self):
+        raise NotImplemented
 
     def parse(self, content):
         '''
@@ -135,31 +139,31 @@ class BaseService(object):
         elif current < start:
             return MORNING_STOP
 
-    def notify(self,title='',desp=''):
-        notify(title,desp)
+    def notify(self, title='', desp=''):
+        notify(title, desp)
 
-    def weekday(self,day=datetime.datetime.now().strftime('%Y-%m-%d')):
+    def weekday(self, day=datetime.datetime.now().strftime('%Y-%m-%d')):
         '''判断星期几'''
 
-        if re.search('\d{4}-\d{2}-\d{2}',day):
+        if re.search('\d{4}-\d{2}-\d{2}', day):
             fmt = '%Y-%m-%d'
-        elif re.search('\d{8}',day):
+        elif re.search('\d{8}', day):
             fmt = '%Y%m%d'
         else:
             raise ValueError('请输入正确的日期格式')
 
-        current_date = datetime.datetime.strptime(day,fmt)
-        year_2000th =datetime.datetime(year=2000,month=1,day=2)
+        current_date = datetime.datetime.strptime(day, fmt)
+        year_2000th = datetime.datetime(year=2000, month=1, day=2)
         day_diff = current_date-year_2000th
-        return day_diff.days%7
+        return day_diff.days % 7
 
-    def is_weekday(self,day=datetime.datetime.now().strftime('%Y-%m-%d')):
-        if self.weekday(day) in [0,6]:
+    def is_weekday(self, day=datetime.datetime.now().strftime('%Y-%m-%d')):
+        if self.weekday(day) in [0, 6]:
             return False
         else:
             return True
 
-    def execute(self, cmd, data, conn,logger=None):
+    def execute(self, cmd, data, conn, logger=None):
 
         cursor = conn.cursor()
 
@@ -177,17 +181,17 @@ class BaseService(object):
 
         return ret
 
-    def jsonp2json(self,str_):
+    def jsonp2json(self, str_):
         return json.loads(str_[str_.find('{'):str_.rfind('}')+1])
 
 
 class HistorySet(object):
 
-    def __init__(self,expire=1800):
+    def __init__(self, expire=1800):
         self.data = {}
         self.expire = expire
 
-    def add(self,value):
+    def add(self, value):
         now = datetime.datetime.now()
         expire = now + datetime.timedelta(seconds=self.expire)
         try:
@@ -195,21 +199,16 @@ class HistorySet(object):
         except:
             raise ValueError('value not hashble')
         else:
-            self.data.update({value:expire})
+            self.data.update({value: expire})
 
-    def is_expire(self,value):
+    def is_expire(self, value):
         # 没有过期 返回 False
-        if value not in self.data or self.data[value]<datetime.datetime.now():
+        if value not in self.data or self.data[value] < datetime.datetime.now():
             return True
         else:
             return False
 
 
-
 if __name__ == '__main__':
     base = BaseService()
     base.is_weekday()
-
-
-
-
