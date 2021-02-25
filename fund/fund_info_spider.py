@@ -276,15 +276,16 @@ class FundSpider(BaseService):
                 if js is None or realtime_price is None:
                     yjl = 0
                 else:
-                    yjl = -1 * round(( realtime_price-jz) / jz * 100, 2)
+                    yjl = round(( realtime_price-jz) / jz * 100, 2)
 
         else:
+            # QDII 基金
             is_realtime = 0
-            yjl, jz = self.get_fund(table, code)
+            yjl, jz = self.get_fund_jj_from_db(table, code)
 
         return jz, yjl, is_realtime, code
 
-    def get_fund(self, table, code):
+    def get_fund_jj_from_db(self, table, code):
         query = f'select `折溢价率`,`单位净值` from `{table}` where `基金代码`=%s'
         cursor.execute(query, code)
         ret = cursor.fetchone()
