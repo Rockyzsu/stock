@@ -15,6 +15,8 @@ class BaseService(object):
         self.logger = logger
         self.logger.add(logfile)
         self.init_const_data()
+        self.params=None
+        self.cookies=None
 
     def init_const_data(self):
         '''
@@ -36,7 +38,7 @@ class BaseService(object):
         with open(path, 'wb') as fp:
             fp.write(content)
 
-    def get(self, url, _josn=False, binary=False, retry=5):
+    def get(self, url, _json=False, binary=False, retry=5):
 
         start = 0
         while start < retry:
@@ -46,7 +48,7 @@ class BaseService(object):
                     url=url,
                     params=self.params,
                     headers=self.headers,
-                    cookies=self.cookie)
+                    cookies=self.cookies)
 
             except Exception as e:
                 print(e)
@@ -54,7 +56,7 @@ class BaseService(object):
                 continue
 
             else:
-                if _josn:
+                if _json:
                     result = r.json()
                 elif binary:
                     result = r.content
