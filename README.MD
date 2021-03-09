@@ -14,6 +14,7 @@
 
 本人业余投机者（韭菜）一枚，码农的量化交易，把经历写成代码推送到github。代码和策略会一直保持更新，如果你有好的策略或者想法和疑问想要交流，可以私信我或者QQ：896820010
 ### 新增：
+* fund/ark_funds.py 获取ARK ETF每日持仓数据，并写入mongodb
 * fund/fund_share_update.py 上交所，深交所 基金场内基金份额监控
 * fund/fund_share_monitor.py 上交所，深交所 基金基金份额查询，规模变动
 * fund/fund_info_spider.py 集思录基金,腾讯证券基金折价率，溢价率 爬虫
