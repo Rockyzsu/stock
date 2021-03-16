@@ -106,20 +106,7 @@ class SZFundShare(Fund):
     def __init__(self, first_use=False):
         super(SZFundShare, self).__init__(first_use)
 
-        self.headers = {
-            "Accept": "application/json, text/javascript, */*; q=0.01",
-            "Accept-Encoding": "gzip, deflate",
-            "Accept-Language": "zh,en;q=0.9,en-US;q=0.8,zh-CN;q=0.7",
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "Content-Type": "application/json",
-            "Host": "fund.szse.cn",
-            "Pragma": "no-cache",
-            "Referer": "http://fund.szse.cn/marketdata/fundslist/index.html?catalogId=1000_lf&selectJjlb=ETF",
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36",
-            "X-Request-Type": "ajax",
-            "X-Requested-With": "XMLHttpRequest",
-        }
+
 
         # self.url = 'http://fund.szse.cn/api/report/ShowReport/data?SHOWTYPE=JSON&CATALOGID=1000_lf&TABKEY=tab1&PAGENO={}&selectJjlb=LOF&random=0.019172632634173903'
         self.all_fund_url = 'http://fund.szse.cn/api/report/ShowReport/data?SHOWTYPE=JSON&CATALOGID=1000_lf&TABKEY=tab1&PAGENO={}&random=0.1292751130110099'
@@ -134,6 +121,24 @@ class SZFundShare(Fund):
         self.sess = self.db_session()
         self.logger.info(f'{self.today} start to crawl....')
 
+    @property
+    def headers(self):
+        _header= {
+        "Accept": "application/json, text/javascript, */*; q=0.01",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept-Language": "zh,en;q=0.9,en-US;q=0.8,zh-CN;q=0.7",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
+        "Host": "fund.szse.cn",
+        "Pragma": "no-cache",
+        "Referer": "http://fund.szse.cn/marketdata/fundslist/index.html?catalogId=1000_lf&selectJjlb=ETF",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36",
+        "X-Request-Type": "ajax",
+        "X-Requested-With": "XMLHttpRequest",
+        }
+        return _header
+
     def convert(self, float_str):
 
         try:
@@ -146,7 +151,7 @@ class SZFundShare(Fund):
         date = (datetime.date.today() + datetime.timedelta(days=-1)).strftime('%Y-%m-%d')
         # 手动算的前一天 ？
 
-        data = js_data[0].get('data', [])
+        data = js_data[0].get('query_condition', [])
 
         if not data:
             self.stop = True
@@ -223,15 +228,7 @@ class SHFundShare(Fund):
     def __init__(self, kind,date,first_use=False):
         super(SHFundShare, self).__init__(first_use)
 
-        self.headers = {
-            "Host": "query.sse.com.cn",
-            "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:84.0) Gecko/20100101 Firefox/84.0",
-            "Accept": "*/*",
-            "Accept-Language": "en-US,en;q=0.5",
-            "Accept-Encoding": "gzip, deflate",
-            "Connection": "keep-alive",
-            "Referer": "http://www.sse.com.cn/market/funddata/volumn/lofvolumn/",
-        }
+
         self.lof_url = 'http://query.sse.com.cn/commonQuery.do?=&jsonCallBack=jsonpCallback1681&sqlId=COMMON_SSE_FUND_LOF_SCALE_CX_S&pageHelp.pageSize=10000&FILEDATE={}&_=161146986468'
         self.etf_url = 'http://query.sse.com.cn/commonQuery.do?jsonCallBack=jsonpCallback28550&isPagination=true&pageHelp.pageSize=25&pageHelp.pageNo={}&pageHelp.cacheSize=1&sqlId=COMMON_SSE_ZQPZ_ETFZL_XXPL_ETFGM_SEARCH_L&STAT_DATE={}&pageHelp.beginPage={}&pageHelp.endPage=30&_=1611473902414'
 
@@ -262,6 +259,17 @@ class SHFundShare(Fund):
 
         self.db_session = self.get_session()
         self.sess = self.db_session()
+    @property
+    def headers(self):
+        return {
+        "Host": "query.sse.com.cn",
+        "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:84.0) Gecko/20100101 Firefox/84.0",
+        "Accept": "*/*",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Accept-Encoding": "gzip, deflate",
+        "Connection": "keep-alive",
+        "Referer": "http://www.sse.com.cn/market/funddata/volumn/lofvolumn/",
+    }
 
     def crawl_lof(self):
         options = self.url_option_dict['LOF']
