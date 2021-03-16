@@ -151,7 +151,7 @@ class SZFundShare(Fund):
         date = (datetime.date.today() + datetime.timedelta(days=-1)).strftime('%Y-%m-%d')
         # 手动算的前一天 ？
 
-        data = js_data[0].get('query_condition', [])
+        data = js_data[0].get('data', [])
 
         if not data:
             self.stop = True

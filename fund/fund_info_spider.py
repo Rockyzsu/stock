@@ -165,7 +165,7 @@ class FundSpider(BaseService):
                 continue
 
             js = demjson.decode(ret)  # 解析json的库
-            query_string = js.get('query_condition')
+            query_string = js.get('data')
             time.sleep(5 * random.random())
 
             for code in query_string.split(','):
@@ -201,14 +201,14 @@ class FundSpider(BaseService):
             s = search_str.group(1)
             js_ = demjson.decode(s)
 
-            sub_js = js_.get('query_condition').get('query_condition').get('query_condition')
+            sub_js = js_.get('data').get('data').get('data')
             zxjg = sub_js.get('zxjg')
             jgzffd = sub_js.get('jgzffd')
             cj_total_amount = sub_js.get('cj_total_amount')
 
             zyjl = float(sub_js.get('zyjl', 0)) * 100
 
-            info = js_.get('query_condition').get('query_condition').get('info')
+            info = js_.get('data').get('data').get('info')
             jjdm = info.get('jjdm')
             jjjc = info.get('jjjc')
             zxgm = info.get('zxgm')
@@ -263,12 +263,12 @@ class FundSpider(BaseService):
 
         url = 'http://web.ifzq.gtimg.cn/fund/newfund/fundSsgz/getSsgz?app=web&symbol=jj{}'
         js = self.get(url=url.format(code), params=None, js=True)
-        data = js.get('query_condition')
+        data = js.get('data')
 
         if data:
 
             try:
-                data_list = data.get('query_condition')
+                data_list = data.get('data')
             except Exception as e:
                 self.logger.error(e)
                 jz = None
@@ -370,10 +370,13 @@ class JSLFund(BaseService):
 
         self.stock_url = 'https://www.jisilu.cn/data/lof/stock_lof_list/?___jsl=LST___t=1582355333844&rp=25'
         self.index_lof_url = 'https://www.jisilu.cn/data/lof/index_lof_list/?___jsl=LST___t=1582356112906&rp=25'
-        self.headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36'}
-
         self.logger.info(f'start JSL fund...')
+
+    @property
+    def headers(self):
+        _headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36'}
+        return _headers
 
     def get(self, url, retry=5):
 
