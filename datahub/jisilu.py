@@ -29,14 +29,19 @@ class Jisilu(BaseService):
         # self.date = '2020-02-07' # 用于调整时间
 
         self.timestamp = int(time.time() * 1000)
-        self.headers = {
-            'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
-            'X-Requested-With': 'XMLHttpRequest'}
         self.url = 'https://www.jisilu.cn/data/cbnew/cb_list/?___jsl=LST___t={}'.format(self.timestamp)
         self.pre_release_url = 'https://www.jisilu.cn/data/cbnew/pre_list/?___jsl=LST___t={}'.format(self.timestamp)
         self.remote = remote
         self.DB = DBSelector()
         self.engine = self.DB.get_engine('db_jisilu', self.remote)
+
+    @property
+    def headers(self):
+        _header = {
+            'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
+            'X-Requested-With': 'XMLHttpRequest'
+            }
+        return _header
 
     def check_holiday(self):
         if self.is_weekday():
