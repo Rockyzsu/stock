@@ -120,7 +120,7 @@ class BaseService(object):
         TRADING = 0
         MORNING_STOP = -1
         AFTERNOON_STOP = 1
-
+        NOON_STOP=-1
         current = datetime.datetime.now()
         year, month, day = current.year, current.month, current.day
         start = datetime.datetime(year, month, day, 9, 23, 0)
@@ -140,6 +140,9 @@ class BaseService(object):
 
         elif current < start:
             return MORNING_STOP
+
+        else:
+            return NOON_STOP
 
     def notify(self, title='', desp=''):
         notify(title, desp)
