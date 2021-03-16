@@ -30,7 +30,6 @@ else:
 NOTIFY_HOUR = 13
 MAX_PAGE = 50
 
-
 try:
     DB = DBSelector()
     conn = DB.get_mysql_conn('db_fund', 'qq')
@@ -44,7 +43,14 @@ class FundSpider(BaseService):
     def __init__(self):
         super(FundSpider, self).__init__(f'../log/{self.__class__.__name__}.log')
         self.create_table()
-        self.headers = {
+
+        self.session = requests.Session()
+        self.logger.info('start...qq fund')
+        self.LAST_TEXT = ''
+
+    @property
+    def headers(self):
+        _headers = {
             'Connection': 'keep-alive',
             'Pragma': 'no-cache',
             'Cache-Control': 'no-cache',
@@ -54,9 +60,7 @@ class FundSpider(BaseService):
             'Accept-Encoding': 'gzip, deflate',
             'Accept-Language': 'zh,en;q=0.9,en-US;q=0.8',
         }
-        self.session = requests.Session()
-        self.logger.info('start...qq fund')
-        self.LAST_TEXT = ''
+        return _headers
 
     def create_table(self):
         create_table = 'create table if not EXISTS `{}` (`基金代码` varchar(20) PRIMARY KEY,`基金简称` ' \
@@ -147,7 +151,7 @@ class FundSpider(BaseService):
             if content is None:
                 continue
 
-            if content==self.LAST_TEXT:
+            if content == self.LAST_TEXT:
                 break
 
             self.LAST_TEXT = content
@@ -161,7 +165,7 @@ class FundSpider(BaseService):
                 continue
 
             js = demjson.decode(ret)  # 解析json的库
-            query_string = js.get('data')
+            query_string = js.get('query_condition')
             time.sleep(5 * random.random())
 
             for code in query_string.split(','):
@@ -197,14 +201,14 @@ class FundSpider(BaseService):
             s = search_str.group(1)
             js_ = demjson.decode(s)
 
-            sub_js = js_.get('data').get('data').get('data')
+            sub_js = js_.get('query_condition').get('query_condition').get('query_condition')
             zxjg = sub_js.get('zxjg')
             jgzffd = sub_js.get('jgzffd')
             cj_total_amount = sub_js.get('cj_total_amount')
 
             zyjl = float(sub_js.get('zyjl', 0)) * 100
 
-            info = js_.get('data').get('data').get('info')
+            info = js_.get('query_condition').get('query_condition').get('info')
             jjdm = info.get('jjdm')
             jjjc = info.get('jjjc')
             zxgm = info.get('zxgm')
@@ -259,12 +263,12 @@ class FundSpider(BaseService):
 
         url = 'http://web.ifzq.gtimg.cn/fund/newfund/fundSsgz/getSsgz?app=web&symbol=jj{}'
         js = self.get(url=url.format(code), params=None, js=True)
-        data = js.get('data')
+        data = js.get('query_condition')
 
         if data:
 
             try:
-                data_list = data.get('data')
+                data_list = data.get('query_condition')
             except Exception as e:
                 self.logger.error(e)
                 jz = None
@@ -276,16 +280,15 @@ class FundSpider(BaseService):
                 if js is None or realtime_price is None:
                     yjl = 0
                 else:
-                    yjl = round(( realtime_price-jz) / jz * 100, 2)
+                    yjl = round((realtime_price - jz) / jz * 100, 2)
 
         else:
-            # QDII 基金
             is_realtime = 0
-            yjl, jz = self.get_fund_jj_from_db(table, code)
+            yjl, jz = self.get_fund(table, code)
 
         return jz, yjl, is_realtime, code
 
-    def get_fund_jj_from_db(self, table, code):
+    def get_fund(self, table, code):
         query = f'select `折溢价率`,`单位净值` from `{table}` where `基金代码`=%s'
         cursor.execute(query, code)
         ret = cursor.fetchone()
@@ -410,7 +413,7 @@ class JSLFund(BaseService):
 
         for item in rows:
             cell = item.get('cell')
-            cell['crawltime']=datetime.datetime.now()
+            cell['crawltime'] = datetime.datetime.now()
             # print(cell)
             try:
                 mongo_doc.insert_one(cell)
