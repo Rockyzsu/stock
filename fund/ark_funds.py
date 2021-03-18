@@ -14,11 +14,10 @@ MAX_COUNT = 5
 class ARKFundSpider(BaseService):
 
     def __init__(self):
-        super(ARKFundSpider, self).__init__()
+        super(ARKFundSpider, self).__init__('../log/ark.log')
 
         self.url = 'https://ark-funds.com/auto/gettopten.php'
         self.data = {'ticker': None}
-        # self.headers=self.get_headers()
         self.doc = self.mongodb()
 
     def mongodb(self):
@@ -41,9 +40,6 @@ class ARKFundSpider(BaseService):
                 "origin": "https://ark-funds.com",
                 "pragma": "no-cache",
                 "referer": "https://ark-funds.com/arkk",
-                # "sec-fetch-dest": "empty",
-                # "sec-fetch-mode": "cors",
-                # "sec-fetch-site": "same-origin",
                 "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36",
                 "x-requested-with": "XMLHttpRequest", }
 
