@@ -4,13 +4,13 @@
 @file:fund_share_monitor.py
 @time:2021/01/27
 """
-# 份额监控
+# 份额监控,对上一天额度出现较大申购进行监控
 
 import sys
 sys.path.append('..')
 from configure.settings import DBSelector
 from common.BaseService import BaseService
-from fund.fund_share_update import ShareModel,FundBaseInfoModel,Fund
+from fund.fund_share_crawl import ShareModel,FundBaseInfoModel,Fund
 from sqlalchemy import and_
 class ShareMonitor(Fund):
 

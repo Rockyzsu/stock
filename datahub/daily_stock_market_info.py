@@ -8,10 +8,10 @@ Contact: weigesysu@qq.com
 import tushare as ts
 import pandas as pd
 import time
-from configure.util import notify
 import os
 import sys
-sys.path.append('../..')
+sys.path.append('..')
+from configure.util import notify
 from common.BaseService import BaseService
 from configure.settings import DBSelector,config_dict
 

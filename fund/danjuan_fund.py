@@ -1,3 +1,4 @@
+import datetime
 import sys
 import time
 from typing import Deque
@@ -10,7 +11,7 @@ from configure.settings import DBSelector
 class Danjuan(BaseService):
 
     def __init__(self) -> None:
-        super(Danjuan, self).__init__()
+        super(Danjuan, self).__init__('../log/danjuan.log')
         self.base_url = 'https://danjuanfunds.com/djapi/fundx/portfolio/v3/plan/united/page?tab=4&page={}&size=20&default_order=0&invest_strategy=&type=&manager_type=&yield_between=&mz_between='
         self.detial_url = 'https://danjuanfunds.com/djapi/plan/position/detail?plan_code={}'
         self.plan_detail_url = 'https://danjuanfunds.com/djapi/plan/{}'
@@ -19,19 +20,14 @@ class Danjuan(BaseService):
             "Accept": "application/json, text/plain, */*",
             "Accept-Encoding": "gzip, deflate, br",
             "Accept-Language": "zh,en;q=0.9,en-US;q=0.8,zh-CN;q=0.7",
-            # "Cache-Control": "no-cache",
-            # "Connection": "keep-alive",
             "Host": "danjuanfunds.com",
-            # "Pragma": "no-cache",
             "Referer": "https://danjuanfunds.com/activity/GroupBigV",
-            # "Sec-Fetch-Dest": "empty",
-            # "Sec-Fetch-Mode": "cors",
-            # "Sec-Fetch-Site": "same-origin",
             "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36",
         }
 
         self.db = DBSelector().mongo(location_type='qq')
-        self.main_doc = self.db['db_stock']['danjuan_fund']
+        date=datetime.datetime.now().strftime("%Y-%m-%d")
+        self.main_doc = self.db['db_danjuan'][f'danjuan_fund_{date}']
         self.mongo_init()
 
     def mongo_init(self):
@@ -60,10 +56,8 @@ class Danjuan(BaseService):
                 self.main_doc.insert_one(item)
             except Exception as e:
                 pass
-                # print(e)
             else:
                 pass
-                # print('insert one')
 
     def get_plan_code(self):
         for page in range(1, 50):
@@ -91,7 +85,6 @@ class Danjuan(BaseService):
             print(e)
         else:
             pass
-            # print('insert one')
 
     def plan_detail(self):
 
@@ -101,8 +94,6 @@ class Danjuan(BaseService):
             content = self.get(url=url, _json=True)
             if content.get('data'):
                 detail_info = content.get('data')
-                # print(holdings)
-                # print(code)
                 detail_info = self.post_process(detail_info)
                 self.update_data({'plan_code': code}, detail_info)
             else:
@@ -125,14 +116,15 @@ class Danjuan(BaseService):
         return detail_info
 
     def get_detail(self):
+        '''
+
+        '''
         for code in self.code_list:
             code = code.get('plan_code')
             url = self.detial_url.format(code)
             content = self.get(url=url, _json=True)
             if content.get('data'):
                 holdings = content.get('data').get('items')
-                # print(holdings)
-                print(code)
                 self.update_data({'plan_code': code}, {"holding": holdings})
             else:
                 print('code {} is empty'.format(code))

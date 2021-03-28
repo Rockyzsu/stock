@@ -11,9 +11,8 @@ import re
 import sys
 
 sys.path.append('..')
-from configure.settings import DBSelector, send_from_aliyun
+from configure.settings import DBSelector
 from common.BaseService import BaseService
-from configure.util import notify
 import requests
 import warnings
 import datetime
@@ -29,6 +28,7 @@ Base = declarative_base()
 
 
 class FundBaseInfoModel(Base):
+    # 基本表
     # 表的名字:
     __tablename__ = 'LOF_BaseInfo'
 
@@ -48,6 +48,7 @@ class FundBaseInfoModel(Base):
 
 
 class ShareModel(Base):
+    # 详情表 不只是LOF，ETF，封基也被包含了
     # 表的名字:
     __tablename__ = 'LOF_Share'
 
@@ -78,7 +79,7 @@ class Fund(BaseService):
     def get_session(self):
         return sessionmaker(bind=self.engine)
 
-    def get(self, url, retry=5, js=True):
+    def get(self,url,_json=False, binary=False, retry=5):
         start = 0
         while start < retry:
             try:
@@ -89,7 +90,7 @@ class Fund(BaseService):
                 start += 1
 
             else:
-                if js:
+                if _json:
                     content = response.json()
                 else:
                     content = response.text
@@ -102,12 +103,12 @@ class Fund(BaseService):
 
 
 class SZFundShare(Fund):
-
+    '''
+    doc
+    http://fund.szse.cn/marketdata/fundslist/index.html?catalogId=1000_lf&selectJjlb=LOF&r=1616062435559
+    '''
     def __init__(self, first_use=False):
         super(SZFundShare, self).__init__(first_use)
-
-
-
         # self.url = 'http://fund.szse.cn/api/report/ShowReport/data?SHOWTYPE=JSON&CATALOGID=1000_lf&TABKEY=tab1&PAGENO={}&selectJjlb=LOF&random=0.019172632634173903'
         self.all_fund_url = 'http://fund.szse.cn/api/report/ShowReport/data?SHOWTYPE=JSON&CATALOGID=1000_lf&TABKEY=tab1&PAGENO={}&random=0.1292751130110099'
         self.session = requests.Session()
@@ -158,9 +159,9 @@ class SZFundShare(Fund):
             return None
 
         for item in data:
-            jjlb = item['jjlb']
-            tzlb = item['tzlb']  #
-            ssrq = item['ssrq']
+            jjlb = item['jjlb'] # 基金类别
+            tzlb = item['tzlb']  # 投资类别
+            ssrq = item['ssrq'] # 上市日期
 
             name = self.extract_name(item['jjjcurl'])
 
@@ -186,7 +187,9 @@ class SZFundShare(Fund):
     def model_process(self, jjlb, tzlb, ssrq, dqgm, glrmc, code, name, date):
 
         obj = self.sess.query(FundBaseInfoModel).filter_by(code=code).first()
+        # 为的捕获新出的基金，避免遗漏
         if not obj:
+
             base_info = FundBaseInfoModel(
                 code=code,
                 name=name,
@@ -195,19 +198,26 @@ class SZFundShare(Fund):
                 manager_name=glrmc,
                 issue_date=ssrq,
             )
+            try:
+                self.sess.add(base_info)
+                self.sess.commit()
+            except Exception as e:
+                print(e)
 
-            self.sess.add(base_info)
-            self.sess.commit()
-
-        share_info = ShareModel(
+        # 更新份额表
+        if not self.sess.query(ShareModel).filter_by(code=code, date=date).first():
+            share_info = ShareModel(
             code=code,
             date=date,
             share=dqgm,
             crawltime=datetime.datetime.now(),
         )
+            try:
+                self.sess.add(share_info)
+                self.sess.commit()
+            except Exception as e:
+                print(e)
 
-        self.sess.add(share_info)
-        self.sess.commit()
 
     def convert_number(self, s):
         return float(s.replace(',', ''))
@@ -225,9 +235,11 @@ class SZFundShare(Fund):
 
 class SHFundShare(Fund):
 
+    '''
+    上交所的基金LOF
+    '''
     def __init__(self, kind,date,first_use=False):
         super(SHFundShare, self).__init__(first_use)
-
 
         self.lof_url = 'http://query.sse.com.cn/commonQuery.do?=&jsonCallBack=jsonpCallback1681&sqlId=COMMON_SSE_FUND_LOF_SCALE_CX_S&pageHelp.pageSize=10000&FILEDATE={}&_=161146986468'
         self.etf_url = 'http://query.sse.com.cn/commonQuery.do?jsonCallBack=jsonpCallback28550&isPagination=true&pageHelp.pageSize=25&pageHelp.pageNo={}&pageHelp.cacheSize=1&sqlId=COMMON_SSE_ZQPZ_ETFZL_XXPL_ETFGM_SEARCH_L&STAT_DATE={}&pageHelp.beginPage={}&pageHelp.endPage=30&_=1611473902414'
@@ -236,17 +248,20 @@ class SHFundShare(Fund):
 
         # self.today_ = '20210122' # LOF
         if date=='now':
-            self.today_ = (datetime.datetime.now()+ datetime.timedelta(days=-1)).strftime('%Y%m%d')
+            last_day = datetime.datetime.now() + datetime.timedelta(days=-1)
+            self.today_etf = last_day.strftime('%Y-%m-%d')
+            self.today_lof = last_day.strftime('%Y%m%d')
         else:
-            self.today_=self.today = date
-
+            print('not now, history data')
+            self.today_etf= date
+            self.today_lof=date
 
         # self.today ='2021-01-22' # ETF
 
         self.ETF_COUNT_PER_PAGE = 25
         self.url_option_dict = {
-            'ETF': {'url': self.etf_url, 'date': self.today},
-            'LOF': {'url': self.lof_url, 'date': self.today_}
+            'ETF': {'url': self.etf_url, 'date': self.today_etf}, # 2021-03-17 ETF
+            'LOF': {'url': self.lof_url, 'date': self.today_lof} # 20210316 LOF
         }
 
         self.kind=kind.lower()
@@ -259,6 +274,7 @@ class SHFundShare(Fund):
 
         self.db_session = self.get_session()
         self.sess = self.db_session()
+
     @property
     def headers(self):
         return {
@@ -275,7 +291,7 @@ class SHFundShare(Fund):
         options = self.url_option_dict['LOF']
         date = options.get('date')
         url = options.get('url')
-        content = self.get(url.format(date), js=False)
+        content = self.get(url.format(date), _json=False)
         js_data = self.jsonp2json(content)
         self.process_lof(js_data)
 
@@ -300,7 +316,7 @@ class SHFundShare(Fund):
         url = options.get('url')
         current_page = 1
         while True:
-            content = self.get(url.format(current_page, date, current_page), js=False)
+            content = self.get(url.format(current_page, date, current_page), _json=False)
             js_data = self.jsonp2json(content)
             total_count = js_data.get('pageHelp').get('total')
             print(f'page : {current_page}')
@@ -333,6 +349,7 @@ class SHFundShare(Fund):
         if self.kind=='etf':
             self.logger.info('crawling etf .....')
             self.crawl_etf()
+
         if self.kind=='lof':
             self.logger.info('crawling lof .....')
             self.crawl_lof()
@@ -373,9 +390,29 @@ class SHFundShare(Fund):
                 self.sess.commit()
 
 
-if __name__ == '__main__':
-    app = SZFundShare(first_use=False)
-    app.run()
 
-    app = SHFundShare(first_use=False)
-    app.run()
+def patch_fix_missing_data():
+    '''
+    补充丢失数据
+    '''
+    days=90
+    for day in range(1,days):
+        # etf
+        # date=(datetime.datetime.now() + datetime.timedelta(days=-1*day)).strftime('%Y-%m-%d')
+        # kind='ETF'
+
+        date=(datetime.datetime.now() + datetime.timedelta(days=-1*day)).strftime('%Y%m%d')
+        kind='LOF'
+
+
+        app = SHFundShare(first_use=False,kind=kind,date=date)
+        app.run()
+
+if __name__ == '__main__':
+    # app = SZFundShare(first_use=False)
+    # app.run()
+    # kind='LOF'
+    # date='now'
+    # app = SHFundShare(first_use=False,kind=kind,date=date)
+    # app.run()
+    patch_fix_missing_data()

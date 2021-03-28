@@ -5,5 +5,5 @@
 from datahub.jisilu import Jisilu
 
 if __name__ == '__main__':
-    obj = Jisilu()
+    obj = Jisilu(remote='qq')
     obj.daily_update()

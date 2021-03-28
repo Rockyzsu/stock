@@ -5,7 +5,7 @@
 @time:2021/01/24
 """
 
-from fund_share_update import SZFundShare
+from fund_share_crawl import SZFundShare
 
 if __name__ == '__main__':
     app = SZFundShare(first_use=False)

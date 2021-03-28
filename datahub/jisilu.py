@@ -5,7 +5,6 @@ http://30daydo.com
 Contact: weigesysu@qq.com
 '''
 import sys
-
 sys.path.append('..')
 import re
 import time
@@ -195,7 +194,7 @@ class Jisilu(BaseService):
         self.execute(creat_table, (), conn)
 
     def get_conn(self):
-        return self.DB.get_mysql_conn('db_stock', 'qq')
+        return self.DB.get_mysql_conn('db_stock', self.remote)
 
     # 这个数据最好晚上10点执行
     def release_data(self):
@@ -304,7 +303,7 @@ class Jisilu(BaseService):
 
 
 def main():
-    obj = Jisilu(check_holiday=False)
+    obj = Jisilu(check_holiday=False,remote='local')
     # obj.daily_update()
     obj.release_data()
 
