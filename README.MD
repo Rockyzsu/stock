@@ -61,30 +61,18 @@
 
 * 券商一：
 
-**无门槛 万1免5**【目前免5被取消，如果看重免5费率，可选择下面的券商二】
-
-**场内基金：万0.5**
-
-**场内基金申购一折，赎回五折**
-
-期权2.3元/张
-
-两融门槛50万 利率6.5
-
-两融500万利率5.8
-
-深市转债十万分之5，沪市转债百万分之5
-
-账户入金后，2个工作日内手续费调整完毕。
+### 可转债沪市百万分之二，深市十万分之四，绝对市场费率最低
+[![可转债费率](https://z3.ax1x.com/2021/03/29/c9Fvpq.md.jpg)](https://imgtu.com/i/c9Fvpq)
 
 <br>
 
 * 券商二
 
   ### 无门槛 万1免5
-  开户链接：[万一免五](https://q.eqxiu.com/s/KJnKqG9D?eqrcode=1&share_level=1&from_user=41896b82-ca7e-47c3-8d35-735096d82bc0&from_id=bbb4373e-6&share_time=1613626081290&adpop=1)
+  ### 开户链接：[万一免五](https://q.eqxiu.com/s/KJnKqG9D?eqrcode=1&share_level=1&from_user=41896b82-ca7e-47c3-8d35-735096d82bc0&from_id=bbb4373e-6&share_time=1613626081290&adpop=1)
   国内费率最低，支持同花顺登录
-  
+  如果电脑浏览器无法打开链接，可直接扫描下方二维码开户：
+  [![二维码开户](https://z3.ax1x.com/2021/03/29/c9F4pt.png)](https://imgtu.com/i/c9F4pt)
   <br>
 
 当然也有其他主流券商可选，华泰，广发，华宝，招商等等，基本可以涵盖主流券商。
@@ -97,7 +85,7 @@
 
 
 
-[![skpwlt.jpg](https://s3.ax1x.com/2021/01/05/skpwlt.jpg)](https://imgchr.com/i/skpwlt)
+[![个人微信号](https://s3.ax1x.com/2021/01/05/skpwlt.jpg)](https://imgchr.com/i/skpwlt)
 
 
 
@@ -105,4 +93,4 @@
 关注开发者公众号： 可转债量化分析
 
 ----
-[![s4UMo8.png](https://s3.ax1x.com/2021/01/21/s4UMo8.png)](https://imgchr.com/i/s4UMo8)
+[![公众号](https://s3.ax1x.com/2021/01/21/s4UMo8.png)](https://imgchr.com/i/s4UMo8)
