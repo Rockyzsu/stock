@@ -34,7 +34,7 @@ class Danjuan(BaseService):
         try:
             self.main_doc.ensure_index('plan_code', unique=True)
         except Exception as e:
-            print(e)
+            self.logger.error(e)
 
     @property
     def headers(self):
@@ -55,22 +55,16 @@ class Danjuan(BaseService):
             try:
                 self.main_doc.insert_one(item)
             except Exception as e:
-                pass
-            else:
-                pass
+                self.logger.error(e)
+
 
     def get_plan_code(self):
-        for page in range(1, 50):
+        for page in range(1, 50): # 暂定 50页，实际数据很少
             content = self.crawl(page)
             return_data = self.parse(content)
             self.save_data(return_data)
             time.sleep(1)
-            print('page ', page)
 
-    def run(self):
-        self.get_plan_code() # 获取plan code 并入库
-        self.get_detail() # 获取具体持仓
-        self.plan_detail()  # 方案的持有信息，收益等
 
     @property
     def code_list(self):
@@ -81,8 +75,7 @@ class Danjuan(BaseService):
         try:
             self.main_doc.update_one(condition, {'$set': data})
         except Exception as e:
-            # pass
-            print(e)
+            self.logger.error(e)
         else:
             pass
 
@@ -97,7 +90,7 @@ class Danjuan(BaseService):
                 detail_info = self.post_process(detail_info)
                 self.update_data({'plan_code': code}, detail_info)
             else:
-                print('code {} is empty'.format(code))
+                self.logger.error('code {} is empty'.format(code))
 
     def post_process(self, detail_info):
         '''
@@ -127,7 +120,13 @@ class Danjuan(BaseService):
                 holdings = content.get('data').get('items')
                 self.update_data({'plan_code': code}, {"holding": holdings})
             else:
-                print('code {} is empty'.format(code))
+                self.logger.error('code {} is empty'.format(code))
+
+
+    def run(self):
+        self.get_plan_code() # 获取plan code 并入库
+        self.get_detail() # 获取具体持仓
+        self.plan_detail()  # 方案的持有信息，收益等
 
 
 if __name__ == '__main__':

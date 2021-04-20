@@ -20,11 +20,12 @@
 * fund/fund_share_update.py 上交所，深交所 基金场内基金份额监控
 * fund/fund_share_monitor.py 上交所，深交所 基金基金份额查询，规模变动
 * fund/fund_info_spider.py 集思录基金,腾讯证券基金折价率，溢价率 爬虫
-* etf_info.py 市场指数基金的持仓股监控
+* fund/etf_info.py 市场指数基金的持仓股监控
+* fund/ttjj.py 天天基金数据获取
 
 
 ### 已有：
-* black_list_sql.py 记录A股市场上所有有黑历史的股票名单，并存入数据库
+* datahub/black_list_sql.py 记录A股市场上所有有黑历史的股票名单，并存入数据库
 * big_deal.py 监控每天A股市场上的大单交易
 * bond_monitor 可转债监控
 * ceiling_break.py 新股一直板开板后多少天能够重新回到开板价格
