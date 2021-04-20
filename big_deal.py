@@ -7,7 +7,7 @@ Contact: weigesysu@qq.com
 import tushare as ts
 #搜索大单进入的个股
 import pandas as pd
-from toolkit import Toolkit
+from 无用垃圾代码.toolkit import Toolkit
 import os
 import numpy as np
 pd.set_option('display.max_rows',None)

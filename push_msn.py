@@ -6,16 +6,11 @@ Contact: weigesysu@qq.com
 '''
 import smtplib, time,os,datetime
 from email.mime.text import MIMEText
-from email.header import Header
-from toolkit import Toolkit
-from email.mime.multipart import MIMEMultipart
-from email import Encoders, Utils
-from toolkit import Toolkit
+from email import Utils
+from 无用垃圾代码.toolkit import Toolkit
 import tushare as ts
 from pandas import Series
 import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
 import itchat
 # 推送股价信息到手机
 class MailSend():

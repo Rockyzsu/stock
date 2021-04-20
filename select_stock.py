@@ -7,11 +7,9 @@ Contact: weigesysu@qq.com
 '''
 import tushare as ts
 import pandas as pd
-import os, sys, datetime, time, Queue, codecs
-import numpy as np
-from toolkit import Toolkit
+import os, datetime, time, Queue
+from 无用垃圾代码.toolkit import Toolkit
 from threading import Thread
-from pandas import Series
 
 q = Queue.Queue()
 

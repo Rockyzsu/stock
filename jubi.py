@@ -13,9 +13,9 @@ import smtplib
 from email.mime.text import MIMEText
 from email import Utils
 import threading
-import requests,datetime,itchat
+import requests, itchat
 
-from toolkit import Toolkit
+from 无用垃圾代码.toolkit import Toolkit
 
 
 class Jubi_web():
