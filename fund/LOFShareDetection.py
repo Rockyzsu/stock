@@ -42,7 +42,7 @@ class FundDection(BaseService):
             title=f'{self.today} LOF/ETF 申购波动数据'
             print(title)
             print(query_result_str)
-            # send_from_aliyun(title,content=query_result_str)
+            send_from_aliyun(title,content=query_result_str)
         else:
             self.logger.info(f'今天{self.today}没有数据')
 
@@ -61,7 +61,7 @@ class FundDection(BaseService):
         for category in category_list:
             # print(category)
             # print('#' * 10)
-            string_arg+=f'############ {category} ###############\n'
+            string_arg+=f'############ {category} ###############\n\n'
             lastest_lofs = self.sess.query(FundBaseInfoModel.name, FundBaseInfoModel.code, ShareModel.share,
                                            ShareModel.date).join(ShareModel).filter(
                 FundBaseInfoModel.category == category).filter(
@@ -93,7 +93,7 @@ class FundDection(BaseService):
                         string = self.formator(category,yesterday_share['name'].to_list()[0], yesterday_share['code'].to_list()[0],
                                       yesterday_share_num, lastday_of_yesterday_num, lastday_of_yesterday, diff)
                         # print(string)
-                        string_arg+=string
+                        string_arg+=string+'\n'
             string_arg+='\n'
 
         # print(string_arg)

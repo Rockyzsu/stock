@@ -11,15 +11,15 @@ import re
 import sys
 
 sys.path.append('..')
-from configure.settings import DBSelector
+from configure.settings import DBSelector, config_dict
 from common.BaseService import BaseService
 import requests
 import warnings
 import datetime
-from fund.LOF_Model import Base,FundBaseInfoModel,ShareModel
+from fund.LOF_Model import Base, FundBaseInfoModel, ShareModel
+
 warnings.filterwarnings("ignore")
 from sqlalchemy.orm import sessionmaker
-
 
 
 class Fund(BaseService):
@@ -27,9 +27,15 @@ class Fund(BaseService):
         super(Fund, self).__init__(f'../log/{self.__class__.__name__}.log')
         self.first_use = first_use
         self.engine = self.get_engine()
+        self.enableProxy = False
 
     def get_engine(self):
         return DBSelector().get_engine('db_stock')
+
+    def set_proxy_enable(self):
+        self.enableProxy = True
+        self.proxy_ip = config_dict('proxy_ip')
+        self.set_proxy_param(self.proxy_ip)
 
     def create_table(self):
         # 初始化数据库连接:
@@ -38,12 +44,20 @@ class Fund(BaseService):
     def get_session(self):
         return sessionmaker(bind=self.engine)
 
-    def get(self,url,_json=False, binary=False, retry=5):
+    def get(self, url, _json=False, binary=False, retry=5):
         start = 0
         while start < retry:
             try:
-                response = self.session.get(url, headers=self.headers,
-                                            verify=False)
+                if self.enableProxy:
+                    proxy = self.get_proxy()
+                else:
+                    proxy = None
+
+                response = requests.get(url,
+                                        headers=self.headers,
+                                        proxies=proxy,
+                                        # verify=False
+                                        )
             except Exception as e:
                 self.logger.error(e)
                 start += 1
@@ -66,6 +80,7 @@ class SZFundShare(Fund):
     doc
     http://fund.szse.cn/marketdata/fundslist/index.html?catalogId=1000_lf&selectJjlb=LOF&r=1616062435559
     '''
+
     def __init__(self, first_use=False):
         super(SZFundShare, self).__init__(first_use)
         # self.url = 'http://fund.szse.cn/api/report/ShowReport/data?SHOWTYPE=JSON&CATALOGID=1000_lf&TABKEY=tab1&PAGENO={}&selectJjlb=LOF&random=0.019172632634173903'
@@ -80,22 +95,23 @@ class SZFundShare(Fund):
         self.db_session = self.get_session()
         self.sess = self.db_session()
         self.logger.info(f'{self.today} start to crawl....')
+        self.set_proxy_enable()
 
     @property
     def headers(self):
-        _header= {
-        "Accept": "application/json, text/javascript, */*; q=0.01",
-        "Accept-Encoding": "gzip, deflate",
-        "Accept-Language": "zh,en;q=0.9,en-US;q=0.8,zh-CN;q=0.7",
-        "Cache-Control": "no-cache",
-        "Connection": "keep-alive",
-        "Content-Type": "application/json",
-        "Host": "fund.szse.cn",
-        "Pragma": "no-cache",
-        "Referer": "http://fund.szse.cn/marketdata/fundslist/index.html?catalogId=1000_lf&selectJjlb=ETF",
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36",
-        "X-Request-Type": "ajax",
-        "X-Requested-With": "XMLHttpRequest",
+        _header = {
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            "Accept-Encoding": "gzip, deflate",
+            "Accept-Language": "zh,en;q=0.9,en-US;q=0.8,zh-CN;q=0.7",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
+            "Host": "fund.szse.cn",
+            "Pragma": "no-cache",
+            "Referer": "http://fund.szse.cn/marketdata/fundslist/index.html?catalogId=1000_lf&selectJjlb=ETF",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36",
+            "X-Request-Type": "ajax",
+            "X-Requested-With": "XMLHttpRequest",
         }
         return _header
 
@@ -110,6 +126,8 @@ class SZFundShare(Fund):
     def json_parse(self, js_data):
         date = (datetime.date.today() + datetime.timedelta(days=-1)).strftime('%Y-%m-%d')
         # 手动算的前一天 ？
+        if js_data is None:
+            raise ValueError('数据为空')
 
         data = js_data[0].get('data', [])
 
@@ -118,9 +136,9 @@ class SZFundShare(Fund):
             return None
 
         for item in data:
-            jjlb = item['jjlb'] # 基金类别
+            jjlb = item['jjlb']  # 基金类别
             tzlb = item['tzlb']  # 投资类别
-            ssrq = item['ssrq'] # 上市日期
+            ssrq = item['ssrq']  # 上市日期
 
             name = self.extract_name(item['jjjcurl'])
 
@@ -166,17 +184,16 @@ class SZFundShare(Fund):
         # 更新份额表
         if not self.sess.query(ShareModel).filter_by(code=code, date=date).first():
             share_info = ShareModel(
-            code=code,
-            date=date,
-            share=dqgm,
-            crawltime=datetime.datetime.now(),
-        )
+                code=code,
+                date=date,
+                share=dqgm,
+                crawltime=datetime.datetime.now(),
+            )
             try:
                 self.sess.add(share_info)
                 self.sess.commit()
             except Exception as e:
                 print(e)
-
 
     def convert_number(self, s):
         return float(s.replace(',', ''))
@@ -185,7 +202,7 @@ class SZFundShare(Fund):
         page = 1
         self.stop = False
         while not self.stop:
-            content = self.get(self.all_fund_url.format(page),_json=True)
+            content = self.get(self.all_fund_url.format(page), _json=True)
             for item in self.json_parse(content):
                 self.model_process(*item)
 
@@ -193,37 +210,35 @@ class SZFundShare(Fund):
 
 
 class SHFundShare(Fund):
-
     '''
     上交所的基金LOF
     '''
-    def __init__(self, kind,date,first_use=False):
+
+    def __init__(self, kind, date, first_use=False):
         super(SHFundShare, self).__init__(first_use)
 
         self.lof_url = 'http://query.sse.com.cn/commonQuery.do?=&jsonCallBack=jsonpCallback1681&sqlId=COMMON_SSE_FUND_LOF_SCALE_CX_S&pageHelp.pageSize=10000&FILEDATE={}&_=161146986468'
         self.etf_url = 'http://query.sse.com.cn/commonQuery.do?jsonCallBack=jsonpCallback28550&isPagination=true&pageHelp.pageSize=25&pageHelp.pageNo={}&pageHelp.cacheSize=1&sqlId=COMMON_SSE_ZQPZ_ETFZL_XXPL_ETFGM_SEARCH_L&STAT_DATE={}&pageHelp.beginPage={}&pageHelp.endPage=30&_=1611473902414'
 
-
-
         # self.today_ = '20210122' # LOF
-        if date=='now':
+        if date == 'now':
             last_day = datetime.datetime.now() + datetime.timedelta(days=-1)
             self.today_etf = last_day.strftime('%Y-%m-%d')
             self.today_lof = last_day.strftime('%Y%m%d')
         else:
             print('not now, history data')
-            self.today_etf= date
-            self.today_lof=date
+            self.today_etf = date
+            self.today_lof = date
 
         # self.today ='2021-01-22' # ETF
 
         self.ETF_COUNT_PER_PAGE = 25
         self.url_option_dict = {
-            'ETF': {'url': self.etf_url, 'date': self.today_etf}, # 2021-03-17 ETF
-            'LOF': {'url': self.lof_url, 'date': self.today_lof} # 20210316 LOF
+            'ETF': {'url': self.etf_url, 'date': self.today_etf},  # 2021-03-17 ETF
+            'LOF': {'url': self.lof_url, 'date': self.today_lof}  # 20210316 LOF
         }
 
-        self.kind=kind.lower()
+        self.kind = kind.lower()
         self.session = requests.Session()
         self.logger.info('start...sh fund')
         self.LAST_TEXT = ''
@@ -237,14 +252,14 @@ class SHFundShare(Fund):
     @property
     def headers(self):
         return {
-        "Host": "query.sse.com.cn",
-        "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:84.0) Gecko/20100101 Firefox/84.0",
-        "Accept": "*/*",
-        "Accept-Language": "en-US,en;q=0.5",
-        "Accept-Encoding": "gzip, deflate",
-        "Connection": "keep-alive",
-        "Referer": "http://www.sse.com.cn/market/funddata/volumn/lofvolumn/",
-    }
+            "Host": "query.sse.com.cn",
+            "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:84.0) Gecko/20100101 Firefox/84.0",
+            "Accept": "*/*",
+            "Accept-Language": "en-US,en;q=0.5",
+            "Accept-Encoding": "gzip, deflate",
+            "Connection": "keep-alive",
+            "Referer": "http://www.sse.com.cn/market/funddata/volumn/lofvolumn/",
+        }
 
     def crawl_lof(self):
         options = self.url_option_dict['LOF']
@@ -262,10 +277,10 @@ class SHFundShare(Fund):
             date = item['TRADE_DATE']
 
             try:
-                share = float(item['INTERNAL_VOL'].replace(',',''))
+                share = float(item['INTERNAL_VOL'].replace(',', ''))
             except Exception as e:
                 print(e)
-                share=None
+                share = None
 
             self.process_model(code, name, date, share, 'LOF')
 
@@ -305,11 +320,11 @@ class SHFundShare(Fund):
     def run(self):
         'LOF 与 ETF'
         # for type_, options in self.url_option_dict.items():
-        if self.kind=='etf':
+        if self.kind == 'etf':
             self.logger.info('crawling etf .....')
             self.crawl_etf()
 
-        if self.kind=='lof':
+        if self.kind == 'lof':
             self.logger.info('crawling lof .....')
             self.crawl_lof()
 
@@ -349,29 +364,28 @@ class SHFundShare(Fund):
                 self.sess.commit()
 
 
-
 def patch_fix_missing_data():
     '''
     补充丢失数据
     '''
-    days=90
-    for day in range(1,days):
+    days = 90
+    for day in range(1, days):
         # etf
         # date=(datetime.datetime.now() + datetime.timedelta(days=-1*day)).strftime('%Y-%m-%d')
         # kind='ETF'
 
-        date=(datetime.datetime.now() + datetime.timedelta(days=-1*day)).strftime('%Y%m%d')
-        kind='LOF'
+        date = (datetime.datetime.now() + datetime.timedelta(days=-1 * day)).strftime('%Y%m%d')
+        kind = 'LOF'
 
-
-        app = SHFundShare(first_use=False,kind=kind,date=date)
+        app = SHFundShare(first_use=False, kind=kind, date=date)
         app.run()
 
+
 if __name__ == '__main__':
-    # app = SZFundShare(first_use=False)
-    # app.run()
+    app = SZFundShare(first_use=False)
+    app.run()
     # kind='LOF'
     # date='now'
     # app = SHFundShare(first_use=False,kind=kind,date=date)
     # app.run()
-    patch_fix_missing_data()
+    # patch_fix_missing_data()

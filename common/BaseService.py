@@ -3,6 +3,8 @@ import datetime
 import json
 import os
 import re
+import time
+
 import requests
 import parsel
 from loguru import logger
@@ -51,7 +53,7 @@ class BaseService(object):
                     cookies=self.cookies)
 
             except Exception as e:
-                print(e)
+                print('base class error',e)
                 start += 1
                 continue
 
@@ -66,7 +68,7 @@ class BaseService(object):
 
         return None
 
-    def post(self, url, post_data, _josn=False, binary=False, retry=5):
+    def post(self, url, post_data, _json=False, binary=False, retry=5):
 
         start = 0
         while start < retry:
@@ -84,7 +86,7 @@ class BaseService(object):
                 continue
 
             else:
-                if _josn:
+                if _json:
                     result = r.json()
                 elif binary:
                     result = r.content
@@ -111,6 +113,8 @@ class BaseService(object):
         数据存储
         '''
         pass
+    def time_str(self,x):
+        return x.strftime('%Y-%m-%d')
 
     def trading_time(self):
         '''
@@ -189,6 +193,41 @@ class BaseService(object):
     def jsonp2json(self, str_):
         return json.loads(str_[str_.find('{'):str_.rfind('}')+1])
 
+    def set_proxy_param(self,proxy):
+        self.proxy_ip = proxy
+
+    def get_proxy(self,retry=10):
+
+        if not hasattr(self,'proxy_ip'):
+            raise AttributeError('Please set proxy ip before use it')
+
+        proxyurl = f'http://{self.proxy_ip}/dynamicIp/common/getDynamicIp.do'
+        count = 0
+        for i in range(retry):
+            try:
+                r = requests.get(proxyurl, timeout=10)
+            except Exception as e:
+                print(e)
+                count += 1
+                print('代理获取失败,重试' + str(count))
+                time.sleep(1)
+
+            else:
+                js = r.json()
+                proxyServer = '://{0}:{1}'.format(js.get('ip'), js.get('port'))
+
+                proxies_random = {
+                    'http': 'http'+proxyServer,
+                    'https':'https'+proxyServer,
+                }
+                return proxies_random
+
+        return None
+
+    def convert_timestamp(self, t):
+        return datetime.datetime.fromtimestamp(int(t / 1000)).strftime('%Y-%m-%d')
+
+
 
 class HistorySet(object):
 
@@ -217,3 +256,5 @@ class HistorySet(object):
 if __name__ == '__main__':
     base = BaseService()
     base.is_weekday()
+    # base.set_proxy_param()
+    print(base.get_proxy())

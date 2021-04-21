@@ -14,17 +14,16 @@ from configure.settings import DBSelector
 from common.BaseService import BaseService
 from configure.util import notify
 RETRY = 0
-DB = DBSelector()
 
 
 class CloseEndFundCls(BaseService):
 
     def __init__(self):
 
-        super(CloseEndFundCls, self).__init__('log/closd_fund.log')
+        super(CloseEndFundCls, self).__init__('../log/closd_fund.log')
         self.url = 'https://www.jisilu.cn/data/cf/cf_list/'
 
-        self.client = DB.mongo(location_type='qq',async_type=False)
+        self.client = DBSelector().mongo(location_type='qq',async_type=False)
 
         self.doc = self.client['closed_end_fund'][self.today]
 
