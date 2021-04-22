@@ -86,7 +86,7 @@ class JuCaoParser(BaseService, Thread):
             title = data['title']
             announcementId = data['announcementId']
             date=data['date']
-            code=date['code']
+            code=data['code']
             PARENT_FOLDER=os.path.join(BASE,date)
             self.check_path(PARENT_FOLDER)
 
