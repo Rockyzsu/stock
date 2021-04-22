@@ -28,7 +28,7 @@ class PDFParseproducer(Thread):
         print('Producer start')
 
     def gen_date_list(self):
-        current = datetime.datetime.now()
+        current = datetime.datetime.now() + datetime.timedelta(days=1)
         last_day_count = 20
         date_list=[]
         for i in range(last_day_count):
