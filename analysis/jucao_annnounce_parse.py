@@ -12,7 +12,8 @@ from common.BaseService import BaseService
 from configure.settings import DBSelector
 from threading import Thread
 from queue import Queue
-
+from pathlib import PurePath
+BASE = PurePath(__file__).parent
 
 class PDFParseproducer(Thread):
 
@@ -26,23 +27,40 @@ class PDFParseproducer(Thread):
         self.q = q
         print('Producer start')
 
+    def gen_date_list(self):
+        current = datetime.datetime.now()
+        last_day_count = 20
+        date_list=[]
+        for i in range(last_day_count):
+            slide_day = (current+datetime.timedelta(days=-1*i)).strftime('%Y-%m-%d')
+            date_list.append(slide_day)
+        return date_list
+
     def run(self):
-        pending_data = self.doc.find({'analysis': {'$exists': False}, 'announcementTime': self.date})
-        pending_data_list = list(pending_data)
+        for d in self.gen_date_list():
+            # pending_data = self.doc.find({'analysis': {'$exists': False},'announcementTime':self.date})
+            pending_data = self.doc.find({'analysis': {'$exists': False},'announcementTime':d})
+            pending_data_list = list(pending_data)
 
-        if len(pending_data_list) == 0:
-            # 数据已为空了
-            return
+            if len(pending_data_list) == 0:
+                # 数据已为空了
+                return
 
-        for item in pending_data_list:
-            task_data = {
-                'url': item['url'],
-                'announcementId': item['announcementId'],
-                'title': item['title'],
-                'secName': item['secName'],
-            }
-            print('pushing data')
-            self.q.put(task_data)
+            for item in pending_data_list:
+                code=item['code']
+                code_list=code.split(',')
+                if any(map(lambda x:x.startswith(('16','501','502')),code_list)):
+
+                    task_data = {
+                        'url': item['url'],
+                        'announcementId': item['announcementId'],
+                        'title': item['title'],
+                        'secName': item['secName'],
+                        'date':item['announcementTime'],
+                        'code':code[:6],
+                    }
+                    print('pushing data',code,item['secName'])
+                    self.q.put(task_data)
 
 
 class JuCaoParser(BaseService, Thread):
@@ -51,8 +69,7 @@ class JuCaoParser(BaseService, Thread):
         BaseService.__init__(self, '../log/jucao_parser.log')
         Thread.__init__(self)
         self.q = q
-        self.PARENT_FOLDER = self.today
-        self.check_path(self.PARENT_FOLDER)
+
         self.params = None
         self.db = DBSelector().mongo('qq')
         self.doc = self.db['db_stock']['jucao_announcement']
@@ -68,6 +85,11 @@ class JuCaoParser(BaseService, Thread):
             secName = data['secName']
             title = data['title']
             announcementId = data['announcementId']
+            date=data['date']
+            code=date['code']
+            PARENT_FOLDER=os.path.join(BASE,date)
+            self.check_path(PARENT_FOLDER)
+
             try:
                 content = self.get(
                     url=url,
@@ -78,8 +100,8 @@ class JuCaoParser(BaseService, Thread):
             except Exception as e:
                 self.logger.error(e)
             else:
-                filename = f'{announcementId}_{secName[:50]}_{title[:50]}.pdf'
-                full_path = os.path.join(self.PARENT_FOLDER, filename)
+                filename = f'{code}_{announcementId}_{secName[:50]}_{title[:50]}.pdf'
+                full_path = os.path.join(PARENT_FOLDER, filename)
                 with open(full_path, 'wb') as fp:
                     fp.write(content)
 

@@ -17,6 +17,9 @@ import pandas as pd
 from configure.settings import send_from_aliyun
 from common.BaseService import BaseService
 
+
+
+
 class FundDection(BaseService):
     def __init__(self):
         super(FundDection, self).__init__('../log/FundDetection.log')
@@ -47,8 +50,10 @@ class FundDection(BaseService):
             self.logger.info(f'今天{self.today}没有数据')
 
     def query_big_volatility_share(self):
+
         day = 0  # 前x天 ，天 ，0 即使昨天和前天的数据比较
         PERCENT = 10 # 偏离 百分比
+        DIFF_MAX = 100
         category_list = ["LOF","ETF"]
 
         yesterday = self.ts_util.get_last_trade_date()  # 最新的一天
@@ -59,8 +64,7 @@ class FundDection(BaseService):
         string_arg = ''
         has_data = False
         for category in category_list:
-            # print(category)
-            # print('#' * 10)
+
             string_arg+=f'############ {category} ###############\n\n'
             lastest_lofs = self.sess.query(FundBaseInfoModel.name, FundBaseInfoModel.code, ShareModel.share,
                                            ShareModel.date).join(ShareModel).filter(
@@ -82,16 +86,17 @@ class FundDection(BaseService):
                 if len(yesterday_share) > 0 and len(lastday_of_yesterday_share) > 0:
                     yesterday_share_num = yesterday_share['share'].to_list()[0]
                     lastday_of_yesterday_num = lastday_of_yesterday_share['share'].to_list()[0]
-                    diff = (yesterday_share_num - lastday_of_yesterday_num) * 1.00 / lastday_of_yesterday_num * 100.00
+                    diff_part = yesterday_share_num - lastday_of_yesterday_num
+                    diff = (diff_part) * 1.00 / lastday_of_yesterday_num * 100.00
                     diff = round(diff, 2)
-                    if abs(diff) > PERCENT:
+                    if abs(diff) >= PERCENT or diff_part>DIFF_MAX:
 
                         has_data = True # 有数据则发送邮件
 
                         print(yesterday_share['name'].to_list()[0], yesterday_share['code'].to_list()[0],
-                              yesterday_share_num, lastday_of_yesterday_num, lastday_of_yesterday, diff)
+                              yesterday_share_num, lastday_of_yesterday_num, lastday_of_yesterday, diff,diff_part)
                         string = self.formator(category,yesterday_share['name'].to_list()[0], yesterday_share['code'].to_list()[0],
-                                      yesterday_share_num, lastday_of_yesterday_num, lastday_of_yesterday, diff)
+                                      yesterday_share_num, lastday_of_yesterday_num, lastday_of_yesterday, diff,diff_part)
                         # print(string)
                         string_arg+=string+'\n'
             string_arg+='\n'
@@ -100,7 +105,7 @@ class FundDection(BaseService):
         return string_arg,has_data
 
     def formator(self, *args):
-        string = '{} {} {} {}万份 {}万份 {} {}%\n'.format(*args)
+        string = '{} {} {} {}万份 {}万份 {} {}% 多出了{}万份\n'.format(*args)
 
         return string
 

@@ -14,10 +14,30 @@ from configure.settings import DBSelector
 
 class JuCaoAnnouncement(BaseService):
 
-    def __init__(self):
+    def __init__(self,param=None):
         super(JuCaoAnnouncement, self).__init__('../log/jucao.log')
 
+        self.enableFilter=False # 不过滤关键标题
+
         self.base_url = 'http://www.cninfo.com.cn/new/hisAnnouncement/query'
+
+        self.params_dict={'季报':'category_jdbg_jjgg',
+                          '年报':'category_ndbg_jjgg',
+                          '申购赎回':'category_sgsh_jjgg',
+                          '其它':'category_qt_jjgg',
+                          '基本信息变更':'category_jbxxbg_jjgg',
+                            '招募设立':'category_jjzm_jjgg',
+                          '中报':'category_bndbg_jjgg',
+                          '分红':'category_fh_jjgg',
+                          '持有人大会':'category_fecyr_jjgg',
+                          '净值':'category_jzgg_jjgg',
+                          '组合投资':'category_zhtz_jjgg',
+                          '基金经理变更':'category_ggjjjl_jjgg'
+                          }
+        if param is None:
+            kw = ';'.join(list(self.params_dict.values()))
+        else:
+            kw=self.params_dict.get(param)
 
         self.params = {
             "pageNum": "1",
@@ -29,7 +49,8 @@ class JuCaoAnnouncement(BaseService):
             "searchkey": "",
             "secid": "",
             # 申购等数据 category_qt_jjgg 其他 ； 基本信息变更；申购赎回；持有人大会 ; 基金招募
-            "category": "category_jbxxbg_jjgg;category_fecyr_jjgg;category_sgsh_jjgg;category_qt_jjgg;category_jjzm_jjgg",
+            # "category": "category_jbxxbg_jjgg;category_fecyr_jjgg;category_sgsh_jjgg;category_qt_jjgg;category_jjzm_jjgg",
+            "category": kw,
             "trade": "",
             "seDate": self.gen_date_param(),
             "sortName": "",
@@ -48,6 +69,10 @@ class JuCaoAnnouncement(BaseService):
         last_day = current + datetime.timedelta(days=1)
         current_str = self.time_str(current)
         last_day_str = self.time_str(last_day)
+
+        # 可以自定义时间
+        # current_str='2021-04-01'
+        # last_day_str='2021-04-14'
         x='{}~{}'.format(current_str,last_day_str)
         return x
 
@@ -94,11 +119,16 @@ class JuCaoAnnouncement(BaseService):
         post_data = self.params.copy()
         post_data['pageNum']=str(i)
 
-        response = self.post(
+        try:
+            response = self.post(
             url=self.base_url,
             post_data=post_data,
             _json=True,
         )
+        except Exception as e:
+            self.logger.error(e)
+            self.logger.error(post_data)
+            return
 
         announcements_list = response.get('announcements',None)
         if  announcements_list is not None and len(announcements_list)>0:
@@ -122,9 +152,10 @@ class JuCaoAnnouncement(BaseService):
             # pattern = re.compile('['+self.ignore_str_list+']')
             m=re.search(pattern,title)
 
-            if m:
+            if m and self.enableFilter:
                 # 过滤不想要的标题，不关心的
                 continue
+
             fund_info_dict ={}
             adjunctUrl=item['adjunctUrl']
             fund_info_dict['code']=item['secCode']
