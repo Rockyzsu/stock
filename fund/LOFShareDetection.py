@@ -53,7 +53,7 @@ class FundDection(BaseService):
 
         day = 0  # 前x天 ，天 ，0 即使昨天和前天的数据比较
         PERCENT = 10 # 偏离 百分比
-        DIFF_MAX = 100
+        DIFF_MAX = 200
         category_list = ["LOF","ETF"]
 
         yesterday = self.ts_util.get_last_trade_date()  # 最新的一天
@@ -65,7 +65,7 @@ class FundDection(BaseService):
         has_data = False
         for category in category_list:
 
-            string_arg+=f'############ {category} ###############\n\n'
+            string_arg+=f'\n############ {category} ###############\n\n'
             lastest_lofs = self.sess.query(FundBaseInfoModel.name, FundBaseInfoModel.code, ShareModel.share,
                                            ShareModel.date).join(ShareModel).filter(
                 FundBaseInfoModel.category == category).filter(
@@ -89,14 +89,14 @@ class FundDection(BaseService):
                     diff_part = yesterday_share_num - lastday_of_yesterday_num
                     diff = (diff_part) * 1.00 / lastday_of_yesterday_num * 100.00
                     diff = round(diff, 2)
-                    if abs(diff) >= PERCENT or diff_part>DIFF_MAX:
+                    if abs(diff) >= PERCENT or abs(diff_part)>DIFF_MAX:
 
                         has_data = True # 有数据则发送邮件
 
                         print(yesterday_share['name'].to_list()[0], yesterday_share['code'].to_list()[0],
-                              yesterday_share_num, lastday_of_yesterday_num, lastday_of_yesterday, diff,diff_part)
+                              yesterday_share_num, lastday_of_yesterday_num, lastday_of_yesterday, diff,round(diff_part,0))
                         string = self.formator(category,yesterday_share['name'].to_list()[0], yesterday_share['code'].to_list()[0],
-                                      yesterday_share_num, lastday_of_yesterday_num, lastday_of_yesterday, diff,diff_part)
+                                      yesterday_share_num, lastday_of_yesterday_num, lastday_of_yesterday, diff,round(diff_part,0))
                         # print(string)
                         string_arg+=string+'\n'
             string_arg+='\n'

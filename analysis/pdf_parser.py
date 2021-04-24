@@ -21,6 +21,9 @@ class PDFParserCls():
         for file in glob.glob(str(root)):
             print(file)
 
+    def parse(self,pdf_file):
+
+
 def main():
     app = PDFParserCls()
     app.walk_pdf()
