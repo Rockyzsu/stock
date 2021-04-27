@@ -38,13 +38,14 @@ class PDFParseproducer(Thread):
 
     def run(self):
         for d in self.gen_date_list():
+            print(d)
             # pending_data = self.doc.find({'analysis': {'$exists': False},'announcementTime':self.date})
             pending_data = self.doc.find({'analysis': {'$exists': False},'announcementTime':d})
             pending_data_list = list(pending_data)
 
             if len(pending_data_list) == 0:
                 # 数据已为空了
-                return
+                continue
 
             for item in pending_data_list:
                 code=item['code']
