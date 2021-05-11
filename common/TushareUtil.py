@@ -48,8 +48,8 @@ def main():
     df =app.get_trade_date()
     df =app.get_trade_date()
     df =app.get_trade_date()
-    df =app.get_trade_date()
-    print(df)
+    d =app.get_last_trade_date()
+    print(d)
 
 if __name__ == '__main__':
     start = time.time()

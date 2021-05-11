@@ -96,7 +96,7 @@ class FundDection(BaseService):
                         print(yesterday_share['name'].to_list()[0], yesterday_share['code'].to_list()[0],
                               yesterday_share_num, lastday_of_yesterday_num, lastday_of_yesterday, diff,round(diff_part,0))
                         string = self.formator(category,yesterday_share['name'].to_list()[0], yesterday_share['code'].to_list()[0],
-                                      yesterday_share_num, lastday_of_yesterday_num, lastday_of_yesterday, diff,round(diff_part,0))
+                                      yesterday_share_num, lastday_of_yesterday_num, yesterday, diff,round(diff_part,0))
                         # print(string)
                         string_arg+=string+'\n'
             string_arg+='\n'

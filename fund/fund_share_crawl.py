@@ -124,6 +124,7 @@ class SZFundShare(Fund):
         return return_float
 
     def json_parse(self, js_data):
+        # TODO 如果当前是周一怎么办？
         date = (datetime.date.today() + datetime.timedelta(days=-1)).strftime('%Y-%m-%d')
         # 手动算的前一天 ？
         if js_data is None:
