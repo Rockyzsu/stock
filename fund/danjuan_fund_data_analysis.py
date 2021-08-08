@@ -21,6 +21,10 @@ class DanjuanAnalyser(BaseService):
 
 
     def select_collection(self,current_date):
+        '''
+        根据日期选择数据库
+        '''
+
         self.db = DBSelector().mongo(location_type='qq')
         doc = self.db['db_danjuan'][f'danjuan_fund_{current_date}']
         return doc
@@ -31,8 +35,9 @@ class DanjuanAnalyser(BaseService):
             plan_holding = item.get('holding',[]) # list
             for hold in plan_holding:
                 name = hold['fd_name']
-                fund_dict.setdefault(name,0)
-                fund_dict[name]+=1
+                if hold['percent']>0:
+                    fund_dict.setdefault(name,0)
+                    fund_dict[name]+=1
         fund_dict=list(sorted(fund_dict.items(),key=lambda x:x[1],reverse=True))[:top]
         return fund_dict
 
@@ -55,34 +60,40 @@ class DanjuanAnalyser(BaseService):
         last_week = today + datetime.timedelta(days=WEEK_DAY)
         last_week_str = last_week.strftime('%Y-%m-%d')
         # 因为没有执行上周的数据，用历史数据替代
-        last_week_str = '2021-03-18'
+        last_week_str = '2021-04-20' # 需要已经保存的库
 
         today_doc = self.select_collection(self.today)
         last_week_doc = self.select_collection(last_week_str)
 
         # 持有个数
-        # fund_dict = self.get_top_plan(today_doc,20)
-        # self.pretty(fund_dict,self.today)
+        fund_dict = self.get_top_plan(today_doc,20)
+        self.pretty(fund_dict,self.today,'count')
 
-        # old_fund_dict = self.get_top_plan(last_week_doc,20)
-        # self.pretty(old_fund_dict,last_week_str)
-        # diff_set = self.new_fund(fund_dict,old_fund_dict)
-        # print(diff_set)
+        old_fund_dict = self.get_top_plan(last_week_doc,20)
+        self.pretty(old_fund_dict,last_week_str,'count')
+        
+        diff_set = self.new_fund(fund_dict,old_fund_dict)
+        print('新增的基金入围')
+        print(diff_set)
 
         # 按持有比例
-        # new_fund_percent = self.get_top_plan_percent(today_doc,20)
-        # old_fund_percent = self.get_top_plan_percent(last_week_doc,20)
-        #
-        # self.pretty(new_fund_percent,self.today,'percent')
-        # self.pretty(old_fund_percent,last_week_str,'percnet')
+        new_fund_percent = self.get_top_plan_percent(today_doc,20)
+        old_fund_percent = self.get_top_plan_percent(last_week_doc,20)
+        
+        self.pretty(new_fund_percent,self.today,'percent')
+        self.pretty(old_fund_percent,last_week_str,'percnet')
 
         # 清仓
         clean_fund = self.clear_warehouse_fund(today_doc,200)
-        self.simple_display(clean_fund)
+        self.simple_display(clean_fund,self.today)
 
-    def simple_display(self,data):
+    def simple_display(self,data,date):
         for i in data:
             print(i)
+
+        df = pd.DataFrame(data,columns=['fund','clear_num'])
+        print(df.head(100))
+        df.to_excel(f'clear_{date}.xlsx')
 
     def pretty(self,fund_dict,date,kind):
         df = pd.DataFrame(fund_dict,columns=['fund','holding_num'])
@@ -108,7 +119,6 @@ class DanjuanAnalyser(BaseService):
 
                 if percent>0:
                     continue
-
                 fund_dict.setdefault(name,0)
                 fund_dict[name]+=1
         fund_dict=list(sorted(fund_dict.items(),key=lambda x:x[1],reverse=True))[:top]

@@ -13,7 +13,7 @@ class Danjuan(BaseService):
     def __init__(self) -> None:
         super(Danjuan, self).__init__('../log/danjuan.log')
         self.base_url = 'https://danjuanfunds.com/djapi/fundx/portfolio/v3/plan/united/page?tab=4&page={}&size=20&default_order=0&invest_strategy=&type=&manager_type=&yield_between=&mz_between='
-        self.detial_url = 'https://danjuanfunds.com/djapi/plan/position/detail?plan_code={}'
+        self.detail_url = 'https://danjuanfunds.com/djapi/plan/position/detail?plan_code={}'
         self.plan_detail_url = 'https://danjuanfunds.com/djapi/plan/{}'
 
         self.__headers = {
@@ -59,7 +59,8 @@ class Danjuan(BaseService):
 
 
     def get_plan_code(self):
-        for page in range(1, 50): # 暂定 50页，实际数据很少
+        MAX_PAGE = 50
+        for page in range(1, MAX_PAGE): # 暂定 50页，实际数据很少
             content = self.crawl(page)
             return_data = self.parse(content)
             self.save_data(return_data)
@@ -77,7 +78,7 @@ class Danjuan(BaseService):
         except Exception as e:
             self.logger.error(e)
         else:
-            pass
+            print('update passed!')
 
     def plan_detail(self):
 
@@ -108,24 +109,24 @@ class Danjuan(BaseService):
 
         return detail_info
 
-    def get_detail(self):
+    def get_holding_fund_detail(self):
         '''
-
+        持仓详情
         '''
         for code in self.code_list:
             code = code.get('plan_code')
-            url = self.detial_url.format(code)
+            url = self.detail_url.format(code)
             content = self.get(url=url, _json=True)
             if content.get('data'):
                 holdings = content.get('data').get('items')
+                
                 self.update_data({'plan_code': code}, {"holding": holdings})
             else:
                 self.logger.error('code {} is empty'.format(code))
 
-
     def run(self):
         self.get_plan_code() # 获取plan code 并入库
-        self.get_detail() # 获取具体持仓
+        self.get_holding_fund_detail() # 获取具体持仓
         self.plan_detail()  # 方案的持有信息，收益等
 
 
