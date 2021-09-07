@@ -1,28 +1,32 @@
 # 使用jsl作为数据源
 import requests
 import sys
+
 sys.path.append('..')
 import time
 import threading
 from configure.settings import market_status, config
-from common.BaseService import BaseService,HistorySet
+from common.BaseService import BaseService, HistorySet
 from configure.util import read_web_headers_cookies
+from common.util import get_holding_list
 
 ACCESS_INTERVAL = config['jsl_monitor']['ACCESS_INTERVAL']
 MONITOR_PERCENT = config['jsl_monitor']['MONITOR_PERCENT']
 EXPIRE_TIME = config['jsl_monitor']['EXPIRE_TIME']
+HOLDING_FILENAME = config['holding_file']
 
 
 class ReachTargetJSL(BaseService):
     def __init__(self):
         super(ReachTargetJSL, self).__init__(f'../log/{self.__class__.__name__}.log')
         self.session = requests.Session()
-        self.__headers , self.cookies = read_web_headers_cookies('jsl',headers=True,cookies=False)
-        ts = int(time.time()*1000)
+        self.__headers, self.cookies = read_web_headers_cookies('jsl', headers=True, cookies=True)
+        ts = int(time.time() * 1000)
         self.params = (
             ('___jsl', f'LST___t={ts}'),
         )
-
+        self.holding_list = get_holding_list(filename=HOLDING_FILENAME)
+        # self.holding_list =[]
         self.query_condition = {
             'fprice': '',
             'tprice': '',
@@ -41,7 +45,7 @@ class ReachTargetJSL(BaseService):
 
         self.history = HistorySet(expire=EXPIRE_TIME)
 
-    def get(self,*args,**kwargs):
+    def get(self, *args, **kwargs):
         # 复写
         try:
             response = self.session.post('https://www.jisilu.cn/data/cbnew/cb_list/', headers=self.__headers,
@@ -68,6 +72,7 @@ class ReachTargetJSL(BaseService):
 
         while True:
 
+            # if True:
             if self.trading_time() == 0:
                 ret = self.get()
 
@@ -87,11 +92,19 @@ class ReachTargetJSL(BaseService):
                     sincrease_rt = self.__convert__(sincrease_rt)
 
                     increase_rt = item.get('increase_rt')
+                    increase_rt = float(increase_rt.replace('%', ''))
                     curr_iss_amt = self.__convert__(item.get('curr_iss_amt'))  # 剩余规模
-                    word = '涨停 'if sincrease_rt>0 else '跌停'
+                    word = '涨停 ' if sincrease_rt > 0 else '跌停'
+
+                    if bond_id in self.holding_list and abs(increase_rt) > 9 and self.history.is_expire(bond_id):
+                        str_content = '负' + str(increase_rt) if increase_rt < 0 else str(increase_rt)
+                        text = f'持仓{bond_nm[:2]}-{str_content}%，正股{sincrease_rt}'
+                        t = threading.Thread(target=self.notify, args=(text,))
+                        t.start()
+                        self.history.add(bond_id)
 
                     if abs(sincrease_rt) >= MONITOR_PERCENT and self.history.is_expire(bond_id):
-                        str_content = '负' + increase_rt if float(increase_rt.replace('%', '')) < 0 else increase_rt
+                        str_content = '负' + str(increase_rt) if increase_rt < 0 else str(increase_rt)
                         str_content = str_content.replace('%', '')
                         text = f'{bond_nm[:2]}-债{str_content}-股{sincrease_rt}-规模{curr_iss_amt}-溢{premium_rt}'
                         t = threading.Thread(target=self.notify, args=(text,))
@@ -99,9 +112,11 @@ class ReachTargetJSL(BaseService):
                         self.logger.info(f'{bond_nm} {word}')
                         self.history.add(bond_id)
 
-            elif self.trading_time()==1:
+
+
+
+            elif self.trading_time() == 1:
                 break
-            else:
-                pass
+
 
             time.sleep(ACCESS_INTERVAL)

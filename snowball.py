@@ -6,7 +6,7 @@ http://30daydo.com
 Contact: weigesysu@qq.com
 '''
 import requests,cookielib,re,json,time
-from 无用垃圾代码.toolkit import Toolkit
+from toolkit import Toolkit
 from lxml import etree
 url='https://xueqiu.com/snowman/login'
 session = requests.session()

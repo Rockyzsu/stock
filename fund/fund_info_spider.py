@@ -9,11 +9,9 @@ import sys
 sys.path.append('..')
 from configure.settings import DBSelector, send_from_aliyun
 from common.BaseService import BaseService
-from configure.util import notify
 import warnings
 
 warnings.filterwarnings("ignore")
-# 基金数据爬虫
 
 now = datetime.datetime.now()
 TODAY = now.strftime('%Y-%m-%d')
@@ -25,7 +23,7 @@ elif _time < '14:45:00':
     TODAY += 'noon'
 else:
     TODAY += 'close'
-    # TODAY += 'noon'
+    # TODAY += 'noon' # 调试
 
 NOTIFY_HOUR = 13
 MAX_PAGE = 50
@@ -38,10 +36,10 @@ except Exception as e:
     print(e)
 
 
-class FundSpider(BaseService):
-
+class TencentFundSpider(BaseService):
+    # 腾讯 基金数据爬虫 套利使用
     def __init__(self):
-        super(FundSpider, self).__init__(f'../log/{self.__class__.__name__}.log')
+        super(TencentFundSpider, self).__init__(f'../log/{self.__class__.__name__}.log')
         self.create_table()
 
         self.session = requests.Session()
@@ -70,10 +68,26 @@ class FundSpider(BaseService):
                        'float,`折溢价率` float ,`申购状态` VARCHAR(20),`申赎状态` varchar(20),' \
                        '`基金经理` VARCHAR(200),' \
                        '`成立日期` VARCHAR(20), `管理人名称` VARCHAR(200),' \
-                       '`实时估值` INT,`更新时间` VARCHAR(20));'.format(
+                       '`实时估值` INT,`更新时间` VARCHAR(20),`数据源` VARCHAR(20) );'.format(
             TODAY)
 
         self.execute(create_table, (), conn, self.logger)
+
+    def crawl_fund_info_by_code_table(self):
+        code_list = self.get_fund_code(valid=False)
+        for code in code_list:
+            self.get_info_by_code(code)
+
+    def get_fund_code(self, valid=True):
+        query_cmd = 'select code from fund_main_code'
+        if valid:
+            query_cmd = query_cmd + 'where valid=1'
+
+        result = self.execute(query_cmd, (), conn, self.logger)
+        code_list = []
+        for row in result:
+            code_list.append(row[0])
+        return code_list
 
     def convert(self, float_str):
 
@@ -95,18 +109,23 @@ class FundSpider(BaseService):
         dwjz = self.convert(dwjz)
         ljjz = self.convert(ljjz)
         zyjl = self.convert(zyjl)
+        source = '腾讯基金'
+        insert_data = 'insert into `{}` VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'.format(TODAY)
 
-        insert_data = 'insert into `{}` VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'.format(TODAY)
+        if jjdm is None:
+            # 部分没有数据的基金解析到的基金代码是空，跳过
+            return
+
         self.execute(insert_data, (
             jjdm, jjjc, zxgm, zxjg, jgzffd,
             cj_total_amount, jzrq, dwjz,
             ljjz,
             zyjl, sgzt, shzt, jjjl, clrq,
-            glrmc, is_realtime, update_time), conn, self.logger)
+            glrmc, is_realtime, update_time, source), conn, self.logger)
 
     def check_exist(self, code):
         check_code_exists = 'select count(*) from `{}` WHERE `基金代码`=%s'.format(TODAY)
-        cursor.execute(check_code_exists, (code[2:]))
+        cursor.execute(check_code_exists, (code))
         ret = cursor.fetchone()
         return ret
 
@@ -133,7 +152,9 @@ class FundSpider(BaseService):
             return None
 
     def crawl(self):
-        code_set = set()
+        '''
+        废弃 网页内容不存在了
+        '''
         url = 'http://stock.gtimg.cn/data/index.php'
 
         for p in range(1, MAX_PAGE):
@@ -169,23 +190,27 @@ class FundSpider(BaseService):
             time.sleep(5 * random.random())
 
             for code in query_string.split(','):
+                self.get_info_by_code(code)
 
-                if code not in code_set:
-                    code_set.add(code)
-                else:
-                    continue
+    def get_info_by_code(self, code):
+        code_set = set()
 
-                ret = self.check_exist(code)
-                if ret[0] > 0:
-                    continue
+        if code not in code_set:
+            code_set.add(code)
+        else:
+            return
 
-                detail_url = 'http://gu.qq.com/{}'
-                content = self.get(url=detail_url.format(code), params=None)
-                if content is None:
-                    self.logger.error('请求内容为空')
-                    continue
+        ret = self.check_exist(code)
+        if ret[0] > 0:
+            return
 
-                self.parse_content_and_save(content)
+        detail_url = 'http://gu.qq.com/{}'
+        content = self.get(url=detail_url.format(code), params=None)
+        if content is None:
+            self.logger.error('请求内容为空')
+            return
+
+        self.parse_content_and_save(content)
 
     def parse_content_and_save(self, content):
 
@@ -221,6 +246,8 @@ class FundSpider(BaseService):
             glrmc = info.get('glrmc')
             jzrq = info.get('jzrq')
             return jjdm, jjjc, zxgm, zxjg, jgzffd, cj_total_amount, jzrq, dwjz, ljjz, zyjl, sgzt, shzt, jjjl, clrq, glrmc
+        else:
+            return [None] * 15
 
     def change_table_field(self, table):
         add_column1 = 'alter table `{}` add column `实时净值` float'.format(table)
@@ -236,7 +263,7 @@ class FundSpider(BaseService):
         update_sql = 'update `{}` set `实时净值`= %s,`溢价率`=%s ,`实时估值`=%s where  `基金代码`=%s'.format(table)
         self.execute(update_sql, (jz, yjl, is_realtime, code), conn, self.logger)
 
-    def update_netvalue(self, table):
+    def update_netvalue(self):
         '''
         更新净值
         :param table:
@@ -244,6 +271,7 @@ class FundSpider(BaseService):
         '''
         # table='2020-02-25' # 用于获取code列
         # TODAY=datetime.datetime.now().strftime('%Y-%m-%d')
+        table = TODAY
         self.change_table_field(table)
 
         all_fund_info = self.get_fund_info(table)
@@ -251,9 +279,10 @@ class FundSpider(BaseService):
         for item in all_fund_info:
             jz, yjl, is_realtime, code = self.get_netvalue(table, item)
             self.udpate_db(table, jz, yjl, is_realtime, code)
-            print(f'更新代码{code}')
+            # print(f'更新代码{code}')
 
         self.logger.info('更新成功')
+        self.notice_me(TODAY)
 
     def get_netvalue(self, table, item):
         # 获取净值
@@ -355,71 +384,25 @@ class FundSpider(BaseService):
                 self.logger.info('发送成功')
 
 
-class JSLFund(BaseService):
-    '''
-    集思录的指数
-    '''
+if __name__ == '__main__':
 
-    def __init__(self):
-        super(JSLFund, self).__init__(f'../log/{self.__class__.__name__}.log')
+    now = datetime.datetime.now()
+    TODAY = now.strftime('%Y-%m-%d')
+    _time = now.strftime('%H:%M:%S')
 
-        client = DB.mongo(location_type='qq', async_type=False)
+    if _time < '11:30:00':
+        TODAY += 'morning'
+    elif _time < '14:45:00':
+        TODAY += 'noon'
+    else:
+        TODAY += 'close'
+        # TODAY += 'noon'
 
-        self.jsl_stock_lof = client['fund_daily'][f'jsl_stock_lof_{self.today}']
-        self.jsl_index_lof = client['fund_daily'][f'jsl_index_lof_{self.today}']
-
-        self.stock_url = 'https://www.jisilu.cn/data/lof/stock_lof_list/?___jsl=LST___t=1582355333844&rp=25'
-        self.index_lof_url = 'https://www.jisilu.cn/data/lof/index_lof_list/?___jsl=LST___t=1582356112906&rp=25'
-        self.logger.info(f'start JSL fund...')
-
-    @property
-    def headers(self):
-        _headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36'}
-        return _headers
-
-    def get(self, url, retry=5):
-
-        start = 0
-        while start < retry:
-            try:
-                r = requests.get(
-                    url=url,
-                    headers=self.headers)
-            except Exception as e:
-                self.logger.error(e)
-                start += 1
-
-            else:
-                js = r.json()
-                return js
-
-        if start == retry:
-            return None
-
-    def crawl(self):
-        for types in ['stock', 'index']:
-            self.parse_json(types=types)
-
-    def parse_json(self, types):
-
-        if types == 'stock':
-            url = self.stock_url
-            mongo_doc = self.jsl_stock_lof
-
-        else:
-            url = self.index_lof_url
-            mongo_doc = self.jsl_index_lof
-
-        return_js = self.get(url=url)
-        rows = return_js.get('rows')
-
-        for item in rows:
-            cell = item.get('cell')
-            cell['crawltime'] = datetime.datetime.now()
-            # print(cell)
-            try:
-                mongo_doc.insert_one(cell)
-            except Exception as e:
-                self.logger.error(e)
-                notify(title='入mongo出错', desp=f'{self.__class__} 写入mongodb出错')
+    app = TencentFundSpider()
+    app.crawl_fund_info_by_code_table()
+    # app.crawl()
+    # app.update_netvalue(TODAY)
+    # app.notice_me(TODAY)
+    # app.get_info_by_code('160137')
+    # print(app.get_fund_code())
+    app.update_netvalue()

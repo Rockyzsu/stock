@@ -6,15 +6,9 @@
 import json
 import sys
 sys.path.append('..')
-import requests
-import re
-import pymongo
 import datetime
 from common.BaseService import BaseService
 from configure.settings import DBSelector
-from parsel.selector import Selector
-from sqlalchemy.orm import sessionmaker
-from loguru import logger
 from common.aes import AESDecrypt
 
 
@@ -69,9 +63,10 @@ class HKNewStock(BaseService):
             content = self.post(
                 url=self.base_url,
                 post_data=self.form_data(i),
-                _josn=True,
+                _json=True,
             )
             js_data = self.parse(content)
+
             if js_data:
                 self.insert_mongo(js_data)
 
@@ -131,10 +126,12 @@ class HKNewStock(BaseService):
         self.doc.update_many({},{'$rename':rename_dict})
 
     def run(self):
+        self.logger.info('start to crawl')
         self.crawl()
+        self.logger.info('end of crawl')
 
 if __name__ == '__main__':
     app = HKNewStock()
-    # app.run()
+    app.run()
     app.rename()
 

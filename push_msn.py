@@ -7,7 +7,7 @@ Contact: weigesysu@qq.com
 import smtplib, time,os,datetime
 from email.mime.text import MIMEText
 from email import Utils
-from 无用垃圾代码.toolkit import Toolkit
+from toolkit import Toolkit
 import tushare as ts
 from pandas import Series
 import matplotlib.pyplot as plt

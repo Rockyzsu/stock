@@ -4,7 +4,6 @@ import json
 import os
 import re
 import time
-
 import requests
 import parsel
 from loguru import logger
@@ -106,7 +105,7 @@ class BaseService(object):
         '''
         response = parsel.Selector(text=content)
 
-        return None
+        return response
 
     def process(self, data, history=False):
         '''
@@ -182,7 +181,7 @@ class BaseService(object):
             cursor.execute(cmd, data)
         except Exception as e:
             conn.rollback()
-            logger.error('执行数据库错误 {}'.format(e))
+            logger.error('执行数据库错误 {},{}'.format(e,cmd))
             ret = None
         else:
             ret = cursor.fetchall()

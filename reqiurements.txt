@@ -4,9 +4,6 @@ loguru
 rsa
 itchat
 twilio
-redis
+reids
 pymongo
 pymysql
-pypinyin
-sqlalchemy
-pandas

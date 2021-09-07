@@ -5,15 +5,18 @@ http://30daydo.com
 Contact: weigesysu@qq.com
 '''
 import sys
+
 sys.path.append('..')
 import re
 import time
 import datetime
 import requests
 import pandas as pd
+from configure import config
 from configure.settings import DBSelector, send_from_aliyun
 from sqlalchemy import VARCHAR
 from common.BaseService import BaseService
+from datahub.jsl_login import login
 
 
 # 爬取集思录 可转债的数据
@@ -33,13 +36,20 @@ class Jisilu(BaseService):
         self.remote = remote
         self.DB = DBSelector()
         self.engine = self.DB.get_engine('db_jisilu', self.remote)
+        self.get_session()
 
     @property
     def headers(self):
         _header = {
-            'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
-            'X-Requested-With': 'XMLHttpRequest'
-            }
+            'Host': 'www.jisilu.cn', 'Connection': 'keep-alive', 'Pragma': 'no-cache',
+            'Cache-Control': 'no-cache', 'Accept': 'application/json,text/javascript,*/*;q=0.01',
+            'Origin': 'https://www.jisilu.cn', 'X-Requested-With': 'XMLHttpRequest',
+            'User-Agent': 'Mozilla/5.0(WindowsNT6.1;WOW64)AppleWebKit/537.36(KHTML,likeGecko)Chrome/67.0.3396.99Safari/537.36',
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+            'Referer': 'https://www.jisilu.cn/login/',
+            'Accept-Encoding': 'gzip,deflate,br',
+            'Accept-Language': 'zh,en;q=0.9,en-US;q=0.8'
+        }
         return _header
 
     def check_holiday(self):
@@ -49,11 +59,14 @@ class Jisilu(BaseService):
             self.logger.info("Holidy")
             exit(0)
 
+    def get_session(self):
+        self.session = login(config.jsl_user, config.jsl_password)
+
     def download(self, url, data, retry=5):
 
         for i in range(retry):
             try:
-                r = requests.post(url, headers=self.headers, data=data)
+                r = self.session.post(url, headers=self.headers, data=data)
                 if not r.text or r.status_code != 200:
                     continue
                 else:
@@ -68,10 +81,21 @@ class Jisilu(BaseService):
     def daily_update(self, adjust_no_use=True):
 
         post_data = {
-            'btype': 'C',
-            'listed': 'Y',
-            'rp': '50',
-            'is_search': 'N',
+            "fprice": None,
+            "tprice": None,
+            "curr_iss_amt": None,
+            "volume": None,
+            "svolume": None,
+            "premium_rt": None,
+            "ytm_rt": None,
+            "rating_cd": None,
+            "is_search": "N",
+            "btype": "C",
+            "listed": "Y",
+            "qflag": "N",
+            "sw_cd": None,
+            "bond_ids": None,
+            "rp": 50,
         }
 
         js = self.download(self.url, data=post_data)
@@ -80,6 +104,7 @@ class Jisilu(BaseService):
 
         ret = js.json()
         bond_list = ret.get('rows', {})
+        # print(len(bond_list))
         df = self.data_parse(bond_list, adjust_no_use)
         self.store_mysql(df)
 
@@ -161,6 +186,12 @@ class Jisilu(BaseService):
 
         df = df.set_index('可转债代码', drop=True)
         return df
+
+    def to_excel(self,df):
+        try:
+            df.to_excel(f'jisilu_{self.date}.xlsx',encoding='utf8')
+        except Exception as e:
+            print(e)
 
     def store_mysql(self, df):
         try:
@@ -303,9 +334,9 @@ class Jisilu(BaseService):
 
 
 def main():
-    obj = Jisilu(check_holiday=False,remote='local')
-    # obj.daily_update()
-    obj.release_data()
+    obj = Jisilu(check_holiday=False, remote='local')
+    obj.daily_update()
+    # obj.release_data()
 
 
 if __name__ == '__main__':
