@@ -15,6 +15,9 @@
 
 码农的量化交易，把经历写成代码推送到github。代码和策略会一直保持更新，如果你有好的策略或者想法和疑问想要交流，可以私信我或者QQ：896820010
 ### 新增：
+
+### fund
+
 * fund/LOFShareDection.py 监控LOF、ETF场内份额变动
 * fund/ark_funds.py 获取ARK ETF每日持仓数据，并写入mongodb
 * fund/fund_share_update.py 上交所，深交所 基金场内基金份额监控
@@ -22,7 +25,20 @@
 * fund/fund_info_spider.py 集思录基金,腾讯证券基金折价率，溢价率 爬虫
 * fund/etf_info.py 市场指数基金的持仓股监控
 * fund/ttjj.py 天天基金数据获取
+
+
+
+## datahub
+
+* datahub/niwen.py 宁稳可转债下载
+
+* datahub/public_private_fund_members.py 公墓私募基金成员数据
+
 * datahub/jucao_ammouncement.py 巨潮公告批量获取+PDF下载
+
+* datahub/bond_industry_info.py 可转债行业分布
+
+  
 
 
 ### 已有：
@@ -77,8 +93,8 @@
   国内费率最低，支持同花顺登录
   如果电脑浏览器无法打开链接，可直接扫描下方二维码开户：
   [![二维码开户](http://www.30daydo.com/uploads/article/20210328/e85a8503df62ccb5e8ad3ca322e0d1ef.PNG
-)](http://www.30daydo.com/uploads/article/20210328/e85a8503df62ccb5e8ad3ca322e0d1ef.PNG
-)
+  )](http://www.30daydo.com/uploads/article/20210328/e85a8503df62ccb5e8ad3ca322e0d1ef.PNG
+  )
   <br>
 
 当然也有其他主流券商可选，华泰，广发，华宝，招商等等，基本可以涵盖主流券商。
