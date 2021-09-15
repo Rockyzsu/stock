@@ -27,3 +27,4 @@ config.json
 log/jsl_monitor
 configure/
 release/
+validate_key.py
