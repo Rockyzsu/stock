@@ -27,6 +27,5 @@ config.json
 log/jsl_monitor
 configure/
 release/
-validate_key.py
 /datahub/image_server_dump_model.py
 datahub/model.h
