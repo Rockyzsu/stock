@@ -4,6 +4,7 @@
 # @Author : Rocky C@www.30daydo.com
 
 # 宁稳网
+import json
 import random
 import time
 from parsel import Selector
@@ -18,27 +19,16 @@ import loguru
 
 warnings.filterwarnings("ignore")
 logger = loguru.logger
+
+
 class BaseCls():
     def __init__(self):
         self.session = requests.Session()
 
     def load_pickle(self):
-        with open('model.h','rb') as fp:
+        with open('model.h', 'rb') as fp:
             self.model = pickle.load(fp)
 
-
-
-    def dump_pickle(self):
-        key = "ec*z981Nvi32oip"
-        source = "kzzlhfx"
-        image_host = 'http://129.204.134.181:9000/image_recognize'
-        system_config = {
-            'key':key,
-            'source':source,
-            'image_host':image_host
-        }
-        with open('model.h','wb') as fp:
-            self.model = pickle.dump(system_config,fp)
 
 
 class NinwenSpider(BaseCls):
@@ -52,20 +42,19 @@ class NinwenSpider(BaseCls):
 
     @property
     def headers(self):
+
         _header = {
             "Accept": "application/json, text/javascript, */*; q=0.01",
             "Accept-Encoding": "gzip, deflate",
             "Accept-Language": "zh,en;q=0.9,en-US;q=0.8,zh-CN;q=0.7",
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
             "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
             "Host": "www.ninwin.cn",
             "Origin": "http://www.ninwin.cn",
-            "Pragma": "no-cache",
             "Referer": "http://www.ninwin.cn/index.php?m=u&c=login",
             "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36",
             "X-Requested-With": "XMLHttpRequest",
         }
+
         return _header
 
     def get_image(self):
@@ -87,15 +76,39 @@ class NinwenSpider(BaseCls):
         return return_float
 
     def login(self, code, csrf):
+
         url = 'http://www.ninwin.cn/index.php?m=u&c=login&a=dorun'
-        data = {'username': validate_key.username,
-                'password': validate_key.password,
+        data_x = {
+            'username': '',
+                'password': '',
                 'code': code,
-                'backurl': 'http://www.ninwin.cn/',
+                'backurl': 'https://www.ninwin.cn/',
                 'invite': '',
-                'csrf_token': csrf}
-        r = self.session.post(url=url, headers=self.headers, data=data)
+                'csrf_token': csrf
+                }
+        print(data_x)
+        login_headers = {
+
+            "Host": "www.ninwin.cn",
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "X-Requested-With": "XMLHttpRequest",
+            "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36",
+            # "Origin": "https://www.ninwin.cn",
+            "Referer": "https://www.ninwin.cn/index.php?m=u&c=login",
+            # "Accept-Encoding": "gzip, deflate, br",
+            # "Accept-Language": "zh,en;q=0.9,en-US;q=0.8,zh-CN;q=0.7",
+        }
+
+        r = self.session.post(url=url, headers=login_headers,
+                              # json=data_x,
+                              json=json.dumps(data_x),
+                              # data=json.dumps(data)
+                              # data=data_x
+                              )
+        print(r.text)
         ret_js = r.json()
+        print(ret_js)
         if ret_js.get('state') == 'success':
             # print(ret_js.get('referer'))
             return ret_js.get('referer')
@@ -120,16 +133,17 @@ class NinwenSpider(BaseCls):
             logger.error('获取数据失败')
             return None
 
-    def visit_page(self, url):
+    def visit_page(self, url, _headers=None):
+        if _headers is None:
+            _headers = {
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+                "Accept-Encoding": "gzip, deflate",
+                "Accept-Language": "zh,en;q=0.9,en-US;q=0.8,zh-CN;q=0.7",
+                "Host": "www.ninwin.cn",
+                "Referer": "http://www.ninwin.cn/",
+                "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36",
+            }
 
-        _headers = {
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-            "Accept-Encoding": "gzip, deflate",
-            "Accept-Language": "zh,en;q=0.9,en-US;q=0.8,zh-CN;q=0.7",
-            "Host": "www.ninwin.cn",
-            "Referer": "http://www.ninwin.cn/",
-            "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36",
-        }
         resp = self.session.get(url=url, headers=_headers)
         content = resp.text
         return content
@@ -189,10 +203,10 @@ class NinwenSpider(BaseCls):
                          ]
         return columns_name_
 
-    def patch_fix(self,name,v,node):
-        if name=='转股价格' and v is None:
-            return True,node.xpath('.//td[15]/a/text()').extract_first()
-        return False,None
+    def patch_fix(self, name, v, node):
+        if name == '转股价格' and v is None:
+            return True, node.xpath('.//td[15]/a/text()').extract_first()
+        return False, None
 
     def parse(self, content):
         resp = Selector(text=content)
@@ -203,9 +217,9 @@ class NinwenSpider(BaseCls):
             d = {}
             for item in self.columns_name:
                 v = col.xpath(item[1]).extract_first()
-                patch,_v = self.patch_fix(item[0],v,col)
+                patch, _v = self.patch_fix(item[0], v, col)
                 if patch:
-                    v=_v
+                    v = _v
 
                 if isinstance(v, str):
                     v = v.strip()
@@ -229,13 +243,55 @@ class NinwenSpider(BaseCls):
         else:
             return code
 
+    def check_name(self, csrf_token):
+        url = 'https://www.ninwin.cn/index.php?m=u&c=login&a=checkname'
+        headers = {
+            "Host": "www.ninwin.cn",
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "X-Requested-With": "XMLHttpRequest",
+            "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36",
+            "Origin": "https://www.ninwin.cn",
+            "Referer": "https://www.ninwin.cn/index.php?m=u&c=login",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "zh,en;q=0.9,en-US;q=0.8,zh-CN;q=0.7",
+        }
+        data = {'csrf_token': csrf_token,
+                'username': validate_key.username}
+        r = self.session.post(url=url, headers=headers, data=data)
+        print(r.json())
+
+    def check_cookies(self, csrf, code):
+        url = f'https://www.ninwin.cn/index.php?m=verify&a=check&csrf_token={csrf}&code={code}'
+        check_cookies_headers = {
+            "Host": "www.ninwin.cn",
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            "X-Requested-With": "XMLHttpRequest",
+            "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36",
+            "Referer": "https://www.ninwin.cn/index.php?m=u&c=login",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "zh,en;q=0.9,en-US;q=0.8,zh-CN;q=0.7",
+        }
+        time.sleep(0.5)
+        content = self.visit_page(url, _headers=check_cookies_headers)
+        print('check cookies return')
+        # print(content)
+        js = json.loads(content)
+        print(js)
+        time.sleep(0.5)
+
     def run(self):
         csrf = self.get_csrf_token()
         while 1:
             img = self.get_image()
             code = self.image_recognize(img)
-            # print("code is ", code)
+            print("code is ", code)
+            self.check_name(csrf)
+
+            self.check_cookies(csrf, code)
+            time.sleep(5)
             ref_url = self.login(code, csrf)
+            input('pause')
             if ref_url is None:
                 logger.info('识别错误或者密码错误，正在重试.....')
                 time.sleep(random.randint(1, 5))
