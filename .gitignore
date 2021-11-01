@@ -5,6 +5,7 @@ data.cfg
 *.xml
 *.html
 /private
+.ipynb_checkpoints/
 *.log
 *.pkl
 stock_list.txt
