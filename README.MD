@@ -13,10 +13,10 @@
 ### 文末有券商开户福利：股票万一免5，转债百万之二，还提供券商自动化接口开户
 ---
 
-码农的量化交易，把经历写成代码推送到github。代码和策略会一直保持更新，如果你有好的策略或者想法和疑问想要交流，可以私信我或者QQ：896820010
+码农的量化交易，把经历写成代码推送到github。代码和策略会一直保持更新，如果你有好的策略或者想法和疑问想要交流，可以加文末微信。
 ### 新增：
 
-### fund
+### fund（基金）
 
 * fund/LOFShareDection.py 监控LOF、ETF场内份额变动
 * fund/ark_funds.py 获取ARK ETF每日持仓数据，并写入mongodb
@@ -28,7 +28,7 @@
 
 
 
-## datahub
+## datahub（数据源）
 
 * datahub/niwen.py 宁稳可转债下载
 
@@ -69,45 +69,51 @@
 * win_or_lost_each_day.py --评估自己每天每只股票的盈亏情况 完成度100%
 * zdt.py --每天股票市场的涨停热度 
 
-###
-
-# 福利
-
-无论做股票还是套利，还是拖拉机6+1，个人比较推荐的一个券商
-
-股票佣金政策：
-
-<br>
-
-* 券商一：
-
-### 可转债沪市百万分之二，深市十万分之四，绝对市场费率最低
-[![可转债费率](http://www.30daydo.com/uploads/article/20210313/401533d69e8b1b6ba47ec63e2d0ab2c0.jpg)](http://www.30daydo.com/uploads/article/20210313/401533d69e8b1b6ba47ec63e2d0ab2c0.jpg)
-
-<br>
-
-* 券商二
-
-  ### 无门槛 万1免5
-  ### 开户链接：[万一免五](https://q.eqxiu.com/s/KJnKqG9D?eqrcode=1&share_level=1&from_user=41896b82-ca7e-47c3-8d35-735096d82bc0&from_id=bbb4373e-6&share_time=1613626081290&adpop=1)
-  国内费率最低，支持同花顺登录
-  如果电脑浏览器无法打开链接，可直接扫描下方二维码开户：
-  [![二维码开户](http://www.30daydo.com/uploads/article/20210328/e85a8503df62ccb5e8ad3ca322e0d1ef.PNG
-  )](http://www.30daydo.com/uploads/article/20210328/e85a8503df62ccb5e8ad3ca322e0d1ef.PNG
-  )
-  <br>
-
-当然也有其他主流券商可选，华泰，广发，华宝，招商等等，基本可以涵盖主流券商。
-
-
-<br>
-
-也有港股打新开户，欢迎来撩，非诚勿扰。注明：开户。
 ----
 
 
 
-[![个人微信号](http://www.30daydo.com/uploads/article/20210329/4c87ea0a4f89548ff3db128076c9eebb.jpg)](http://www.30daydo.com/uploads/article/20210329/4c87ea0a4f89548ff3db128076c9eebb.jpg)
+# 福利
+
+### 券商量化下单接口
+
+支持python语言，可云端部署与本地运行两种模式，支持A股市场股票，转债，基金等品种。
+
+![实盘python下单接口](http://xximg.30daydo.com/picgo/ptrade1.png)
+
+
+
+### 接口文档
+
+![](http://xximg.30daydo.com/picgo/api%E6%96%87%E6%A1%A3.png)
+
+
+
+### 费率
+
+交易费率极低，股票万一免五，没有最低收费；可转债百万分之二
+
+![20211101213938](http://xximg.30daydo.com/typora/20211101213938.png)
+
+----
+
+开通量化接口后是不收取额外费用，可永久使用。
+
+开通条件是开户后入金30W保持一天时间即可。后续即可取出。
+
+----
+
+当然也有其他主流券商可选，华泰，广发，华宝，招商，国金，银河证券等等，基本可以涵盖主流券商。
+
+----
+
+## 开通方式：
+
+### 也有港股打新开户，欢迎来撩，非诚勿扰。注明：开户。
+
+
+
+<img src="http://xximg.30daydo.com/picgo/ufc_big_300.png" style="zoom:80%;" />
 
 
 
