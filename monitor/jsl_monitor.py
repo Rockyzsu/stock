@@ -9,18 +9,31 @@ from configure.settings import market_status, config
 from common.BaseService import BaseService, HistorySet
 from configure.util import read_web_headers_cookies
 from common.util import get_holding_list
+from datahub.jsl_login import login
 
 ACCESS_INTERVAL = config['jsl_monitor']['ACCESS_INTERVAL']
 MONITOR_PERCENT = config['jsl_monitor']['MONITOR_PERCENT']
 EXPIRE_TIME = config['jsl_monitor']['EXPIRE_TIME']
 HOLDING_FILENAME = config['holding_file']
+JSL_USER = config['jsl_monitor']['JSL_USER']
+JSL_PASSWORD = config['jsl_monitor']['JSL_PASSWORD']
 
 
 class ReachTargetJSL(BaseService):
     def __init__(self):
         super(ReachTargetJSL, self).__init__(f'../log/{self.__class__.__name__}.log')
         self.session = requests.Session()
-        self.__headers, self.cookies = read_web_headers_cookies('jsl', headers=True, cookies=True)
+        self.__headers = {
+            'Host': 'www.jisilu.cn', 'Connection': 'keep-alive', 'Pragma': 'no-cache',
+            'Cache-Control': 'no-cache', 'Accept': 'application/json,text/javascript,*/*;q=0.01',
+            'Origin': 'https://www.jisilu.cn', 'X-Requested-With': 'XMLHttpRequest',
+            'User-Agent': 'Mozilla/5.0(WindowsNT6.1;WOW64)AppleWebKit/537.36(KHTML,likeGecko)Chrome/67.0.3396.99Safari/537.36',
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+            'Referer': 'https://www.jisilu.cn/login/',
+            'Accept-Encoding': 'gzip,deflate,br',
+            'Accept-Language': 'zh,en;q=0.9,en-US;q=0.8',
+        }
+        self.cookies = read_web_headers_cookies('jsl', headers=True, cookies=True)
         ts = int(time.time() * 1000)
         self.params = (
             ('___jsl', f'LST___t={ts}'),
@@ -28,29 +41,36 @@ class ReachTargetJSL(BaseService):
         self.holding_list = get_holding_list(filename=HOLDING_FILENAME)
         # self.holding_list =[]
         self.query_condition = {
-            'fprice': '',
-            'tprice': '',
-            'volume': '',
-            'svolume': '',
-            'premium_rt': '',
-            'ytm_rt': '',
-            'rating_cd': '',
-            'is_search': 'Y',
-            'btype': 'C',
-            'listed': 'Y',
-            'sw_cd': '',
-            'bond_ids': '',
-            'rp': '50'
+            "fprice": None,
+            "tprice": None,
+            "curr_iss_amt": None,
+            "volume": None,
+            "svolume": None,
+            "premium_rt": None,
+            "ytm_rt": None,
+            "rating_cd": None,
+            "is_search": "N",
+            "btype": "C",
+            "listed": "Y",
+            "qflag": "N",
+            "sw_cd": None,
+            "bond_ids": None,
+            "rp": 50,
         }
 
         self.history = HistorySet(expire=EXPIRE_TIME)
+        self.get_session()
+
+    def get_session(self):
+        self.session = login(JSL_USER, JSL_PASSWORD)
 
     def get(self, *args, **kwargs):
         # 复写
         try:
             response = self.session.post('https://www.jisilu.cn/data/cbnew/cb_list/', headers=self.__headers,
                                          params=self.params,
-                                         cookies=self.cookies, data=self.query_condition, timeout=30)
+                                         # cookies=self.cookies,
+                                         data=self.query_condition, timeout=30)
         except Exception as e:
             self.logger.error(e)
             return None
@@ -118,5 +138,10 @@ class ReachTargetJSL(BaseService):
             elif self.trading_time() == 1:
                 break
 
-
             time.sleep(ACCESS_INTERVAL)
+
+
+if __name__ == "__main__":
+    app = ReachTargetJSL()
+
+    app.monitor()

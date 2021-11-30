@@ -67,6 +67,7 @@ def get_bond_info(session):
         headers=headers,
         data=data
     )
+    # print(r.text)
     ret = r.json()
     result = []
     for item in ret['rows']:

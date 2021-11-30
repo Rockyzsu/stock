@@ -19,7 +19,7 @@ from email.utils import parseaddr, formataddr
 
 def get_config_data(config_file='config.json'):
     json_file = os.path.join(os.path.dirname(__file__), config_file)
-    with open(json_file, 'r') as f:
+    with open(json_file, 'r',encoding='utf8') as f:
         _config = json.load(f)
         return _config
 
