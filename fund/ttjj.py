@@ -5,6 +5,7 @@
 
 import sys
 import execjs
+import pymongo
 
 sys.path.append('..')
 import requests
@@ -106,7 +107,7 @@ def get_allFund_content(single_fund_url):
         logging.exception('Error:', single_fund_url, str(e))
 
 
-def main():
+def old_main():
     #  初始化区域
     main1_name = ['基金代码', '基金简称', '缩写', '日期', '单位净值', '累计净值',
                   '日增长率(%)', '近1周增幅', '近1月增幅', '近3月增幅', '近6月增幅', '近1年增幅', '近2年增幅', '近3年增幅',
@@ -157,17 +158,21 @@ def main():
 
 class TTFund(BaseService):
 
-    def __init__(self):
-        super(TTFund,self).__init__()
-        self.ft_dict={'混合':'hh', # 类型 gp： 股票 hh： 混合
-                 '股票':'gp',
-                 'qdii':'qdii',
-                 'lof':'lof',
-                 'fof':'fof',
-                 '指数':'zs'
-                 }
+    def __init__(self, key='股票'):
+        super(TTFund, self).__init__()
 
-        self.doc = self.mongo()['db_stock']['ttjj_rank']
+        self.ft_dict = {'混合': 'hh',  # 类型 gp： 股票 hh： 混合
+                        '股票': 'gp',
+                        'qdii': 'qdii',
+                        'lof': 'lof',
+                        'fof': 'fof',
+                        '指数': 'zs',
+                        '债券': 'zq'
+                        }
+        self.key = key
+        self.date_format = datetime.datetime.now().strftime('%Y_%m_%d')
+        self.date_format = '2021_12_10'
+        self.doc = self.mongo()['db_stock']['ttjj_{}_rank_{}'.format(self.ft_dict.get(self.key),self.date_format)]
 
     @property
     def headers(self):
@@ -188,13 +193,14 @@ class TTFund(BaseService):
         return DBSelector().mongo('qq')
 
     def start(self):
-        time_interval='jnzf' # jnzf:今年以来 3n: 3年
+        time_interval = 'jnzf'  # jnzf:今年以来 3n: 3年
 
-        key='混合'
-        self.category_rank(key,time_interval)
+        # key='混合'
+        # key='股票'
+        self.category_rank(self.key, time_interval)
 
-    def category_rank(self,key,time_interval):
-        ft=self.ft_dict[key]
+    def category_rank(self, key, time_interval):
+        ft = self.ft_dict[key]
         td_str = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d')
         td_dt = datetime.datetime.strptime(td_str, '%Y-%m-%d')
         # 去年今日
@@ -202,14 +208,15 @@ class TTFund(BaseService):
         last_str = datetime.datetime.strftime(last_dt, '%Y-%m-%d')
         # rank_url = 'http://fund.eastmoney.com/data/rankhandler.aspx?op=ph&dt=kf&ft={0}&rs=&gs=0&sc={1}zf&st=desc&sd={2}&ed={3}&qdii=&tabSubtype=,,,,,&pi=1&pn=10000&dx=1'.format(
         #     ft, time_interval, last_str, td_str)
-        rank_url='http://fund.eastmoney.com/data/rankhandler.aspx?op=ph&dt=kf&ft={0}&rs=&gs=0&sc={1}&st=desc&sd={2}&ed={3}&qdii=&tabSubtype=,,,,,&pi=1&pn=10000&dx=1'.format(ft, time_interval, last_str, td_str)
+        rank_url = 'http://fund.eastmoney.com/data/rankhandler.aspx?op=ph&dt=kf&ft={0}&rs=&gs=0&sc={1}&st=desc&sd={2}&ed={3}&qdii=&tabSubtype=,,,,,&pi=1&pn=10000&dx=1'.format(
+            ft, time_interval, last_str, td_str)
         content = self.get(url=rank_url)
 
         rank_data = self.parse(content)
-        rank_list = self.key_remap(rank_data,key)
+        rank_list = self.key_remap(rank_data, key)
         self.save_data(rank_list)
 
-    def save_data(self,rank_list):
+    def save_data(self, rank_list):
         try:
             self.doc.insert_many(rank_list)
         except Exception as e:
@@ -218,30 +225,78 @@ class TTFund(BaseService):
     def parse(self, content):
         js_content = execjs.compile(content)
         rank = js_content.eval("rankData")
-        return rank.get('datas',[])
+        return rank.get('datas', [])
 
-    def key_remap(self,rank_data,type_):
+    def key_remap(self, rank_data, type_):
         '''
         映射key value
         '''
         # print(rank_data)
-        colums=['基金代码', '基金简称', '缩写', '日期', '单位净值', '累计净值',
-         '日增长率(%)', '近1周增幅', '近1月增幅', '近3月增幅', '近6月增幅', '近1年增幅', '近2年增幅', '近3年增幅',
-         '今年来', '成立来', '成立日期', '购买手续费折扣', '自定义', '手续费原价？', '手续费折后？',
-         '布吉岛1', '布吉岛2', '布吉岛3', '布吉岛4']
-        return_rank_data=[]
+        colums = ['基金代码', '基金简称', '缩写', '日期', '单位净值', '累计净值',
+                  '日增长率(%)', '近1周增幅', '近1月增幅', '近3月增幅', '近6月增幅', '近1年增幅', '近2年增幅', '近3年增幅',
+                  '今年来', '成立来', '成立日期', '购买手续费折扣', '自定义', '手续费原价？', '手续费折后？',
+                  '布吉岛1', '布吉岛2', '布吉岛3', '布吉岛4']
+        return_rank_data = []
         for rank in rank_data:
-            rand_dict={}
-            rand_dict['type']=type_
-            rand_dict['crawl_date']=self.today
+            rand_dict = {}
+            rand_dict['type'] = type_
+            rand_dict['crawl_date'] = self.today
             rank_ = rank.split(',')
-            for index,colum in enumerate(colums):
-                rand_dict[colum]=rank_[index]
+            for index, colum in enumerate(colums):
+                rand_dict[colum] = rank_[index]
             return_rank_data.append(rand_dict)
 
         return return_rank_data
 
-if __name__ == '__main__':
+    def turnover_rate(self):
+        '''
+        换手率
+        http://api.fund.eastmoney.com/f10/JJHSL/?callback=jQuery18301549281364854147_1639139836416&fundcode={}&pageindex=1&pagesize=20&_=1639139836475
+        '''
+        self.DB = self.get_turnover_db()
+
+        for code in self.doc.find({}, {"_id": 0, '基金代码': 1}).sort([('_id', pymongo.ASCENDING)]):
+            print(code)
+            if self.is_crawl(code['基金代码']):
+                # print("已经爬过")
+                continue
+
+            self.__turnover_rate(code['基金代码'])
+            time.sleep(0.2)
+
+    def is_crawl(self, code):
+        # print(code)
+        # print(self.DB.find_one({'code': code}))
+        return True if self.DB.find_one({'code': code}) else False
+
+    def __turnover_rate(self, code):
+        url = 'http://api.fund.eastmoney.com/f10/JJHSL/?callback=jQuery18301549281364854147_1639139836416&fundcode={}&pageindex=1&pagesize=100&_=1639139836475'.format(
+            code)
+        ret_txt = self.get(url, _json=False)
+        # print(ret_txt)
+        self.__parse_turnover_data(ret_txt, code)
+
+    def get_turnover_db(self):
+        return DBSelector().mongo('qq')['db_stock']['turnover_{}'.format(self.date_format)]
+
+    def __parse_turnover_data(self, jquery_data, code):
+        js_format = jquery_data[jquery_data.find('{'):jquery_data.rfind('}') + 1]
+        js_data = json.loads(js_format)
+        # print(js_data)
+        turnover_rate_dict = {}
+        turnover_rate_dict['code'] = code
+        turnover_rate_dict['kind'] = self.key
+        turnover_rate_dict['turnover_rate'] = js_data['Data']
+        turnover_rate_dict['update'] = datetime.datetime.now()
+        self.DB.insert(turnover_rate_dict)
+
+
+def main():
     # main()
-    app = TTFund()
-    app.start()
+    app = TTFund(key='指数')  # key 基金类型，股票，混合，
+    # app.start()  # work 每年的数据
+    app.turnover_rate()
+
+
+if __name__ == '__main__':
+    main()
