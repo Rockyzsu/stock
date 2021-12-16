@@ -5,158 +5,26 @@
 
 import sys
 import execjs
+import fire
 import pymongo
+from parsel import Selector
 
 sys.path.append('..')
 import requests
-import demjson
 import datetime
 import time
-from pandas.core.frame import DataFrame
-from bs4 import BeautifulSoup
 import json
-import re
-import pandas as pd
-from multiprocessing import Pool
-import logging
 from configure.settings import DBSelector
 from common.BaseService import BaseService
+import loguru
 
-
-def rank_data_crawl(time_interval='3n', ft='all'):
-    # 当前日期
-    td_str = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d')
-    td_dt = datetime.datetime.strptime(td_str, '%Y-%m-%d')
-    # 去年今日
-    last_dt = td_dt - datetime.timedelta(days=365)
-    last_str = datetime.datetime.strftime(last_dt, '%Y-%m-%d')
-    rank_url = 'http://fund.eastmoney.com/data/rankhandler.aspx?op=ph&dt=kf&ft={0}&rs=&gs=0&sc={1}zf&st=desc&sd={2}&ed={3}&qdii=&tabSubtype=,,,,,&pi=1&pn=10000&dx=1'.format(
-        ft, time_interval, last_str, td_str)
-    # print(rank_url)
-    headers = {}  # 需要配置
-    rp = requests.get(rank_url, headers=headers)
-    rank_txt = rp.text[rp.text.find('=') + 2:rp.text.rfind(';')]
-    # print(rank_txt)
-    # 数据
-    rank_rawdata = demjson.decode(rank_txt)
-    # rawdata_allNum = rank_rawdata['allNum']
-    rank_list = []
-    for i in rank_rawdata['datas']:
-        rank_list.append(i.split(','))
-    # print(rank_url, 'rawdata_allNum:{}'.format(rawdata_allNum), sep='\n')
-    return rank_list
-
-
-# 详情页面的抓取
-def get_allFund_content(single_fund_url):
-    try:
-        # print(single_fund_url)
-        # if infromation[3] !='理财型' and infromation[3] !='货币型' and infromation[2].endswith('(后端)')==False:
-        #     code = infromation[0]
-        headers = {
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'}
-        r = requests.get(single_fund_url, headers=headers)
-        r.encoding = r.apparent_encoding  # 避免中文乱码
-        soup = BeautifulSoup(r.text, 'lxml')
-        # # 判断交易状态
-        # staticItem = soup.select('.staticItem')[0].get_text()
-        # if '终止' in staticItem or '认购' in staticItem:
-        #     pass
-        # else:
-        # 各项指标
-        # 基金名、基金类型、单位净值、累计净值、基金规模、成立日、评级、基金涨幅及排名
-        # （近1周、近1月、近3月、近6月、今年来、近1年、近2年、近3年）
-        fund_code = single_fund_url[26:32]
-        # fund_name = re.match('[\u4e00-\u9fffA-Za-z]+', soup.select('.fundDetail-tit > div')[0].get_text()).group()
-        fund_name = soup.select('.SitePath > a')[2].get_text()
-        unit_netValue = soup.select('.dataItem02 > .dataNums > span.ui-font-large')[0].get_text()
-        accumulative_netValue = soup.select('.dataItem03 > .dataNums > span.ui-font-large')[0].get_text()
-        fund_info = [i for i in soup.select('div.infoOfFund tr > td')]
-        # fund_type1 = fund_info[0].get_text().split('：')[1].strip()
-        fund_type = re.search('：[DQI\-\u4e00-\u9fffA]+', fund_info[0].get_text()).group()[1:]
-        fund_scale = fund_info[1].get_text().split('：')[1].strip()
-        fund_establishmentDate = fund_info[3].get_text().split('：')[1].strip()
-        # fund_grade = fund_info[5].get_text().split('：')[1].strip()
-        fund_Rdata = soup.select('#increaseAmount_stage > .ui-table-hover div.Rdata ')  # 指数基金多一排，考虑re或者排名倒着写
-        fund_1weekAmount = fund_Rdata[0].get_text()
-        fund_1monthAmount = fund_Rdata[1].get_text()
-        fund_3monthAmount = fund_Rdata[2].get_text()
-        fund_6monthAmount = fund_Rdata[3].get_text()
-        fund_thisYearAmount = fund_Rdata[4].get_text()
-        fund_1yearAmount = fund_Rdata[5].get_text()
-        fund_2yearAmount = fund_Rdata[6].get_text()
-        fund_3yearAmount = fund_Rdata[7].get_text()
-        fund_1weekRank = fund_Rdata[-8].get_text()
-        fund_1monthRank = fund_Rdata[-7].get_text()
-        fund_3monthRank = fund_Rdata[-6].get_text()
-        fund_6monthRank = fund_Rdata[-5].get_text()
-        fund_thisYearRank = fund_Rdata[-4].get_text()
-        fund_1yearRank = fund_Rdata[-3].get_text()
-        fund_2yearRank = fund_Rdata[-2].get_text()
-        fund_3yearRank = fund_Rdata[-1].get_text()
-        Fund_data = [fund_code, fund_name, fund_type, unit_netValue, accumulative_netValue,
-                     fund_scale, fund_establishmentDate,
-                     fund_1weekAmount, fund_1monthAmount, fund_3monthAmount, fund_6monthAmount,
-                     fund_thisYearAmount, fund_1yearAmount, fund_2yearAmount, fund_3yearAmount,
-                     fund_1weekRank, fund_1monthRank, fund_3monthRank, fund_6monthRank, fund_thisYearRank,
-                     fund_1yearRank, fund_2yearRank, fund_3yearRank]
-        print(Fund_data)
-        return Fund_data
-    except Exception as e:
-        # print('Error:', single_fund_url, str(e))
-        logging.exception('Error:', single_fund_url, str(e))
-
-
-def old_main():
-    #  初始化区域
-    main1_name = ['基金代码', '基金简称', '缩写', '日期', '单位净值', '累计净值',
-                  '日增长率(%)', '近1周增幅', '近1月增幅', '近3月增幅', '近6月增幅', '近1年增幅', '近2年增幅', '近3年增幅',
-                  '今年来', '成立来', '成立日期', '购买手续费折扣', '自定义', '手续费原价？', '手续费折后？',
-                  '布吉岛', '布吉岛', '布吉岛', '布吉岛']
-    # main1_name = ['基金代码', '基金简称', '日期', '单位净值', '累计净值',
-    #               '日增长率(%)', '近1周增幅', '近1月增幅', '近3月增幅', '近6月增幅', '近1年增幅', '近2年增幅', '近3年增幅',
-    #               '今年来', '成立来', '成立日期']
-    main2_name = ['基金代码', '基金简称', '基金类型', '单位净值', '累计净值', '基金规模', '成立日期', \
-                  '近1周增幅', '近1月增幅', '近3月增幅', '近6月增幅', '今年来增幅', '近1年增幅', '近2年增幅', '近3年增幅', \
-                  '近1周排名', '近1月排名', '近3月排名', '近6月排名', '今年来排名', '近1年排名', '近2年排名', '近3年排名']
-    # ########################## 先爬API接口 ###################################
-    rawData = rank_data_crawl()
-    # 数据清洗
-    # 未满三年剔除
-    rawData = DataFrame(rawData, columns=main1_name)
-    rawData = rawData.loc[rawData['近3年增幅'] != '']
-    # 去除无用列
-    # # rawData.drop(rawData.columns(['缩写', '购买手续费折扣', '自定义', '手续费原价？', '手续费折后？', '布吉岛'], axis=1))
-    # rawData.drop(['缩写', '购买手续费折扣', '自定义', '手续费原价？', '手续费折后？', '布吉岛'], axis=1, inplace=True)
-    rawData1 = rawData.iloc[1:15, [0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]]
-    # main1_name = main1_name[0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-
-    # ########################## 单页面抓取 ###################################
-    # 获取抓取的detail网址
-    detail_urls_list = ['http://fund.eastmoney.com/{}.html'.format(i) for i in rawData1['基金代码']]
-    print('#详情页面的抓取#启动时间：', time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
-    middle = datetime.datetime.now()
-    # 多线程
-    p = Pool(4)
-    all_fund_data = p.map(get_allFund_content, detail_urls_list)
-    p.close()
-    p.join()
-    while None in all_fund_data:
-        all_fund_data.remove(None)
-    end = datetime.datetime.now()
-    print('#详情页面的抓取#用时：', str(end - middle))
-    print('程序结束时间：', time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
-    all_fund_data = DataFrame(all_fund_data, columns=main2_name)
-
-    # 表合并
-    data_merge = pd.merge(rawData1, all_fund_data, how='left', on='基金代码')
-
-    # 文件储存
-    file_content = pd.DataFrame(columns=main1_name, data=rawData)
-    file_content.to_csv('rawDATA-{}.csv'.format(time.strftime("%Y-%m-%d", time.localtime())), encoding='gbk')
+LOG = loguru.logger
 
 
 class TTFund(BaseService):
+    ''''
+    爬取天天基金网的排名数据
+    '''
 
     def __init__(self, key='股票'):
         super(TTFund, self).__init__()
@@ -171,8 +39,8 @@ class TTFund(BaseService):
                         }
         self.key = key
         self.date_format = datetime.datetime.now().strftime('%Y_%m_%d')
-        self.date_format = '2021_12_10'
-        self.doc = self.mongo()['db_stock']['ttjj_{}_rank_{}'.format(self.ft_dict.get(self.key),self.date_format)]
+        self.date_format = '2021_12_15'
+        self.doc = self.mongo()['db_stock']['ttjj_rank_{}'.format(self.date_format)]
 
     @property
     def headers(self):
@@ -192,7 +60,7 @@ class TTFund(BaseService):
     def mongo(self):
         return DBSelector().mongo('qq')
 
-    def start(self):
+    def rank(self):
         time_interval = 'jnzf'  # jnzf:今年以来 3n: 3年
 
         # key='混合'
@@ -255,25 +123,21 @@ class TTFund(BaseService):
         '''
         self.DB = self.get_turnover_db()
 
-        for code in self.doc.find({}, {"_id": 0, '基金代码': 1}).sort([('_id', pymongo.ASCENDING)]):
-            print(code)
-            if self.is_crawl(code['基金代码']):
-                # print("已经爬过")
+        for code in self.doc.find({'type': self.key}, {"_id": 0, '基金代码': 1}).sort([('_id', pymongo.ASCENDING)]):
+            # print(code)
+            if self.is_crawl(self.DB, code['基金代码'], 'code'):
                 continue
 
+            print("爬取{}".format(code['基金代码']))
             self.__turnover_rate(code['基金代码'])
-            time.sleep(0.2)
 
-    def is_crawl(self, code):
-        # print(code)
-        # print(self.DB.find_one({'code': code}))
-        return True if self.DB.find_one({'code': code}) else False
+    def is_crawl(self, db, code, cond):
+        return True if db.find_one({cond: code}) else False
 
     def __turnover_rate(self, code):
         url = 'http://api.fund.eastmoney.com/f10/JJHSL/?callback=jQuery18301549281364854147_1639139836416&fundcode={}&pageindex=1&pagesize=100&_=1639139836475'.format(
             code)
         ret_txt = self.get(url, _json=False)
-        # print(ret_txt)
         self.__parse_turnover_data(ret_txt, code)
 
     def get_turnover_db(self):
@@ -282,7 +146,6 @@ class TTFund(BaseService):
     def __parse_turnover_data(self, jquery_data, code):
         js_format = jquery_data[jquery_data.find('{'):jquery_data.rfind('}') + 1]
         js_data = json.loads(js_format)
-        # print(js_data)
         turnover_rate_dict = {}
         turnover_rate_dict['code'] = code
         turnover_rate_dict['kind'] = self.key
@@ -290,13 +153,96 @@ class TTFund(BaseService):
         turnover_rate_dict['update'] = datetime.datetime.now()
         self.DB.insert(turnover_rate_dict)
 
+    def fund_detail(self, db, code):
+        url = 'http://fundf10.eastmoney.com/jbgk_{}.html'.format(code)
 
-def main():
-    # main()
-    app = TTFund(key='指数')  # key 基金类型，股票，混合，
-    # app.start()  # work 每年的数据
-    app.turnover_rate()
+        def __get(url, headers, retry=5):
+            start = 0
+            while start < retry:
+
+                try:
+                    r = requests.get(
+                        url=url,
+                        headers=headers,
+                    )
+
+                except Exception as e:
+                    print('base class error', e)
+                    time.sleep(1)
+                    start += 1
+                    continue
+
+                else:
+                    return r.text
+            return None
+
+        headers = {
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept-Language': 'zh,en;q=0.9,en-US;q=0.8,zh-CN;q=0.7',
+            'Host': 'fundf10.eastmoney.com',
+            'Cookie': 'em_hq_fls=js; searchbar_code=005827; qgqp_b_id=98846d680cc781b1e4a70c935431c5c1; intellpositionL=1170.55px; intellpositionT=555px; HAList=a-sz-123030-%u4E5D%u6D32%u8F6C%u503A%2Ca-sz-300776-%u5E1D%u5C14%u6FC0%u5149%2Ca-sz-300130-%u65B0%u56FD%u90FD%2Ca-sz-300473-%u5FB7%u5C14%u80A1%u4EFD%2Ca-sz-300059-%u4E1C%u65B9%u8D22%u5BCC%2Ca-sz-000411-%u82F1%u7279%u96C6%u56E2%2Ca-sz-300587-%u5929%u94C1%u80A1%u4EFD%2Ca-sz-000060-%u4E2D%u91D1%u5CAD%u5357%2Ca-sz-002707-%u4F17%u4FE1%u65C5%u6E38%2Ca-sh-605080-%u6D59%u5927%u81EA%u7136%2Ca-sz-001201-%u4E1C%u745E%u80A1%u4EFD%2Ca-sz-300981-%u4E2D%u7EA2%u533B%u7597; em-quote-version=topspeed; st_si=90568564737268; st_asi=delete; ASP.NET_SessionId=otnhaxvqrwnmj4nuorygjua4; EMFUND0=11-29%2015%3A40%3A32@%23%24%u5DE5%u94F6%u4E0A%u8BC1%u592E%u4F01ETF@%23%24510060; EMFUND1=12-11%2000%3A51%3A58@%23%24%u524D%u6D77%u5F00%u6E90%u65B0%u7ECF%u6D4E%u6DF7%u5408A@%23%24000689; EMFUND2=12-11%2000%3A57%3A17@%23%24%u4E2D%u4FE1%u5EFA%u6295%u667A%u4FE1%u7269%u8054%u7F51A@%23%24001809; EMFUND3=12-11%2000%3A56%3A12@%23%24%u9E4F%u534E%u4E2D%u8BC1A%u80A1%u8D44%u6E90%u4EA7%u4E1A%u6307%u6570%28LOF%29A@%23%24160620; EMFUND4=12-11%2000%3A47%3A36@%23%24%u4E2D%u4FE1%u4FDD%u8BDA%u7A33%u9E3FA@%23%24006011; EMFUND5=12-11%2000%3A54%3A13@%23%24%u878D%u901A%u6DF1%u8BC1100%u6307%u6570A@%23%24161604; EMFUND6=12-11%2000%3A55%3A27@%23%24%u56FD%u6CF0%u7EB3%u65AF%u8FBE%u514B100%u6307%u6570@%23%24160213; EMFUND7=12-15%2023%3A05%3A04@%23%24%u534E%u5546%u65B0%u5174%u6D3B%u529B%u6DF7%u5408@%23%24001933; EMFUND8=12-15%2023%3A14%3A53@%23%24%u91D1%u4FE1%u6C11%u5174%u503A%u5238A@%23%24004400; EMFUND9=12-15 23:15:15@#$%u5929%u5F18%u4E2D%u8BC1%u5149%u4F0F%u4EA7%u4E1A%u6307%u6570A@%23%24011102; st_pvi=77351447730109; st_sp=2020-08-16%2015%3A54%3A02; st_inirUrl=https%3A%2F%2Fwww.baidu.com%2Flink; st_sn=10; st_psi=20211215231519394-112200305283-4710014236',
+            'Referer': 'http://fund.eastmoney.com/',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36'}
+
+        content = __get(url, headers)
+        built_date, scale = self.parse_detail_info(content)
+        db.insert_one(
+            {'成立日期': built_date, '规模': scale, '基金代码': code, 'type': self.key, 'update': datetime.datetime.now()})
+
+    def parse_detail_info(self, content):
+
+        resp = Selector(text=content)
+        labels = resp.xpath('//div[@class="bs_gl"]/p/label')
+        if len(labels) < 5:
+            print("解析报错")
+            return '', ''
+
+        built_date = labels[0].xpath('./span/text()').extract_first()
+        scale = labels[4].xpath('./span/text()').extract_first()
+        scale = scale.strip()
+        return built_date, scale
+
+    def update_basic_info(self):
+        pass
+
+    def get_basic_db(self):
+        return DBSelector().mongo('qq')['db_stock']['ttjj_basic']
+
+    def basic_info(self):
+        '''
+        基本数据
+        '''
+        self.basic_DB = self.get_basic_db()
+
+        for code in self.doc.find({'type': self.key}, {"_id": 0, '基金代码': 1}).sort([('_id', pymongo.ASCENDING)]):
+            if self.is_crawl(self.basic_DB, code['基金代码'], '基金代码'):
+                continue
+
+            LOG.info("爬取{}".format(code['基金代码']))
+            self.fund_detail(self.basic_DB, code['基金代码'])
+
+
+def main(kind, option):
+    _dict = {1: '指数', 2: '股票', 3: '混合', 4: 'qdii', 5: 'lof', 6: 'fof', 7: '债券'}
+
+    app = TTFund(key=_dict.get(kind, '股票'))  # key 基金类型，股票，混合，
+
+    if option == 'basic':
+        LOG.info('获取{}排名'.format(_dict.get(kind)))
+        app.rank()
+
+    elif option == 'turnover':
+        LOG.info('获取换手率')
+        app.turnover_rate()
+
+    elif option == 'info':
+        LOG.info('获取基本信息')
+        app.basic_info()
+
+    else:
+        LOG.error("请输入正确参数")
 
 
 if __name__ == '__main__':
-    main()
+    fire.Fire(main)
