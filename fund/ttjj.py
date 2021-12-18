@@ -222,6 +222,16 @@ class TTFund(BaseService):
             LOG.info("爬取{}".format(code['基金代码']))
             self.fund_detail(self.basic_DB, code['基金代码'])
 
+    def convert_data_type(self):
+        '''
+        转换mongodb的字段
+        '''
+        for item in self.doc.find({},{'成立来':1}):
+            try:
+                p1=float(item['成立来'])
+            except:
+                p1=None
+            self.doc.update_one({'_id':item['_id']},{'$set':{'成立来':p1}})
 
 def main(kind, option):
     _dict = {1: '指数', 2: '股票', 3: '混合', 4: 'qdii', 5: 'lof', 6: 'fof', 7: '债券'}
@@ -245,4 +255,6 @@ def main(kind, option):
 
 
 if __name__ == '__main__':
-    fire.Fire(main)
+    # fire.Fire(main)
+    app=TTFund()
+    app.convert_data_type()
