@@ -1,6 +1,4 @@
 "# -*- coding"
-import math
-import re
 
 """
 @author:xda
@@ -17,7 +15,8 @@ from configure.util import notify
 import requests
 import warnings
 import datetime
-
+import math
+import re
 warnings.filterwarnings("ignore")
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, String, INTEGER, VARCHAR, DATE, DateTime, ForeignKey, FLOAT

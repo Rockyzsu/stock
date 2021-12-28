@@ -19,6 +19,7 @@ class BaseService(object):
         self.params = None
         self.cookies = None
 
+
     def init_const_data(self):
         '''
         常见的数据初始化
@@ -62,6 +63,7 @@ class BaseService(object):
                 elif binary:
                     result = r.content
                 else:
+                    r.encoding='utf8'
                     result = r.text
                 return result
 
