@@ -25,6 +25,7 @@
 * fund/fund_info_spider.py 集思录基金,腾讯证券基金折价率，溢价率 爬虫
 * fund/etf_info.py 市场指数基金的持仓股监控
 * fund/ttjj.py 天天基金数据获取
+* fund/xueqiu_private_fund.py 雪球私募私募获取
 
 
 
@@ -109,11 +110,12 @@
 
 ## 开通方式：
 
-### 也有港股打新开户，欢迎来撩，非诚勿扰。注明：开户。
+### 也有港股打新开户，欢迎来撩，非诚勿扰。
+注明：开户。
 
 
 
-<img src="http://xximg.30daydo.com/picgo/ufc_big_300.png" style="zoom:80%;" />
+<img src="http://xximg.30daydo.com/picgo/ufc200.png" style="zoom:80%;" />
 
 
 
