@@ -17,6 +17,7 @@ import json
 from configure.settings import DBSelector
 from common.BaseService import BaseService
 import loguru
+import re
 
 LOG = loguru.logger
 
@@ -232,6 +233,29 @@ class TTFund(BaseService):
             except:
                 p1=None
             self.doc.update_one({'_id':item['_id']},{'$set':{'成立来':p1}})
+
+
+    def get_fund(self,page):
+        # 获取所有的基金代码 查找定增基金
+        # http://fund.eastmoney.com/Data/Fund_JJJZ_Data.aspx?t=1&lx=1&letter=&gsid=&text=&sort=zdf,desc&page=5,200&dt=1640059130666&atfc=&onlySale=0
+
+        url='http://fund.eastmoney.com/Data/Fund_JJJZ_Data.aspx?t=1&lx=1&letter=&gsid=&text=&sort=zdf,desc&page={},200&dt=1640059130666&atfc=&onlySale=0'
+        content = self.get(url.format(page),_json=False)
+
+        js_content = execjs.compile(content)
+        db = js_content.eval("db")
+        fund_list = db.get('datas', [])
+        # print(fund_list)
+        for item in fund_list:
+            name = item[1]
+            if re.search('定增',name):
+                print(name)
+
+
+    def get_funds(self):
+        for i in range(66):
+            self.get_fund(i)
+            time.sleep(1)
 
 def main(kind, option):
     _dict = {1: '指数', 2: '股票', 3: '混合', 4: 'qdii', 5: 'lof', 6: 'fof', 7: '债券'}

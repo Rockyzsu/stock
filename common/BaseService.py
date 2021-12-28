@@ -16,8 +16,8 @@ class BaseService(object):
         self.logger = logger
         self.logger.add(logfile)
         self.init_const_data()
-        self.params=None
-        self.cookies=None
+        self.params = None
+        self.cookies = None
 
     def init_const_data(self):
         '''
@@ -52,7 +52,7 @@ class BaseService(object):
                     cookies=self.cookies)
 
             except Exception as e:
-                print('base class error',e)
+                self.logger.error('base class error '.format(e))
                 start += 1
                 continue
 
@@ -112,7 +112,8 @@ class BaseService(object):
         数据存储
         '''
         pass
-    def time_str(self,x):
+
+    def time_str(self, x):
         return x.strftime('%Y-%m-%d')
 
     def trading_time(self):
@@ -123,7 +124,7 @@ class BaseService(object):
         TRADING = 0
         MORNING_STOP = -1
         AFTERNOON_STOP = 1
-        NOON_STOP=-1
+        NOON_STOP = -1
         current = datetime.datetime.now()
         year, month, day = current.year, current.month, current.day
         start = datetime.datetime(year, month, day, 9, 23, 0)
@@ -162,7 +163,7 @@ class BaseService(object):
 
         current_date = datetime.datetime.strptime(day, fmt)
         year_2000th = datetime.datetime(year=2000, month=1, day=2)
-        day_diff = current_date-year_2000th
+        day_diff = current_date - year_2000th
         return day_diff.days % 7
 
     def is_weekday(self, day=datetime.datetime.now().strftime('%Y-%m-%d')):
@@ -181,7 +182,7 @@ class BaseService(object):
             cursor.execute(cmd, data)
         except Exception as e:
             conn.rollback()
-            logger.error('执行数据库错误 {},{}'.format(e,cmd))
+            logger.error('执行数据库错误 {},{}'.format(e, cmd))
             ret = None
         else:
             ret = cursor.fetchall()
@@ -190,14 +191,14 @@ class BaseService(object):
         return ret
 
     def jsonp2json(self, str_):
-        return json.loads(str_[str_.find('{'):str_.rfind('}')+1])
+        return json.loads(str_[str_.find('{'):str_.rfind('}') + 1])
 
-    def set_proxy_param(self,proxy):
+    def set_proxy_param(self, proxy):
         self.proxy_ip = proxy
 
-    def get_proxy(self,retry=10):
+    def get_proxy(self, retry=10):
 
-        if not hasattr(self,'proxy_ip'):
+        if not hasattr(self, 'proxy_ip'):
             raise AttributeError('Please set proxy ip before use it')
 
         proxyurl = f'http://{self.proxy_ip}/dynamicIp/common/getDynamicIp.do'
@@ -216,8 +217,8 @@ class BaseService(object):
                 proxyServer = '://{0}:{1}'.format(js.get('ip'), js.get('port'))
 
                 proxies_random = {
-                    'http': 'http'+proxyServer,
-                    'https':'https'+proxyServer,
+                    'http': 'http' + proxyServer,
+                    'https': 'https' + proxyServer,
                 }
                 return proxies_random
 
@@ -225,7 +226,6 @@ class BaseService(object):
 
     def convert_timestamp(self, t):
         return datetime.datetime.fromtimestamp(int(t / 1000)).strftime('%Y-%m-%d')
-
 
 
 class HistorySet(object):
