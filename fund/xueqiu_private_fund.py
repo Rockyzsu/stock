@@ -17,7 +17,7 @@ class PrivateFund(BaseService):
         self.db = None
         self.init_db()
         today_str = datetime.date.today().strftime("%Y-%m-%d")
-        self.doc = self.db['xueqiu_private_{}_brute_force'.format(today_str)]
+        self.doc = self.db['xueqiu_private_{}'.format(today_str)]
         print("========")
 
     def get_cookies(self):
@@ -247,6 +247,18 @@ class PrivateFund(BaseService):
         for code in code_list:
             self.fund(code)
 
+    def update_nick_name(self):
+        need_to_be_updated = self.db['xueqiu_private_2021-12-28_brute_force'].find({'manager_nick_name':None},{'_id':1,'symbol':1})
+        for item in need_to_be_updated:
+            # print(item)
+            s_fund = self.doc.find_one({'symbol':item['symbol']})
+            if s_fund is None:
+                continue
+
+            print('update ',s_fund['manager_nick_name'])
+            self.db['xueqiu_private_2021-12-28_brute_force'].update_one({"_id":item['_id']},{"$set":{'manager_nick_name':s_fund['manager_nick_name']}})
+
+            
 
 def main():
     app = PrivateFund()
@@ -257,7 +269,7 @@ def main():
     # app.brute_force()
     # app.fund('P000001')
     app.seq_run()
-
+    # app.update_nick_name()
 
 if __name__ == '__main__':
     main()
