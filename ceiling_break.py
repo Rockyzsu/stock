@@ -13,7 +13,7 @@ import tushare as ts
 import pandas as pd
 import threading
 from common.BaseService import BaseService
-from configure.settings import DBSelector, notify
+from configure.settings import DBSelector
 
 EXCEPTION_TIME_OUT = 60
 NORMAL_TIME_OUT = 3
