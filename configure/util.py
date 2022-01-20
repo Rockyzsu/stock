@@ -17,7 +17,7 @@ def notify(title='', desp=''):
     else:
         try:
             js = res.json()
-            result = True if js['errno'] == 0 else False
+            result = True if js['data']['errno'] == 0 else False
             if result:
                 print('发送成功')
                 return True

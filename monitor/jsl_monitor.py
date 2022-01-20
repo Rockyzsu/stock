@@ -118,7 +118,7 @@ class ReachTargetJSL(BaseService):
 
                     if bond_id in self.holding_list and abs(increase_rt) > 9 and self.history.is_expire(bond_id):
                         str_content = '负' + str(increase_rt) if increase_rt < 0 else str(increase_rt)
-                        text = f'持仓{bond_nm[:2]}-{str_content}%，正股{sincrease_rt}'
+                        text = f'持仓{bond_nm[:2]};{str_content}%;正股{sincrease_rt}'
                         t = threading.Thread(target=self.notify, args=(text,))
                         t.start()
                         self.history.add(bond_id)
@@ -126,7 +126,7 @@ class ReachTargetJSL(BaseService):
                     if abs(sincrease_rt) >= MONITOR_PERCENT and self.history.is_expire(bond_id):
                         str_content = '负' + str(increase_rt) if increase_rt < 0 else str(increase_rt)
                         str_content = str_content.replace('%', '')
-                        text = f'{bond_nm[:2]}-债{str_content}-股{sincrease_rt}-规模{curr_iss_amt}-溢{premium_rt}'
+                        text = f'{bond_nm[:2]}债{str_content};股{sincrease_rt};规模{curr_iss_amt};溢{premium_rt}'
                         t = threading.Thread(target=self.notify, args=(text,))
                         t.start()
                         self.logger.info(f'{bond_nm} {word}')
