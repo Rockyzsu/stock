@@ -2,11 +2,11 @@ easyquotation
 easytrader
 loguru
 rsa
-itchat
-twilio
 redis
 pymongo
 pymysql
 pypinyin
 sqlalchemy
 pandas
+tushare
+akshare

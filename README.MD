@@ -1,5 +1,5 @@
 ### 更好的帮助自己炒股(亏钱-。-)
-#### 2021-01-28 更新
+#### 2022-02-20 更新
 
 目前正在重构项目代码，目录结构可能与下面描述有些出入，后期会慢慢更新修改，感谢大家的关注与支持。
 
@@ -30,7 +30,8 @@
 * fund/etf_info.py 市场指数基金的持仓股监控
 * fund/ttjj.py 天天基金数据获取
 * fund/xueqiu_private_fund.py 雪球私募私募获取
-
+* fund/danjuan_fund.py 雪球蛋卷基金数据获取
+* fund/danjuan_fund_data_analysis.py 雪球蛋卷基金分析
 
 
 ## datahub（数据源）
