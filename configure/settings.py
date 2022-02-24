@@ -1,17 +1,12 @@
 # -*-coding=utf-8-*-
 # 常用的配置信息
-import pymongo
 import datetime
 import logging
 import random
 import smtplib
 import time
-from sqlalchemy import create_engine
 import os
-from motor.motor_asyncio import AsyncIOMotorClient
 import json
-import pymysql
-import rsa
 from email.mime.text import MIMEText
 from email.header import Header
 from email.utils import parseaddr, formataddr
@@ -53,7 +48,7 @@ class DBSelector(object):
         return (user, password, host, port)
 
     def get_engine(self, db, type_='qq'):
-
+        from sqlalchemy import create_engine
         user, password, host, port = self.config(db_type='mysql', local=type_)
         try:
             engine = create_engine(
@@ -64,6 +59,7 @@ class DBSelector(object):
         return engine
 
     def get_mysql_conn(self, db, type_='qq'):
+        import pymysql
         user, password, host, port = self.config(db_type='mysql', local=type_)
         try:
             conn = pymysql.connect(host=host, port=port, user=user, password=password, db=db, charset='utf8')
@@ -77,8 +73,10 @@ class DBSelector(object):
         user, password, host, port = self.config('mongo',location_type)
         connect_uri = f'mongodb://{user}:{password}@{host}:{port}'
         if async_type:
+            from motor.motor_asyncio import AsyncIOMotorClient
             client = AsyncIOMotorClient(connect_uri)
         else:
+            import pymongo
             client = pymongo.MongoClient(connect_uri)
         return client
 
@@ -119,6 +117,7 @@ def market_status():
 
 
 def rsa_encrypt():
+    import rsa
     (pubkey, privkey) = rsa.newkeys(1024)
     print('pubkey >>>> {}'.format(pubkey))
     print('privkey >>>> {}'.format(privkey))
@@ -143,6 +142,7 @@ def rsa_encrypt():
 
 
 def rsa_decrypt():
+    import rsa
     with open('encrypt.bin', 'rb') as f:
         content = f.read()
 
@@ -183,6 +183,13 @@ def send_from_aliyun(title, content, TO_MAIL_=config['mail']['qq']['user'], type
     else:
         print('发送完毕')
 
+def get_tushare_pro():
+    import xcsc_tushare as xc
+    xc_token_pro = config.get('xc_token_pro')
+    xc_server = config.get('xc_server')
+    xc.set_token(xc_token_pro)
+    pro = xc.pro_api(env='prd', server=xc_server)
+    return pro
 
 def send_sms(content):
     from twilio.rest import Client

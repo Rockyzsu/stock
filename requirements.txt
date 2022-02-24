@@ -10,3 +10,5 @@ sqlalchemy
 pandas
 tushare
 akshare
+parsel
+loguru
