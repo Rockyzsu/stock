@@ -1,3 +1,5 @@
+# 作者公众号：可转债量化分析
+
 import fire
 from backtrade_fund_weekly_share_increment import Runner
 

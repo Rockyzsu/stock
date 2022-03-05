@@ -1,3 +1,4 @@
+# 作者公众号：可转债量化分析
 import pandas as pd
 from fund_data_source import DataSource
 import numpy as np
@@ -17,7 +18,7 @@ class Runner:
         self.app.all_market_data()
 
     def other(self):
-        logger.info(self.app.get_closed_fund_netvalue('160143'))
+        self.compare_all_market()
 
     def position_intialize(self):
         '''
@@ -55,6 +56,21 @@ class Runner:
 
         return max_withdraw  # 变成百分比
 
+    def daily_netvalue(self,df_copy,i,profit,date):
+        '''
+        非调仓阶段 获取持仓的收益率
+        '''
+        holding_list = list(self.Position.keys())
+        if i + self.interval - 1 >= len(df_copy):
+            return
+
+        for code in holding_list:
+            fund_netvalue = df_copy.iloc[i + self.interval - 1][code]
+            profit += self.Position[code] * fund_netvalue
+
+        ratio = profit / self.origin_cash * 100 - 100
+        self.profit_list.append({'date': date, 'profit': ratio})
+
     def backtrade(self):
         self.position_intialize()
 
@@ -70,19 +86,25 @@ class Runner:
         df_copy = df_copy.loc[self.start:]
 
         final_profit = None
-        for i in range(0, len(df), self.interval):
+
+        for i in range(len(df)):
             profit = self.cash
+            date = df.iloc[i].name.date()
+            if i%self.interval!=0:
+                self.daily_netvalue(df_copy,i,profit,date)
+                continue
+
             t = df.iloc[i:i + self.interval].sum()
             top_netvalue_increase = t.nlargest(self.N)
             target = top_netvalue_increase.index
-            date = df.iloc[i].name.date()
 
             if i + self.interval - 1 >= len(df):
                 continue
 
-            target_result = df.iloc[i + self.interval - 1].loc[target]
+            target_result = df_copy.iloc[i + self.interval - 1].loc[target]
 
             if all(target_result.isnull()):
+                logger.error('empty value occur!')
                 continue
 
             holding_list = list(self.Position.keys())
@@ -113,20 +135,46 @@ class Runner:
                     self.cash -= self.Position[code] * fund_netvalue
                     msg = '{} 买入{}，基金当前净值 {},买入份额{:.2f}'.format(date, code, fund_netvalue, self.Position[code])
                     logger.info(msg)
-            final_profit = profit
 
-        self.evaluate(final_profit)
+        self.evaluate()
 
-    def evaluate(self, profit):
+    def evaluate(self):
         _profit_list = [i.get('profit')/100+1 for i in self.profit_list]
         max_withdraw = self.get_max_withdraw(_profit_list)
-        logger.info(self.MSG.format(profit, profit / self.origin_cash * 100 - 100))
-        logger.info('策略最大回撤为{}%'.format(max_withdraw*100))
+        last_value = self.profit_list[-1].get('profit')
+        logger.info('总收益率{:.2f}%'.format(last_value))
+        logger.info('策略最大回撤为{:.2f}%'.format(max_withdraw*100))
         profit_df = pd.DataFrame(self.profit_list)
+        profit_df = profit_df.dropna(axis=0)
         profit_df.to_excel('backtrade.xlsx',encoding='utf8')
         ax = profit_df.plot(x='date', y='profit', grid=True, title='closed fund profit', rot=45, figsize=(12, 8))
         fig = ax.get_figure()
         fig.savefig('封基轮动收益率曲线.png')
+
+    def each_fund_profit(self,row):
+        row = row.dropna()
+        # print(row)
+        percent = (row[-1] - row[0]) / row[0]
+        year = (row.index[-1]-row.index[0]).days/365
+        yiled_ratio = (1+percent)**(1/year)-1
+        return yiled_ratio*100
+
+    def compare_all_market(self):
+        '''
+        所有封基的中位数
+        '''
+        self.position_intialize()
+        _df = self.app.get_data(self.source)
+
+        _df['净值日期'] = _df['净值日期'].astype('datetime64[ns]')
+        df_copy = _df.set_index(['净值日期', 'code']).unstack()['累计净值']
+        df_copy.index = pd.to_datetime(df_copy.index, format='%Y-%m-%d')
+        df_copy = df_copy.loc[self.start:]
+
+        result = df_copy.apply(self.each_fund_profit,axis=0)
+        print(result)
+        print('年化收益率中位数',np.median(result))
+        print('年化收益率平均',np.mean(result))
 
     def run(self):
         self.func()

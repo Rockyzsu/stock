@@ -1,3 +1,4 @@
+# 作者公众号：可转债量化分析
 import json
 import sys
 import akshare as ak
@@ -6,8 +7,6 @@ from loguru import logger
 sys.path.append('../../')
 
 # 封基回撤
-
-# mongo get fund code
 
 class DataSource():
 
