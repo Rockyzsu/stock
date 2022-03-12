@@ -2,11 +2,23 @@
 # @Time : 2020/11/16 11:37
 # @File : util.py
 # @Author : Rocky C@www.30daydo.com
+
+import json
+import datetime
+import random
+import smtplib
+import time
+import warnings
+from email.mime.text import MIMEText
+from email.header import Header
+from email.utils import parseaddr, formataddr
+
 import requests
 from .settings import config, get_config_data
 
 
 def notify(title='', desp=''):
+    warnings.warn("该接口需要收费了，请使用企业微信")
     url = f"https://sc.ftqq.com/{config['WECHAT_ID']}.send?text={title}&desp={desp}"
     try:
         res = requests.get(url, timeout=5)
@@ -39,6 +51,135 @@ def read_web_headers_cookies(website, headers=False, cookies=False):
         return_headers = config[website]['headers']
 
     if cookies:
-        return_cookies = config[website]['cookies']
+        return_headers = config[website]['cookies']
 
     return return_headers, return_cookies
+
+
+def send_message_QiYeVX(_message):  # 默认发送给自己
+    _config = config['enterprise_wechat']
+    userid = _config['userid']
+    agentid = _config['agentid']
+    corpid = _config['corpid']
+    corpsecret = _config['corpsecret']
+
+    response = requests.get(f"https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={corpid}&corpsecret={corpsecret}")
+    data = json.loads(response.text)
+    access_token = data['access_token']
+
+    json_dict = {
+        "touser": userid,
+        "msgtype": "text",
+        "agentid": agentid,
+        "text": {
+            "content": _message
+        },
+        "safe": 0,
+        "enable_id_trans": 0,
+        "enable_duplicate_check": 0,
+        "duplicate_check_interval": 1800
+    }
+    json_str = json.dumps(json_dict)
+    response_send = requests.post(f"https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={access_token}",
+                                  data=json_str)
+    return json.loads(response_send.text)['errmsg'] == 'ok'
+
+
+def rsa_encrypt():
+    import rsa
+    (pubkey, privkey) = rsa.newkeys(1024)
+    print('pubkey >>>> {}'.format(pubkey))
+    print('privkey >>>> {}'.format(privkey))
+
+    with open('pub.pem', 'w') as f:
+        f.write(pubkey.save_pkcs1().decode())
+
+    with open('datasender.pem', 'w') as f:
+        f.write(privkey.save_pkcs1().decode())
+
+    message = ''
+    print("message encode {}".format(message.encode()))
+    crypto = rsa.encrypt(message.encode(), pubkey)  # 加密数据为bytes
+
+    print('密文:\n{}'.format(crypto))
+
+    with open('encrypt.bin', 'wb') as f:
+        f.write(crypto)
+    # 解密
+    e_message = rsa.decrypt(crypto, privkey)  # 解密数据也是为bytes
+    print("解密后\n{}".format(e_message.decode()))
+
+
+def rsa_decrypt():
+    import rsa
+    with open('encrypt.bin', 'rb') as f:
+        content = f.read()
+
+    file = 'priva.pem'
+    with open(file, 'r') as f:
+        privkey = rsa.PrivateKey.load_pkcs1(f.read().encode())
+
+    e_message = rsa.decrypt(content, privkey)  # 解密数据也是为bytes
+    print("解密后\n{}".format(e_message.decode()))
+
+
+def market_status():
+    '''
+    收盘
+    '''
+    now = datetime.datetime.now()
+    end = datetime.datetime(now.year, now.month, now.day, 15, 2, 5)
+    return True if now < end else False
+
+
+def _format_addr(s):
+    name, addr = parseaddr(s)
+    return formataddr((Header(name, 'utf-8').encode(), addr))
+
+
+def send_from_aliyun(title, content, TO_MAIL_=config['mail']['qq']['user'], types='plain'):
+    username = config['aliyun']['EMAIL_USER_ALI']  # 阿里云
+    password = config['aliyun']['LOGIN_EMAIL_ALYI_PASSWORD']  # 阿里云
+    stmp = smtplib.SMTP()
+
+    msg = MIMEText(content, types, 'utf-8')
+    subject = title
+    msg['Subject'] = Header(subject, 'utf-8')
+    msg['From'] = _format_addr('{} <{}>'.format('数据推送', username))
+    msg['To'] = TO_MAIL_
+
+    try:
+        stmp.connect('smtp.qiye.aliyun.com', 25)
+        stmp.login(username, password)
+        stmp.sendmail(username, TO_MAIL_, msg.as_string())
+    except Exception as e:
+        time.sleep(10 + random.randint(1, 5))
+        stmp = smtplib.SMTP()
+        stmp.connect('smtp.qiye.aliyun.com', 25)
+        stmp.login(username, password)
+        stmp.sendmail(username, TO_MAIL_, msg.as_string())
+    else:
+        print('发送完毕')
+
+
+def send_sms(content):
+    '''
+    一个海外的短信接口
+    '''
+    from twilio.rest import Client
+
+    client = Client(config.twilio_account_sid, config.twilio_auth_token)
+    try:
+        message = client.messages.create(
+            body=content,
+            from_=config.FROM_MOBILE,
+            to=config.TO_MOBILE
+        )
+    except Exception as e:
+        print(e)
+
+
+if __name__ == '__main__':
+    for _ in range(5):
+        print(send_message_QiYeVX(_message="first wechat message {}".format(time.time())))
+        time.sleep(0.5)
