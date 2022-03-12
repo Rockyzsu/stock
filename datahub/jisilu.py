@@ -10,10 +10,8 @@ sys.path.append('..')
 import re
 import time
 import datetime
-import requests
 import pandas as pd
-from configure import config
-from configure.settings import DBSelector, send_from_aliyun
+from configure.settings import DBSelector,config
 from sqlalchemy import VARCHAR
 from common.BaseService import BaseService
 from datahub.jsl_login import login
@@ -60,7 +58,7 @@ class Jisilu(BaseService):
             exit(0)
 
     def get_session(self):
-        self.session = login(config.jsl_user, config.jsl_password)
+        self.session = login(config['jsl_monitor']['JSL_USER'], config['jsl_monitor']['JSL_PASSWORD'])
 
     def download(self, url, data, retry=5):
 
@@ -73,7 +71,7 @@ class Jisilu(BaseService):
                     return r
             except Exception as e:
                 self.logger.info(e)
-                self.notify(title='下载失败', desp=f'{self.__class__}')
+                self.notify(title=f'下载失败 {self.__class__}')
                 continue
 
         return None

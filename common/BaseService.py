@@ -7,7 +7,7 @@ import time
 import requests
 import parsel
 from loguru import logger
-from configure.util import notify
+from configure.util import send_message_via_wechat
 
 
 class BaseService(object):
@@ -150,8 +150,8 @@ class BaseService(object):
         else:
             return NOON_STOP
 
-    def notify(self, title='', desp=''):
-        notify(title, desp)
+    def notify(self, title):
+        send_message_via_wechat(title)
 
     def weekday(self, day=datetime.datetime.now().strftime('%Y-%m-%d')):
         '''判断星期几'''

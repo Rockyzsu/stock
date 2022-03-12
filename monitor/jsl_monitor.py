@@ -5,7 +5,8 @@ import sys
 sys.path.append('..')
 import time
 import threading
-from configure.settings import market_status, config
+from configure.settings import config
+
 from common.BaseService import BaseService, HistorySet
 from configure.util import read_web_headers_cookies
 from common.util import get_holding_list
@@ -131,8 +132,6 @@ class ReachTargetJSL(BaseService):
                         t.start()
                         self.logger.info(f'{bond_nm} {word}')
                         self.history.add(bond_id)
-
-
 
 
             elif self.trading_time() == 1:

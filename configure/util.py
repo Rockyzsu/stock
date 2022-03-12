@@ -56,7 +56,7 @@ def read_web_headers_cookies(website, headers=False, cookies=False):
     return return_headers, return_cookies
 
 
-def send_message_QiYeVX(_message):  # 默认发送给自己
+def send_message_via_wechat(_message):  # 默认发送给自己
     _config = config['enterprise_wechat']
     userid = _config['userid']
     agentid = _config['agentid']
@@ -181,5 +181,5 @@ def send_sms(content):
 
 if __name__ == '__main__':
     for _ in range(5):
-        print(send_message_QiYeVX(_message="first wechat message {}".format(time.time())))
+        print(send_message_via_wechat(_message="first wechat message {}".format(time.time())))
         time.sleep(0.5)
