@@ -9,8 +9,8 @@ sys.path.append('..')
 import datetime
 import requests
 from common.BaseService import BaseService
-from configure.util import notify
-from configure.settings import  send_from_aliyun,DBSelector
+from configure.util import notify,send_from_aliyun
+from configure.settings import DBSelector
 
 
 DB = DBSelector()
