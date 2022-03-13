@@ -1,9 +1,0 @@
-easyquotation
-easytrader
-loguru
-rsa
-itchat
-twilio
-reids
-pymongo
-pymysql

@@ -1,34 +1,42 @@
 # -*-coding=utf-8-*-
-__author__ = 'Rocky'
 '''
+__author__ = 'Rocky'
 email: weigesysu@qq.com
 '''
 import datetime
 import tushare as ts
 import os
-from configure.settings import get_engine, get_mysql_conn
 import pandas as pd
-import numpy as np
 from collections import OrderedDict
 import matplotlib
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+from configure.settings import DBSelector
+
 matplotlib.use("Pdf")
 pd.set_option('display.max_rows', None)
-import matplotlib.pyplot as plt
 
 
 # 过滤器，剔除不想要的个股
 
-class Filter_Stock():
+class FilterStock():
 
     def __init__(self):
+
+        self.change_work_dir()
+        self.today = datetime.datetime.now().strftime("%Y-%m-%d")
+        self.engine = DBSelector().get_engine('db_stock')
+        self.conn = DBSelector().get_engine('db_stock')
+
+    def change_work_dir(self):
         current = os.path.dirname(__file__)
         work_space = os.path.join(current, 'data')
         if os.path.exists(work_space) == False:
             os.mkdir(work_space)
 
         os.chdir(work_space)
-
-        self.today = datetime.datetime.now().strftime("%Y-%m-%d")
 
     def get_location(self):
         df = ts.get_area_classified()
@@ -56,7 +64,7 @@ class Filter_Stock():
         df = ts.get_today_all()
         print(df)
         try:
-            df.to_sql(self.today, daily_engine, if_exists='replace')
+            df.to_sql(self.today, self.engine, if_exists='replace')
         except Exception as e:
             print(e)
         print("Save {} data to MySQL".format(self.today))
@@ -68,9 +76,9 @@ class Filter_Stock():
         :return:
         '''
         # cmd = 'select * from `{}`'.format(date)
-        df = pd.read_sql_table(date, daily_engine, index_col='index')
+        df = pd.read_sql_table(date, self.engine, index_col='index')
         # **** 这里的index需要删除一个
-        low_db = get_mysql_conn('db_selection')
+        low_db = self.conn('db_selection')
         low_cursor = low_db.cursor()
         for i in range(len(df)):
             code = df.loc[i]['code']
@@ -103,7 +111,7 @@ class Filter_Stock():
         cmd = 'select * from `{}` where datetime > \'{}\' and datetime <\'{}\''.format(code, date, current_date)
 
         try:
-            df = pd.read_sql(cmd, history_engine, index_col='index')
+            df = pd.read_sql(cmd, self.engine, index_col='index')
         except Exception as e:
             print(e)
             return None, None
@@ -125,7 +133,7 @@ class Filter_Stock():
         '''
         date = date + '-01-01'
         cmd = 'select high from `{}` where datetime > \'{}\''.format(code, date)
-        df = pd.read_sql(cmd, history_engine)
+        df = pd.read_sql(cmd, self.engine)
         return df['high'].max()
 
     def save_to_excel(self, df, filename, encoding='gbk'):
@@ -191,25 +199,26 @@ class Filter_Stock():
         :param end:  结束年份 如 '2011'
         :return:
         '''
-        df = pd.read_sql('tb_basic_info', get_engine('db_stock'), index_col='index')
-        df = df[df['timeToMarket'] != 0]
-        df['timeToMarket'] = pd.to_datetime(df['timeToMarket'], format='%Y%m%d')
-        df = df.set_index('timeToMarket', drop=True)
-        years = OrderedDict()
-        values = []
-        # for year in range(1994, 2019):
-        #     years[year] = len(df[str(year)])
-        #     values.append(len(df[str(year)]))
-        # x = np.arange(1994, 2019)
-        # plt.figure(figsize=(10, 9))
-        # rect = plt.bar(x, values)
-        # self.rect_show(rect)
-        # plt.xticks(x[::2])
-        # plt.show()
+        df = pd.read_sql('tb_basic_info', self.engine, index_col='index')
+        df = df[df['list_date'] != 0]
+        df['list_date'] = pd.to_datetime(df['list_date'], format='%Y%m%d')
+        df = df.set_index('list_date', drop=True)
 
-        new_stock = df[start:end] # 返回df格式
+        new_stock = df[start:end]  # 返回df格式
         return new_stock
 
+    def plot_new_stock_distibution(self, df, start, end):
+        years = OrderedDict()
+        values = []
+        for year in range(start, end):
+            years[year] = len(df[str(year)])
+            values.append(len(df[str(year)]))
+        x = np.arange(1994, 2019)
+        plt.figure(figsize=(10, 9))
+        rect = plt.bar(x, values)
+        self.rect_show(rect)
+        plt.xticks(x[::2])
+        plt.show()
 
     def rect_show(self, rects):
         for rect in rects:
@@ -221,61 +230,59 @@ class Filter_Stock():
         df = self.get_new_stock()
         # print(df)
 
-
     # 返回黑名单的代码
     def get_blacklist(self):
-        conn=get_mysql_conn('db_stock','local')
-        cursor = conn.cursor()
+        # conn=self.conn('db_stock','local')
+        cursor = self.conn.cursor()
         query = 'select CODE from tb_blacklist'
         cursor.execute(query)
         ret = cursor.fetchall()
         return [i[0] for i in ret]
 
+
 # 可转债过滤
 class Filter_CB(object):
 
     def __init__(self):
-        self.engine = get_engine('db_stock','local')
-        self.bonds = pd.read_sql('tb_bond_jisilu',con=self.engine)
-
+        self.engine = DBSelector().get_engine('db_stock', 'qq')
+        self.bonds = pd.read_sql('tb_bond_jisilu', con=self.engine)
 
     # 获取新股的可转债，一般比较猛
-    def get_new_stock_bond(self,start='2017',end='2019'):
+    def get_new_stock_bond(self, start='2017', end='2019'):
         '''
 
         :return: 返回新股对应的转债数据 df
         '''
-        obj=Filter_Stock()
-        new_stock_df=obj.get_new_stock(start,end)
+        obj = FilterStock()
+        new_stock_df = obj.get_new_stock(start, end)
         # index是timeToMarket
 
         code_list = list(new_stock_df['code'].values)
         new_stock_bond_df = self.bonds[self.bonds['正股代码'].isin(code_list)]
         for code in new_stock_bond_df['正股代码'].values:
             print(code)
-            t_market=new_stock_df[new_stock_df['code']==code].index.values[0]
+            t_market = new_stock_df[new_stock_df['code'] == code].index.values[0]
 
         return new_stock_bond_df
-
 
     def show(self):
         df = self.get_new_stock_bond()
         print(df)
 
-
     def run(self):
-        df = pd.read_sql('tb_bond_jisilu',con=self.engine)
-        want_cb_df = df[((df['可转债价格']<=125) & (df['溢价率']<=15))]
-        want_cb_df=want_cb_df[['可转债代码','可转债名称','可转债价格','溢价率']]
+        df = pd.read_sql('tb_bond_jisilu', con=self.engine)
+        want_cb_df = df[((df['可转债价格'] <= 125) & (df['溢价率'] <= 15))]
+        want_cb_df = want_cb_df[['可转债代码', '可转债名称', '可转债价格', '溢价率']]
         # want_cb_df.rename(columns={'可转债代码':''})
-        want_cb_df.loc[:,'优先级']=0 # 默认都为0
+        want_cb_df.loc[:, '优先级'] = 0  # 默认都为0
 
-        want_cb_df.loc[:,'当前日期']=datetime.date.today()
+        want_cb_df.loc[:, '当前日期'] = datetime.date.today()
 
         try:
-            want_cb_df.to_sql('tb_stock_candidates',con=self.engine,if_exists='replace')
+            want_cb_df.to_sql('tb_stock_candidates', con=self.engine, if_exists='replace')
         except Exception as e:
             print(e)
+
 
 def main():
     # obj = Filter_Stock()
