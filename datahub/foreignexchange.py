@@ -2,11 +2,15 @@
 # @Time : 2018/8/7 13:45
 # @File : foreignexchange.py
 # 实时获取外汇
+
 import re
 import datetime
 import requests
+import sys
+sys.path.append('..')
+
 from common.BaseService import BaseService
-from configure.util import notify
+from configure.util import send_message_via_wechat
 from configure.settings import DBSelector
 
 
@@ -40,7 +44,8 @@ class ForeighExchange(BaseService):
         conn=DBSelector().get_mysql_conn('db_stock','qq')
         cmd = 'insert into `usd_ratio` (`price`,`date`) VALUES ({},{!r})'.format(buy,datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         self.execute(cmd,(),conn)
-        notify(title=sub,desp='')
+
+        send_message_via_wechat(sub)
 
 
     def fetch_web(self):
