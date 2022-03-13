@@ -3,7 +3,6 @@
 # @File : util.py
 # @Author : Rocky C@www.30daydo.com
 
-import json
 import datetime
 import random
 import smtplib
@@ -12,7 +11,9 @@ import warnings
 from email.mime.text import MIMEText
 from email.header import Header
 from email.utils import parseaddr, formataddr
-
+import json
+import pandas as pd
+import re
 import requests
 from .settings import config, get_config_data
 
@@ -178,6 +179,28 @@ def send_sms(content):
     except Exception as e:
         print(e)
 
+
+
+def jsonp2json(str_):
+    return json.loads(str_[str_.find('{'):str_.rfind('}') + 1])
+
+
+def bond_filter(code):
+    m = re.search('^(11|12)', code)
+    return True if m else False
+
+
+def get_holding_list(filename=None):
+    '''
+    获取持仓列表
+    '''
+    print(filename)
+    df = pd.read_csv(filename, encoding='gbk')
+    # print(df.head())
+    df['证券代码'] = df['证券代码'].astype(str)
+    df['kzz'] = df['证券代码'].map(bond_filter)
+    df = df[df['kzz'] == True]
+    return df['证券代码'].tolist()
 
 if __name__ == '__main__':
     for _ in range(5):

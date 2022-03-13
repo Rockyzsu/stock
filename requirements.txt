@@ -1,10 +1,7 @@
-easyquotation
 easytrader
 loguru
 rsa
 redis
-pymongo
-pymysql
 pypinyin
 sqlalchemy
 pandas
@@ -12,3 +9,11 @@ tushare
 akshare
 parsel
 loguru
+xlwt
+easyquotation
+loguru
+rsa
+itchat
+twilio
+pymongo
+pymysql
