@@ -18,6 +18,7 @@ HOLDING_FILENAME = config['holding_file']
 JSL_USER = config['jsl_monitor']['JSL_USER']
 JSL_PASSWORD = config['jsl_monitor']['JSL_PASSWORD']
 
+FILTER_REDEEM = True #过滤强赎
 
 class ReachTargetJSL(BaseService):
     def __init__(self):
@@ -112,6 +113,15 @@ class ReachTargetJSL(BaseService):
                     increase_rt = float(increase_rt.replace('%', ''))
                     curr_iss_amt = self.__convert__(item.get('curr_iss_amt'))  # 剩余规模
                     word = '涨停 ' if sincrease_rt > 0 else '跌停'
+
+                    flag = item.get('redeem_icon')
+                    if FILTER_REDEEM and (flag=='Y' or flag=='0'):
+                        #过滤强赎
+                        continue
+
+                    if curr_iss_amt>15:
+                        # 过滤规模大于15亿
+                        continue
 
                     if bond_id in self.holding_list and abs(increase_rt) > 9 and self.history.is_expire(bond_id):
                         text = f'{bond_nm} {increase_rt}; 正股{sincrease_rt}; 规模：{curr_iss_amt}; 溢价率：{premium_rt}'
