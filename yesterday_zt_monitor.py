@@ -11,7 +11,7 @@ import pandas as pd
 import tushare as ts
 from plot_line import plot_stock_line
 from common.BaseService import BaseService
-from configure.util import notify
+from configure.util import send_message_via_wechat
 import fire
 
 # 绘制k线图，今日涨停的k线图
@@ -63,7 +63,7 @@ def main(current=None):
         except Exception as e:
             print(plot_type,'error')
             print(e)
-            notify(title='zdt_plot 出错',desp=f'{__name__}')
+            send_message_via_wechat('zdt_plot 出错')
             continue
 
     ts.close_apis(conn=api)

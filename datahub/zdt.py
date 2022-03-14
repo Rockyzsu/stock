@@ -10,10 +10,11 @@ sys.path.append('..')
 import re
 import time
 import os
-from configure.util import notify
+# from configure.util import notify
 from configure.settings import config_dict
 import pandas as pd
-from configure.settings import DBSelector, send_from_aliyun
+from configure.settings import DBSelector
+from configure.util import send_from_aliyun
 import requests
 import datetime
 from common.BaseService import BaseService
@@ -71,7 +72,7 @@ class GetZDT(BaseService):
                     self.logger.info('failed to get content, retry: {}'.format(i))
                     continue
             except Exception as e:
-                notify(title='获取涨跌停数据出错', desp=f'{self.__class__}')
+                self.notify(title=f'{self.__class__}取涨跌停数据出错')
                 self.logger.error(e)
                 time.sleep(60)
                 continue
@@ -94,7 +95,7 @@ class GetZDT(BaseService):
                 t2 = list(eval(t2))
                 return t2
             except Exception as e:
-                notify(title='获取涨跌停数据出错', desp=f'{self.__class__}')
+                self.notify(title=f'{self.__class__}获取涨跌停数据出错')
                 self.logger.info(e)
                 return None
         else:
@@ -142,7 +143,7 @@ class GetZDT(BaseService):
         try:
             df.to_sql(self.today + post_fix, engine, if_exists='fail')
         except Exception as e:
-            notify(f'{self.__class__} 出错')
+            self.notify(f'{self.__class__} 出错')
             self.logger.info(e)
 
         title,content = self.generate_html(df)

@@ -240,7 +240,7 @@ class ReachTarget(BaseService):
                             self.logger.info(content0)
 
                             try:
-                                notify(title=content0)
+                                self.notify(title=content0)
 
                             except Exception as e:
                                 self.logger.info('发送微信失败')

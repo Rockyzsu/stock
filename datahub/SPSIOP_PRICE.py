@@ -9,7 +9,7 @@ sys.path.append('..')
 import datetime
 import requests
 from common.BaseService import BaseService
-from configure.util import notify,send_from_aliyun
+from configure.util import send_from_aliyun
 from configure.settings import DBSelector
 
 
@@ -62,7 +62,7 @@ class SPSIOP(BaseService):
             send_from_aliyun(title, '')
 
         else:
-            notify(title='华宝油气获取估值失败')
+            self.notify(title='华宝油气获取估值失败')
 
 
     def qdii_info(self):

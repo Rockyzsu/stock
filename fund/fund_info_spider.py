@@ -7,8 +7,9 @@ import time
 import sys
 
 sys.path.append('..')
-from configure.settings import DBSelector, send_from_aliyun
+from configure.settings import DBSelector
 from common.BaseService import BaseService
+from configure.util import send_from_aliyun
 import warnings
 
 warnings.filterwarnings("ignore")

@@ -12,6 +12,7 @@ import time
 import datetime
 import pandas as pd
 from configure.settings import DBSelector,config
+from configure.util import send_from_aliyun
 from sqlalchemy import VARCHAR
 from common.BaseService import BaseService
 from datahub.jsl_login import login

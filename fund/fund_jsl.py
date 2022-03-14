@@ -13,13 +13,12 @@ import time
 import sys
 
 sys.path.append('..')
-from configure.settings import DBSelector, send_from_aliyun
+from configure.settings import DBSelector
 from common.BaseService import BaseService
-from configure.util import notify
+# from configure.util import notify
 import warnings
 
 warnings.filterwarnings("ignore")
-
 
 now = datetime.datetime.now()
 TODAY = now.strftime('%Y-%m-%d')
@@ -110,12 +109,12 @@ class JSLFund(BaseService):
         for item in rows:
             cell = item.get('cell')
             cell['crawltime'] = datetime.datetime.now()
-            # print(cell)
             try:
                 mongo_doc.insert_one(cell)
             except Exception as e:
                 self.logger.error(e)
-                notify(title='入mongo出错', desp=f'{self.__class__} 写入mongodb出错')
+                self.notify(title=f'{self.__class__} 写入mongodb出错')
+
 
 def main():
     pass

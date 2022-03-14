@@ -10,7 +10,6 @@ import tushare as ts
 import sys
 sys.path.append('..')
 from configure.settings import DBSelector,config_dict
-from configure.util import notify
 from common.BaseService import BaseService
 
 # 获取市场全貌
@@ -46,7 +45,7 @@ class BasicMarket(BaseService):
                 break
 
         if count==retry:
-            notify(title='获取股市市场全景数据失败',desp=f'{self.__class__.__name__}')
+            self.notify(title=f'{self.__class__.__name__}获取股市市场全景数据失败')
             exit(0)
 
         if df is not None:
@@ -58,7 +57,7 @@ class BasicMarket(BaseService):
                 df.to_sql('tb_basic_info', engine, if_exists='replace')
             except Exception as e:
                 self.logger.error(e)
-                notify(title='mysql入库出错',desp=f'{self.__class__}')
+                self.notify(title=f'{self.__class__}mysql入库出错')
 
 def main():
     obj=BasicMarket()

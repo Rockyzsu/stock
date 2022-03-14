@@ -1,19 +1,15 @@
 # 公募私募人员数据获取
+import math
 import sys
 
 sys.path.append('..')
-from configure.settings import DBSelector, send_from_aliyun
+from configure.settings import DBSelector
 from common.BaseService import BaseService
-from configure.util import notify
 import requests
 import warnings
 import datetime
-
 warnings.filterwarnings("ignore")
-from sqlalchemy.orm import relationship
-from sqlalchemy import Column, String, INTEGER, VARCHAR, DATE, DateTime, ForeignKey, FLOAT
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+
 
 
 class FundMembers(BaseService):
@@ -81,6 +77,7 @@ class FundMembers(BaseService):
             self.process_model(code, name, date, share, 'LOF')
 
     def post(self, url, post_data, _josn=False, binary=False, retry=5):
+        pass
 
     def crawl_etf(self):
         options = self.url_option_dict['ETF']
@@ -88,7 +85,7 @@ class FundMembers(BaseService):
         url = options.get('url')
         current_page = 1
         while True:
-            content = self.get(url.format(current_page, date, current_page), js=False)
+            content = self.get(url.format(current_page, date, current_page), _json=False)
             js_data = self.jsonp2json(content)
             total_count = js_data.get('pageHelp').get('total')
             print(f'page : {current_page}')

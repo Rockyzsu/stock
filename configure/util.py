@@ -194,9 +194,7 @@ def get_holding_list(filename=None):
     '''
     获取持仓列表
     '''
-    print(filename)
     df = pd.read_csv(filename, encoding='gbk')
-    # print(df.head())
     df['证券代码'] = df['证券代码'].astype(str)
     df['kzz'] = df['证券代码'].map(bond_filter)
     df = df[df['kzz'] == True]

@@ -12,7 +12,7 @@ import sys
 sys.path.append('..')
 from configure.settings import DBSelector
 from common.BaseService import BaseService
-from configure.util import notify
+# from configure.util import notify
 RETRY = 0
 
 
@@ -73,7 +73,7 @@ class CloseEndFundCls(BaseService):
 
         if not self.save_mongo(row_list):
             self.logger.info('保存失败')
-            notify(title='jsl分级入库出错',desp=f'{self.__class__}')
+            self.notify(title=f'{self.__class__}jsl封基入库出错')
 
 
 def main():

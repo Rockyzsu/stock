@@ -8,8 +8,7 @@ import threading
 from configure.settings import config
 
 from common.BaseService import BaseService, HistorySet
-from configure.util import read_web_headers_cookies
-from common.util import get_holding_list
+from configure.util import get_holding_list
 from datahub.jsl_login import login
 
 ACCESS_INTERVAL = config['jsl_monitor']['ACCESS_INTERVAL']
@@ -34,13 +33,11 @@ class ReachTargetJSL(BaseService):
             'Accept-Encoding': 'gzip,deflate,br',
             'Accept-Language': 'zh,en;q=0.9,en-US;q=0.8',
         }
-        self.cookies = read_web_headers_cookies('jsl', headers=True, cookies=True)
         ts = int(time.time() * 1000)
         self.params = (
             ('___jsl', f'LST___t={ts}'),
         )
         self.holding_list = get_holding_list(filename=HOLDING_FILENAME)
-        # self.holding_list =[]
         self.query_condition = {
             "fprice": None,
             "tprice": None,
@@ -70,7 +67,6 @@ class ReachTargetJSL(BaseService):
         try:
             response = self.session.post('https://www.jisilu.cn/data/cbnew/cb_list/', headers=self.__headers,
                                          params=self.params,
-                                         # cookies=self.cookies,
                                          data=self.query_condition, timeout=30)
         except Exception as e:
             self.logger.error(e)
@@ -118,16 +114,13 @@ class ReachTargetJSL(BaseService):
                     word = '涨停 ' if sincrease_rt > 0 else '跌停'
 
                     if bond_id in self.holding_list and abs(increase_rt) > 9 and self.history.is_expire(bond_id):
-                        str_content = '负' + str(increase_rt) if increase_rt < 0 else str(increase_rt)
-                        text = f'持仓{bond_nm[:2]};{str_content}%;正股{sincrease_rt}'
+                        text = f'{bond_nm} {increase_rt}; 正股{sincrease_rt}; 规模：{curr_iss_amt}; 溢价率：{premium_rt}'
                         t = threading.Thread(target=self.notify, args=(text,))
                         t.start()
                         self.history.add(bond_id)
 
                     if abs(sincrease_rt) >= MONITOR_PERCENT and self.history.is_expire(bond_id):
-                        str_content = '负' + str(increase_rt) if increase_rt < 0 else str(increase_rt)
-                        str_content = str_content.replace('%', '')
-                        text = f'{bond_nm[:2]}债{str_content};股{sincrease_rt};规模{curr_iss_amt};溢{premium_rt}'
+                        text = f'{bond_nm} {increase_rt}; 正股{sincrease_rt}; 规模：{curr_iss_amt}; 溢价率：{premium_rt}'
                         t = threading.Thread(target=self.notify, args=(text,))
                         t.start()
                         self.logger.info(f'{bond_nm} {word}')
@@ -142,5 +135,4 @@ class ReachTargetJSL(BaseService):
 
 if __name__ == "__main__":
     app = ReachTargetJSL()
-
     app.monitor()

@@ -11,7 +11,7 @@ from sqlalchemy.orm import sessionmaker
 from common.TushareUtil import TushareBaseUtil
 from sqlalchemy import or_
 import pandas as pd
-from configure.settings import send_from_aliyun
+from configure.util import send_from_aliyun
 from common.BaseService import BaseService
 from configure.settings import DBSelector
 from LOF_Model import FundBaseInfoModel, ShareModel, Base
@@ -98,7 +98,6 @@ class FundDetection(BaseService):
             PERCENT = ETF_PERCENT
             DIFF_MAX = ETF_DIFF_MAX
 
-
         current_df = pd.DataFrame(lastest_lofs)
 
         current_df['date'] = current_df['date'].astype(str)
@@ -127,7 +126,8 @@ class FundDetection(BaseService):
                     # lastday_of_yesterday_num 前日份额
                     string = self.formator(category, yesterday_share['name'].to_list()[0],
                                            yesterday_share['code'].to_list()[0],
-                                           round(yesterday_share_num/10000,2), round(lastday_of_yesterday_num/10000,2), yesterday, diff,
+                                           round(yesterday_share_num / 10000, 2),
+                                           round(lastday_of_yesterday_num / 10000, 2), yesterday, diff,
                                            round(diff_part, 0))
                     string_arg += string + '\n'
         string_arg += '\n'

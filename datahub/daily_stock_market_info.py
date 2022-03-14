@@ -11,7 +11,7 @@ import time
 import os
 import sys
 sys.path.append('..')
-from configure.util import notify
+# from configure.util import notify
 from common.BaseService import BaseService
 from configure.settings import DBSelector,config_dict
 
@@ -61,14 +61,14 @@ class FetchDaily(BaseService):
             try:
                 self.df_today_all.to_excel(full_filename)
             except Exception as  e:
-                notify(title='写excel出错',desp=f'{self.__class__}')
+                self.notify(title=f'{self.__class__}写excel出错')
                 self.logger.error(e)
 
 
             try:
                 self.df_today_all.to_sql(self.today, self.engine, if_exists='fail')
             except Exception as e:
-                notify(title='mysql出错',desp=f'{self.__class__}')
+                self.notify(title=f'{self.__class__}mysql出错')
                 self.logger.error(e)
 
 

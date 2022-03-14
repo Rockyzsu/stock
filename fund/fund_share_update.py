@@ -9,9 +9,8 @@
 import sys
 
 sys.path.append('..')
-from configure.settings import DBSelector, send_from_aliyun
+from configure.settings import DBSelector
 from common.BaseService import BaseService
-from configure.util import notify
 import requests
 import warnings
 import datetime
@@ -19,7 +18,7 @@ import math
 import re
 warnings.filterwarnings("ignore")
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, String, INTEGER, VARCHAR, DATE, DateTime, ForeignKey, FLOAT
+from sqlalchemy import Column,  INTEGER, VARCHAR, DATE, DateTime, ForeignKey, FLOAT
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
