@@ -2,24 +2,20 @@
 # @Time : 2021/8/9 11:56
 # @File : bond_industry_info.py
 # @Author : Rocky C@www.30daydo.com
+import datetime
 import os
 from joblib import dump
 import parsel
 
 from datahub.jsl_login import login
-from configure import config
+from configure.settings import config
 import time
 
 headers = {
-    "Accept": "application/json, text/javascript, */*; q=0.01",
     "Accept-Encoding": "gzip, deflate, br",
-    "Accept-Language": "zh,en;q=0.9,en-US;q=0.8,zh-CN;q=0.7",
-    "Cache-Control": "no-cache",
-    "Connection": "keep-alive",
     "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
     "Host": "www.jisilu.cn",
     "Origin": "https://www.jisilu.cn",
-    "Pragma": "no-cache",
     "Referer": "https://www.jisilu.cn/data/cbnew/",
     "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36",
     "X-Requested-With": "XMLHttpRequest",
@@ -29,7 +25,7 @@ headers = {
 class BondIndustry:
 
     def __init__(self):
-        pass
+        self.today = datetime.date.today().strftime('%Y%m%d')
 
     def run(self):
         name_value = self.parse_selection_id()
@@ -38,10 +34,10 @@ class BondIndustry:
         for name, value in name_value:
             result = self.get_bond_info(session, value)
             df_dict[name] = result
-        dump(df_dict, 'df_dict.pkl')
+        dump(df_dict, f'industry_{self.today}.pkl')
 
     def get_session(self):
-        return login(config.jsl_user, config.jsl_password)
+        return login(config['jsl_monitor']['JSL_USER'], config['jsl_monitor']['JSL_PASSWORD'])
 
     def get_bond_info(self, session, industry_id):
         ts = int(time.time() * 1000)
