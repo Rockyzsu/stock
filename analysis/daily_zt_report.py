@@ -8,10 +8,8 @@ Email: weigesysu@qq.com
 '''
 
 import datetime
-
 import fire
 import pandas as pd
-
 import sys
 
 sys.path.append('..')
