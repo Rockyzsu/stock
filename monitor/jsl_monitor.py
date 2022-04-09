@@ -66,7 +66,7 @@ class ReachTargetJSL(BaseService):
     def get(self, *args, **kwargs):
         # 复写
         try:
-            response = self.session.post('https://www.jisilu.cn/data/cbnew/cb_list/', headers=self.__headers,
+            response = self.session.post('https://www.jisilu.cn/data/cbnew/cb_list_new/', headers=self.__headers,
                                          params=self.params,
                                          data=self.query_condition, timeout=30)
         except Exception as e:
@@ -100,22 +100,29 @@ class ReachTargetJSL(BaseService):
 
                 for body_dict in ret.get('rows', []):
                     item = body_dict.get('cell', {})
+
                     bond_nm = item.get('bond_nm', '').strip()
                     bond_id = item.get('bond_id', '').strip()
 
-                    full_price = item.get('full_price')
-                    premium_rt = self.__convert__(item.get('premium_rt'))
+                    full_price = item.get('price')
+                    # premium_rt = self.__convert__(item.get('premium_rt'))
+                    premium_rt = item.get('premium_rt')
 
                     sincrease_rt = item.get('sincrease_rt')  # 正股涨幅
-                    sincrease_rt = self.__convert__(sincrease_rt)
+
+                    if sincrease_rt is None:
+                        # 正股停牌了
+                        continue
+                    # sincrease_rt = self.__convert__(sincrease_rt)
 
                     increase_rt = item.get('increase_rt')
-                    increase_rt = float(increase_rt.replace('%', ''))
-                    curr_iss_amt = self.__convert__(item.get('curr_iss_amt'))  # 剩余规模
+                    # increase_rt = float(increase_rt.replace('%', ''))
+                    # curr_iss_amt = self.__convert__(item.get('curr_iss_amt'))  # 剩余规模
+                    curr_iss_amt = item.get('curr_iss_amt')  # 剩余规模
                     word = '涨停 ' if sincrease_rt > 0 else '跌停'
 
                     flag = item.get('redeem_icon')
-                    if FILTER_REDEEM and (flag=='Y' or flag=='0'):
+                    if FILTER_REDEEM and (flag=='Y' or flag=='0' or flag=='R'):
                         #过滤强赎
                         continue
 

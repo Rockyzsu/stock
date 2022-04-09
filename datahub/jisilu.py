@@ -11,7 +11,7 @@ import re
 import time
 import datetime
 import pandas as pd
-from configure.settings import DBSelector,config
+from configure.settings import DBSelector, config
 from configure.util import send_from_aliyun
 from sqlalchemy import VARCHAR
 from common.BaseService import BaseService
@@ -30,7 +30,7 @@ class Jisilu(BaseService):
         # self.date = '2020-02-07' # 用于调整时间
 
         self.timestamp = int(time.time() * 1000)
-        self.url = 'https://www.jisilu.cn/data/cbnew/cb_list/?___jsl=LST___t={}'.format(self.timestamp)
+        self.url = 'https://www.jisilu.cn/data/cbnew/cb_list_new/?___jsl=LST___t={}'.format(self.timestamp)
         self.pre_release_url = 'https://www.jisilu.cn/data/cbnew/pre_list/?___jsl=LST___t={}'.format(self.timestamp)
         self.remote = remote
         self.DB = DBSelector()
@@ -117,66 +117,51 @@ class Jisilu(BaseService):
         if adjust_no_use:
 
             # 类型转换 部分含有%
-            df['premium_rt'] = df['premium_rt'].map(lambda x: float(x.replace('%', '')))
             df['price'] = df['price'].astype('float64')
             df['convert_price'] = df['convert_price'].astype('float64')
             df['premium_rt'] = df['premium_rt'].astype('float64')
-            df['redeem_price'] = df['redeem_price'].astype('float64')
+            df['force_redeem_price'] = df['force_redeem_price'].astype('float64')
 
-            def convert_float(x):
-                try:
-                    ret_float = float(x)
-                except:
-                    ret_float = None
-                return ret_float
 
-            def convert_percent(x):
-                try:
-                    ret = float(x) * 100
-                except:
-                    ret = None
-                return ret
-
-            def remove_percent(x):
-                try:
-                    ret = x.replace(r'%', '')
-                    ret = float(ret)
-                except Exception as e:
-                    ret = None
-
-                return ret
-
-            df['put_convert_price'] = df['put_convert_price'].map(convert_float)
-            df['sprice'] = df['sprice'].map(convert_float)
-            df['ration'] = df['ration'].map(convert_percent)
-            df['volume'] = df['volume'].map(convert_float)
-            df['convert_amt_ratio'] = df['convert_amt_ratio'].map(remove_percent)
-            df['ration_rt'] = df['ration_rt'].map(convert_float)
-            df['increase_rt'] = df['increase_rt'].map(remove_percent)
-            df['sincrease_rt'] = df['sincrease_rt'].map(remove_percent)
-
-            rename_columns = {'bond_id': '可转债代码', 'bond_nm': '可转债名称', 'price': '可转债价格', 'stock_nm': '正股名称',
-                              'stock_cd': '正股代码',
+            rename_columns = {'bond_id': '可转债代码', 'bond_nm': '可转债名称',
+                              'price': '可转债价格', 'stock_nm': '正股名称',
+                              'stock_id': '正股代码',
                               'sprice': '正股现价',
                               'sincrease_rt': '正股涨跌幅',
-                              'convert_price': '最新转股价', 'premium_rt': '溢价率', 'increase_rt': '可转债涨幅',
+                              'convert_price': '最新转股价', 'premium_rt': '溢价率',
+                              'increase_rt': '可转债涨幅',
+                              'convert_value': '转股价值',
+                              'dblow': '双低',
                               'put_convert_price': '回售触发价', 'convert_dt': '转股起始日',
                               'short_maturity_dt': '到期时间', 'volume': '成交额(万元)',
-                              'redeem_price': '强赎价格', 'year_left': '剩余时间',
-                              'next_put_dt': '回售起始日', 'rating_cd': '评级',
+                              'force_redeem_price': '强赎价格', 'year_left': '剩余时间',
+                              # 'next_put_dt': '回售起始日',
+                              'rating_cd': '评级',
                               # 'issue_dt': '发行时间',
                               # 'redeem_tc': '强制赎回条款',
                               # 'adjust_tc': '下修条件',
-                              'adjust_tip': '下修提示',
+                              'adjust_condition': '下修条件',
+                              'turnover_rt': '换手率',
+                              'convert_price_tips': '下修提示',
                               # 'put_tc': '回售',
-                              'adj_cnt': '下调次数',
+                              'adj_cnt': '提出下调次数',
+                              'svolume': '正股成交量',
                               #   'ration':'已转股比例'
                               'convert_amt_ratio': '转债剩余占总市值比',
                               'curr_iss_amt': '剩余规模', 'orig_iss_amt': '发行规模',
-                              'ration_rt': '股东配售率',
-                              'redeem_flag': '发出强赎公告',
+                              # 'ration_rt': '股东配售率',
+                              'option_tip': '期权价值',
+                              'bond_nm_tip': '强赎提示',
                               'redeem_dt': '强赎日期',
-                              'guarantor': '担保',
+                              'list_dt': '上市日期',
+                              'ytm_rt': '到期收益率',
+                              'redeem_icon': '强赎标志',
+                              'margin_flg': '是否两融标的',
+                              'adj_scnt': '下修成功次数',
+                              'convert_cd_tip': '转股日期提示',
+                              'ref_yield_info': '参考YTM',
+
+                              # 'guarantor': '担保',
                               }
 
             df = df.rename(columns=rename_columns)
@@ -186,9 +171,9 @@ class Jisilu(BaseService):
         df = df.set_index('可转债代码', drop=True)
         return df
 
-    def to_excel(self,df):
+    def to_excel(self, df):
         try:
-            df.to_excel(f'jisilu_{self.date}.xlsx',encoding='utf8')
+            df.to_excel(f'jisilu_{self.date}.xlsx', encoding='utf8')
         except Exception as e:
             print(e)
 
@@ -333,7 +318,7 @@ class Jisilu(BaseService):
 
 
 def main():
-    obj = Jisilu(check_holiday=False, remote='local')
+    obj = Jisilu(check_holiday=False, remote='qq')
     obj.daily_update()
     # obj.release_data()
 

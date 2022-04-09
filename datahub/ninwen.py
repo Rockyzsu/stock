@@ -26,7 +26,7 @@ class BaseCls():
         self.session = requests.Session()
 
     def load_pickle(self):
-        with open('model.h', 'rb') as fp:
+        with open('ninwen_model.h', 'rb') as fp:
             self.model = pickle.load(fp)
 
 
@@ -97,7 +97,6 @@ class NinwenSpider(BaseCls):
             'invite': '',
             'csrf_token': csrf
         }
-
         r = self.session.post(url=url, headers=self.json_headers,
                               data=data
                               )
@@ -217,8 +216,10 @@ class NinwenSpider(BaseCls):
 
     def image_recognize(self, img):
         files = {'file': img}
-        data = {'key': self.model.get('key'), 'source': self.model.get('source')}
-        r = requests.post(url=self.model.get('image_host'), files=files, data=data)
+        data = {'key': self.model.get('key').strip(), 'source': self.model.get('source').strip()}
+
+        url=self.model.get('image_host')
+        r = requests.post(url=url, files=files, data=data)
         try:
             code = r.json().get('code')
         except Exception as e:
@@ -226,8 +227,6 @@ class NinwenSpider(BaseCls):
             raise e
         else:
             return code
-
-
 
     def check_name(self, csrf_token):
         url = 'https://www.ninwin.cn/index.php?m=u&c=login&a=checkname'
