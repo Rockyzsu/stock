@@ -104,7 +104,7 @@ class ReachTargetJSL(BaseService):
                     bond_nm = item.get('bond_nm', '').strip()
                     bond_id = item.get('bond_id', '').strip()
 
-                    full_price = item.get('price')
+                    full_price = round(item.get('price'),1)
                     # premium_rt = self.__convert__(item.get('premium_rt'))
                     premium_rt = item.get('premium_rt')
 
@@ -113,12 +113,9 @@ class ReachTargetJSL(BaseService):
                     if sincrease_rt is None:
                         # 正股停牌了
                         continue
-                    # sincrease_rt = self.__convert__(sincrease_rt)
 
                     increase_rt = item.get('increase_rt')
-                    # increase_rt = float(increase_rt.replace('%', ''))
-                    # curr_iss_amt = self.__convert__(item.get('curr_iss_amt'))  # 剩余规模
-                    curr_iss_amt = item.get('curr_iss_amt')  # 剩余规模
+                    curr_iss_amt = round(item.get('curr_iss_amt'),2)  # 剩余规模
                     word = '涨停 ' if sincrease_rt > 0 else '跌停'
 
                     flag = item.get('redeem_icon')
@@ -131,13 +128,13 @@ class ReachTargetJSL(BaseService):
                         continue
 
                     if bond_id in self.holding_list and abs(increase_rt) > 9 and self.history.is_expire(bond_id):
-                        text = f'{bond_nm} {increase_rt}; 正股{sincrease_rt}; 规模：{curr_iss_amt}; 溢价率：{premium_rt}'
+                        text = f'{bond_nm} {increase_rt},价格：{full_price}; 正股{sincrease_rt}; 规模：{curr_iss_amt}; 溢价率：{premium_rt}'
                         t = threading.Thread(target=self.notify, args=(text,))
                         t.start()
                         self.history.add(bond_id)
 
                     if abs(sincrease_rt) >= MONITOR_PERCENT and self.history.is_expire(bond_id):
-                        text = f'{bond_nm} {increase_rt}; 正股{sincrease_rt}; 规模：{curr_iss_amt}; 溢价率：{premium_rt}'
+                        text = f'{bond_nm} {increase_rt},价格：{full_price}; 正股{sincrease_rt}; 规模：{curr_iss_amt}; 溢价率：{premium_rt}'
                         t = threading.Thread(target=self.notify, args=(text,))
                         t.start()
                         self.logger.info(f'{bond_nm} {word}')

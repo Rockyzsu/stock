@@ -61,8 +61,8 @@ class FundDetection(BaseService):
 
         if has_data:
             title = f'{self.today} ETF 申购波动数据'
-            print(title)
-            print(query_result_str)
+            # print(title)
+            # print(query_result_str)
             send_from_aliyun(title, content=query_result_str)
         else:
             self.logger.info(f'今天{self.today}没有数据')
@@ -97,8 +97,8 @@ class FundDetection(BaseService):
                 ShareModel.date.between(last_week, yesterday)).all()
             PERCENT = ETF_PERCENT
             DIFF_MAX = ETF_DIFF_MAX
-
-        current_df = pd.DataFrame(lastest_lofs)
+        # print(type(lastest_lofs))
+        current_df = pd.DataFrame(lastest_lofs,columns=['name','code','share','date'])
 
         current_df['date'] = current_df['date'].astype(str)
         current_df['share'] = current_df['share'].astype(float)
