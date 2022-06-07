@@ -5,11 +5,14 @@
 目前正在重构项目代码，目录结构可能与下面描述有些出入，后期会慢慢更新修改，感谢大家的关注与支持。
 
 ---
+
 *analysis/ 数据分析部分*
 
 *datahub/ 数据采集部分*
 
 *fund/ 基金相关的分析部分*
+
+*k-line/ K线技术形态部分*
 
 *trader/ 交易部分*
 
@@ -55,6 +58,9 @@
 * datahub/jucao_ammouncement.py 巨潮公告批量获取+PDF下载
 * datahub/bond_industry_info.py 可转债行业分布
 
+## k-line （K线技术形态识别）
+* k-line/recognize_form.py 通过talib识别常见形态，如三只乌鸦等
+* 
 ### 已有：
 
 * datahub/black_list_sql.py 记录A股市场上所有有黑历史的股票名单，并存入数据库
