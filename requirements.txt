@@ -13,7 +13,5 @@ xlwt
 easyquotation
 loguru
 rsa
-itchat
-twilio
 pymongo
 pymysql

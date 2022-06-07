@@ -184,6 +184,9 @@ def send_sms(content):
 def jsonp2json(str_):
     return json.loads(str_[str_.find('{'):str_.rfind('}') + 1])
 
+def js2json(str_):
+    import demjson
+    return demjson.decode(str_[str_.find('{'):str_.rfind('}') + 1])
 
 def bond_filter(code):
     m = re.search('^(11|12)', code)

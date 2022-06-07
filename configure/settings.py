@@ -86,12 +86,4 @@ def get_tushare_pro():
 
 
 if __name__ == '__main__':
-    # msg=WechatSend(u'wei')
-    # msg.send_price('hsdq',12,12,'sell')
-    # print(FROM_MAIL)
-    # mylogger('test.log','just for test')
-    # trading_time()
-    # sendmail('content--------', 'subject------')
-    # send_aliyun('你是这样的的', '二维翁', 'weigesysu@qq.com')
-    # is_holiday()
     pass

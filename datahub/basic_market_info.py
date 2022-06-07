@@ -32,7 +32,7 @@ class BasicMarket(BaseService):
         '''
         # 需要添加异常处理 重试次数
         count = 0
-
+        df = None
         while count < retry:
             try:
                 df = self.pro.stock_basic(exchange='', list_status='', fields='')
@@ -58,6 +58,8 @@ class BasicMarket(BaseService):
             except Exception as e:
                 self.logger.error(e)
                 self.notify(title=f'{self.__class__}mysql入库出错')
+
+        return df
 
 def main():
     obj=BasicMarket()

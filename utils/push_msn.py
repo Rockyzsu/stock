@@ -11,7 +11,7 @@ from toolkit import Toolkit
 import tushare as ts
 from pandas import Series
 import matplotlib.pyplot as plt
-import itchat
+# import itchat
 # 推送股价信息到手机
 class MailSend():
     def __init__(self, smtp_server, from_mail, password, to_mail):
@@ -49,15 +49,6 @@ class MailSend():
             print(e)
             return 0
 
-def push_wechat(name, real_price, real_percent, type):
-    name='wwwei'
-    itchat.auto_login(hotReload=True)
-    account=itchat.get_friends(name)
-    for i in account:
-        if i['PYQuanPin']==name:
-            toName=i['UserName']
-    content=name+' ' + str(real_price)+' '+ str(real_percent)+' percent '+ type
-    itchat.send(content,toUserName=toName)
 
 
 def push_msg(name, price, percent, status):
@@ -106,7 +97,7 @@ def meet_price(code, price_up, price_down,type):
             push_msg(name, real_price, percent, 'up')
             return 1
         elif type=='wechat':
-            push_wechat(name, real_price, percent, 'up')
+            pass
     if real_price <= price_down:
         print('%s price lower than %.2f , %.2f' % (name, real_price, percent),)
         print('%')
@@ -114,7 +105,7 @@ def meet_price(code, price_up, price_down,type):
             push_msg(name, real_price, percent, 'down')
             return 1
         elif type=='wechat':
-            push_wechat(name, real_price, percent, 'down')
+            pass
 
 def meet_percent(code, percent_up, percent_down,type):
     try:
@@ -137,7 +128,7 @@ def meet_percent(code, percent_up, percent_down,type):
             push_msg(name, real_price, real_price, 'up')
             return 1
         elif type=='wechat':
-            push_wechat(name, real_price, real_percent, 'down')
+            pass
             return 1
     if real_percent <= percent_down:
         print('%s percent lower than %.2f , %.2f' % (name, real_percent, real_price),)
@@ -147,7 +138,7 @@ def meet_percent(code, percent_up, percent_down,type):
 
             return 1
         elif type=='wechat':
-            push_wechat(name, real_price, real_percent, 'down')
+            pass
             return 1
 # 推送一般的实盘消息
 def general_info():
@@ -232,7 +223,7 @@ def main():
 
 
 if __name__ == '__main__':
-    path=os.path.join(os.getcwd(),'data')
+    path=os.path.join(os.getcwd(), '../data')
     if os.path.exists(path)==False:
         os.mkdir(path)
     os.chdir(path)
