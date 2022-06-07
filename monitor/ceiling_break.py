@@ -5,7 +5,7 @@ http://30daydo.com
 Contact: weigesysu@qq.com
 '''
 
-# 重构
+# 股票封板监控
 
 import time
 import datetime
@@ -50,7 +50,7 @@ class BreakMonitor(BaseService):
         while 1:
 
             # 交易时间
-            if trading_time() != 0:
+            if self.trading_time() != 0:
                 break
 
             try:
@@ -65,7 +65,7 @@ class BreakMonitor(BaseService):
             if self.percent(float(df.iloc[0]['price']), float(df.iloc[0]['pre_close'])) < 9:
                 if self.send == True:
                     title = f'{code}已经板了'
-                    notify(title)
+                    self.notify(title)
                     break
 
             if v <= 1000:
@@ -74,7 +74,7 @@ class BreakMonitor(BaseService):
                 print(self.bases[self.bases['code'] == code]['name'].values[0])
                 if self.send == True:
                     title = f'{code}开板了'
-                    notify(title)
+                    self.notify(title)
 
             time.sleep(10)
 

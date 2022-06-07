@@ -12,11 +12,17 @@
 
 *fund/ 基金相关的分析部分*
 
+*futu/ 富途牛牛接口的基本用法 *
+
+*hk_stock/ 港股部分*
+
 *k-line/ K线技术形态部分*
+
+*machine_learning/ 机器学习预测* 
 
 *trader/ 交易部分*
 
-*ptrade/ ptrade量化交易实盘代码*
+*ptrade/ ptrade自动交易实盘代码*
 
 *log/* 存放日志
 
@@ -57,6 +63,7 @@
 * datahub/public_private_fund_members.py 公墓私募基金成员数据
 * datahub/jucao_ammouncement.py 巨潮公告批量获取+PDF下载
 * datahub/bond_industry_info.py 可转债行业分布
+* datahub/ceiling_break.py 涨停板封榜监控
 
 ## k-line （K线技术形态识别）
 * k-line/recognize_form.py 通过talib识别常见形态，如三只乌鸦等
