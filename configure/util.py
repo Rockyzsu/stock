@@ -203,6 +203,14 @@ def get_holding_list(filename=None):
     df = df[df['kzz'] == True]
     return df['证券代码'].tolist()
 
+def mongo_convert_df(doc,condition=None,project=None):
+    import pandas as pd
+    result =[]
+    for item in doc.find(condition,project):
+        result.append(item)
+    return pd.DataFrame(result)
+
+
 if __name__ == '__main__':
     for _ in range(5):
         print(send_message_via_wechat(_message="first wechat message {}".format(time.time())))
