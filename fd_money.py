@@ -6,6 +6,7 @@ from configure.settings import DBSelector
 import datetime
 import matplotlib.pyplot as plt
 DB = DBSelector()
+
 conn = DB.get_mysql_conn('db_zdt', 'qq')
 cursor = conn.cursor()
 diff_day = 20

@@ -30,6 +30,56 @@
 
 *configure* 数据库连接与配置
 
+----
+#### 使用教程：
+* 修改 configure/sample_config.json 配置文件名 为 configure/config.json，根据不同项目，并对着里面的字段进行修改，修改你的mysql，mongodb的用户名和密码，如果项目里面没有用到mysql，mongodb等，则不需要修改。
+对应的映射关系可以看这个文件里面的源码。这个设置主要为了同一套代码便于切换线上和本地的数据库，并没有采用环境变量的方式存储用户密码。需要的朋友也可以自己改动。
+
+configure/setting.py
+
+```
+    def config(self, db_type='mysql', local='ubuntu'):
+        db_dict = self.json_data[db_type][local]
+        user = db_dict['user']
+        password = db_dict['password']
+        host = db_dict['host']
+        port = db_dict['port']
+        return (user, password, host, port)
+
+    def get_engine(self, db, type_='ubuntu'):
+        from sqlalchemy import create_engine
+        user, password, host, port = self.config(db_type='mysql', local=type_)
+        try:
+            engine = create_engine(
+                'mysql+pymysql://{}:{}@{}:{}/{}?charset=utf8'.format(user, password, host, port, db))
+        except Exception as e:
+            print(e)
+            return None
+        return engine
+
+    def get_mysql_conn(self, db, type_='ubuntu'):
+        import pymysql
+        user, password, host, port = self.config(db_type='mysql', local=type_)
+        try:
+            conn = pymysql.connect(host=host, port=port, user=user, password=password, db=db, charset='utf8')
+        except Exception as e:
+            print(e)
+            return None
+        else:
+            return conn
+
+    def mongo(self, location_type='ubuntu', async_type=False):
+        user, password, host, port = self.config('mongo', location_type)
+        connect_uri = f'mongodb://{user}:{password}@{host}:{port}'
+        if async_type:
+            from motor.motor_asyncio import AsyncIOMotorClient
+            client = AsyncIOMotorClient(connect_uri)
+        else:
+            import pymongo
+            client = pymongo.MongoClient(connect_uri)
+        return client
+```
+
 #### 文末有券商福利：提供券商自动化下单接口
 
 ---
@@ -124,7 +174,7 @@
 开通条件：
 
 * 券商一：开户后入金30W保持一天时间即可。后续即可取出。
-* 券商二：开户后入金1W即可开通
+* 券商二：开户后入金10W即可开通
 
 ----
 

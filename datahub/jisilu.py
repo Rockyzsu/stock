@@ -22,7 +22,6 @@ from datahub.jsl_login import login
 class Jisilu(BaseService):
     def __init__(self, check_holiday=False, remote='qq'):
         super(Jisilu, self).__init__(logfile='log/jisilu.log')
-
         if check_holiday:
             self.check_holiday()
 
@@ -34,7 +33,6 @@ class Jisilu(BaseService):
         self.pre_release_url = 'https://www.jisilu.cn/data/cbnew/pre_list/?___jsl=LST___t={}'.format(self.timestamp)
         self.remote = remote
         self.DB = DBSelector()
-        self.engine = self.DB.get_engine('db_jisilu', self.remote)
         self.get_session()
 
     @property
@@ -103,7 +101,6 @@ class Jisilu(BaseService):
 
         ret = js.json()
         bond_list = ret.get('rows', {})
-        # print(len(bond_list))
         df = self.data_parse(bond_list, adjust_no_use)
         self.store_mysql(df)
 
@@ -115,13 +112,11 @@ class Jisilu(BaseService):
         df = pd.DataFrame(cell_list)
 
         if adjust_no_use:
-
             # 类型转换 部分含有%
             df['price'] = df['price'].astype('float64')
             df['convert_price'] = df['convert_price'].astype('float64')
             df['premium_rt'] = df['premium_rt'].astype('float64')
             df['force_redeem_price'] = df['force_redeem_price'].astype('float64')
-
 
             rename_columns = {'bond_id': '可转债代码', 'bond_nm': '可转债名称',
                               'price': '可转债价格', 'stock_nm': '正股名称',
@@ -178,11 +173,15 @@ class Jisilu(BaseService):
             print(e)
 
     def store_mysql(self, df):
-        try:
+        # 根据不同配置写入到不同数据库，
+        TABLE_DICT = {'qq': {'fix_db': 'db_stock', 'daily_db': 'db_jisilu'},
+                      'ptrade': {'fix_db': 'ptrade', 'daily_db': 'db_jisilu_end'}}
 
-            df.to_sql('tb_jsl_{}'.format(self.date), self.engine, if_exists='replace', dtype={'可转债代码': VARCHAR(10)})
-            db_stock = self.DB.get_engine('db_stock', self.remote)
-            df.to_sql('tb_bond_jisilu'.format(self.date), db_stock, if_exists='replace', dtype={'可转债代码': VARCHAR(10)})
+        try:
+            engine = self.DB.get_engine(TABLE_DICT.get(self.remote).get('daily_db'), self.remote)
+            df.to_sql('tb_jsl_{}'.format(self.date), engine, if_exists='replace', dtype={'可转债代码': VARCHAR(10)})
+            engine = self.DB.get_engine(TABLE_DICT.get(self.remote).get('fix_db'), self.remote)
+            df.to_sql('tb_bond_jisilu', engine, if_exists='replace', dtype={'可转债代码': VARCHAR(10)})
 
         except Exception as e:
             self.logger.info(e)
