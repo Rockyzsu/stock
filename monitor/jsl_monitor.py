@@ -119,11 +119,11 @@ class ReachTargetJSL(BaseService):
                     word = '涨停 ' if sincrease_rt > 0 else '跌停'
 
                     flag = item.get('redeem_icon')
-                    if FILTER_REDEEM and (flag=='Y' or flag=='0' or flag=='R'):
+                    if FILTER_REDEEM and (flag in ['Y','0','R','O']):
                         #过滤强赎
                         continue
 
-                    if curr_iss_amt>15:
+                    if curr_iss_amt>=15:
                         # 过滤规模大于15亿
                         continue
 
