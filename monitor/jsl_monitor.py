@@ -1,4 +1,7 @@
 # 使用jsl作为数据源
+import json
+
+import redis
 import requests
 import sys
 
@@ -8,7 +11,6 @@ import threading
 from configure.settings import config
 
 from common.BaseService import BaseService, HistorySet
-from configure.util import get_holding_list
 from datahub.jsl_login import login
 
 ACCESS_INTERVAL = config['jsl_monitor']['ACCESS_INTERVAL']
@@ -17,9 +19,12 @@ EXPIRE_TIME = config['jsl_monitor']['EXPIRE_TIME']
 HOLDING_FILENAME = config['holding_file']
 JSL_USER = config['jsl_monitor']['JSL_USER']
 JSL_PASSWORD = config['jsl_monitor']['JSL_PASSWORD']
-
+ACCESS_INTERVAL_REALTIME = config['jsl_monitor']['ACCESS_INTERVAL_REALTIME']
 FILTER_REDEEM = True #过滤强赎
-
+REDIS_KEY = config['jsl_monitor']['REDIS_KEY']
+REDIS_HOST=config['redis']['uc']['host']
+REDIS_PORT=config['redis']['uc']['port']
+REDIS_PASSWORD =config['redis']['uc']['password']
 class ReachTargetJSL(BaseService):
     def __init__(self):
         super(ReachTargetJSL, self).__init__(f'../log/{self.__class__.__name__}.log')
@@ -38,7 +43,6 @@ class ReachTargetJSL(BaseService):
         self.params = (
             ('___jsl', f'LST___t={ts}'),
         )
-        self.holding_list = get_holding_list(filename=HOLDING_FILENAME)
         self.query_condition = {
             "fprice": None,
             "tprice": None,
@@ -59,6 +63,7 @@ class ReachTargetJSL(BaseService):
 
         self.history = HistorySet(expire=EXPIRE_TIME)
         self.get_session()
+        self.r=None
 
     def get_session(self):
         self.session = login(JSL_USER, JSL_PASSWORD)
@@ -76,15 +81,78 @@ class ReachTargetJSL(BaseService):
             ret = response.json()
             return ret
 
-    def __convert__(self, string):
 
-        string = string.replace('%', '')
+    def redis_client_init(self):
+        if self.r is None:
+            self.r =redis.StrictRedis(host=REDIS_HOST,port=REDIS_PORT,password=REDIS_PASSWORD,decode_responses=False,db=0)
+
+    def send_redis(self,data_list,key):
+        self.redis_client_init()
+        obj = json.dumps(data_list,ensure_ascii=False)
+
         try:
-            string = round(float(string), 1)
-        except:
-            return 0
-        else:
-            return string
+            self.r.set(key,obj)
+            ret = self.r.expire(key,60) # 60秒过期
+            print(ret)
+        except Exception as e:
+            print(e)
+            self.r = None
+            self.redis_client_init()
+            self.r.set(key,obj)
+            ret = self.r.expire(key,60)
+            print(ret)
+
+
+    def once(self):
+        result =self.fetch_data()
+        t = threading.Thread(target=self.send_redis, args=(result,REDIS_KEY))
+        t.start()
+        t.join()
+        print('done')
+    def fetch_data(self):
+        ret = self.get()
+
+        if not ret:
+            time.sleep(5)
+
+        result = []
+        for tmp_item in ret.get('rows', []):
+            item = tmp_item.get('cell', {})
+            bond_nm = item.get('bond_nm', '').strip()
+            bond_id = item.get('bond_id', '').strip()
+
+            full_price = round(item.get('price'), 2)
+            premium_rt = item.get('premium_rt')
+
+            sincrease_rt = item.get('sincrease_rt')  # 正股涨幅
+            increase_rt = item.get('increase_rt')
+            curr_iss_amt = round(item.get('curr_iss_amt'), 2)  # 剩余规模
+            flag = item.get('redeem_icon')
+            pb = item.get('pb')
+            list_dt = item.get('list_dt')
+            convert_value = item.get('convert_value')
+            convert_price = item.get('convert_price')
+            tmp_dict = {'bond_nm': bond_nm, 'bond_id': bond_id, 'zz_price': full_price,
+                        'premium_rt': premium_rt, 'sincrease_rt': sincrease_rt, 'increase_rt': increase_rt,
+                        'curr_iss_amt': curr_iss_amt, 'flag': flag, 'pb': pb, 'list_dt': list_dt,
+                        'convert_value': convert_value, 'convert_price': convert_price
+
+                        }
+
+            result.append(tmp_dict)
+
+        return result
+
+    def realtime_fetch(self):
+
+        while True:
+            # if True:
+            if self.trading_time() == 0:
+                self.fetch_data()
+            elif self.trading_time() == 1:
+                break
+
+            time.sleep(ACCESS_INTERVAL_REALTIME)
 
     def monitor(self):
 
@@ -105,7 +173,6 @@ class ReachTargetJSL(BaseService):
                     bond_id = item.get('bond_id', '').strip()
 
                     full_price = round(item.get('price'),1)
-                    # premium_rt = self.__convert__(item.get('premium_rt'))
                     premium_rt = item.get('premium_rt')
 
                     sincrease_rt = item.get('sincrease_rt')  # 正股涨幅
@@ -127,7 +194,7 @@ class ReachTargetJSL(BaseService):
                         # 过滤规模大于15亿
                         continue
 
-                    if bond_id in self.holding_list and abs(increase_rt) > 9 and self.history.is_expire(bond_id):
+                    if abs(increase_rt) > 9 and self.history.is_expire(bond_id):
                         text = f'{bond_nm} {increase_rt},价格：{full_price}; 正股{sincrease_rt}; 规模：{curr_iss_amt}; 溢价率：{premium_rt}'
                         t = threading.Thread(target=self.notify, args=(text,))
                         t.start()
@@ -149,4 +216,5 @@ class ReachTargetJSL(BaseService):
 
 if __name__ == "__main__":
     app = ReachTargetJSL()
-    app.monitor()
+    # app.monitor()
+    app.once()

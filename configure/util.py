@@ -15,7 +15,7 @@ import json
 import pandas as pd
 import re
 import requests
-from .settings import config, get_config_data
+from .settings import config, get_config_data,DBSelector
 
 
 def notify(title='', desp=''):
@@ -210,8 +210,12 @@ def mongo_convert_df(doc,condition=None,project=None):
         result.append(item)
     return pd.DataFrame(result)
 
+def get_jsl_code(table):
+    # from settings import DBSelector
+    engine = DBSelector().get_engine('db_stock','kh')
+    df = pd.read_sql(table,engine)
+    return df
 
 if __name__ == '__main__':
-    for _ in range(5):
-        print(send_message_via_wechat(_message="first wechat message {}".format(time.time())))
-        time.sleep(0.5)
+    print(get_jsl_code('tb_bond_jisilu'))
+

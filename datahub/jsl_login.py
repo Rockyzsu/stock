@@ -45,7 +45,7 @@ def decoder(text):
 
 def get_bond_info(session):
     ts = int(time.time() * 1000)
-    url = 'https://www.jisilu.cn/data/cbnew/cb_list/?___jsl=LST___t={}'.format(ts)
+    url = 'https://www.jisilu.cn/data/cbnew/cb_list_new/?___jsl=LST___t={}'.format(ts)
     data = {
         "fprice": None,
         "tprice": None,
@@ -111,7 +111,8 @@ def main():
     session = login(user, password)
     ret = get_bond_info(session)
     df = pd.DataFrame(ret)
-    print(df)
+    # print(df)
+    return df
 
 
 if __name__ == '__main__':

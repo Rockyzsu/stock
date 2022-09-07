@@ -13,7 +13,7 @@ from common.BaseService import BaseService
 from configure.util import send_message_via_wechat
 from configure.settings import DBSelector
 
-
+# 失效
 class ForeighExchange(BaseService):
 
     def __init__(self):
@@ -30,6 +30,7 @@ class ForeighExchange(BaseService):
         content = self.fetch_web()
 
         if content:
+
             pattern = re.compile('\{bank:\'工商银行\',currency:\'美元\',code:\'USD\',currencyUnit:\'\',cenPrice:\'\',(buyPrice1:\'[.0-9]+\',sellPrice1:\'[.0-9]+\'),.*?\'\}')
             ret_str =  pattern.search(content).group(1)
 
@@ -54,6 +55,7 @@ class ForeighExchange(BaseService):
             try:
                 r = requests.get(url=self.url,headers=self.headers)
                 if r.status_code==200:
+                    r.encoding='gbk'
                     return r.text
                 else:
                     continue
