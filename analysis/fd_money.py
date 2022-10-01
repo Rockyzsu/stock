@@ -24,12 +24,7 @@ class FDPlot:
 
         for d in range(DAY):
             day = datetime.datetime.now() + datetime.timedelta(days=-1 * d)
-            # if ts.is_holiday(day.strftime('%Y-%m-%d')):
-            #     continue
-
-            # sql = 'select 封单金额 as total_money from `{}zdt`'.format(day.strftime('%Y%m%d'))
             sql = 'select sum(`封单金额`) as total_money from `{}zdt`'.format(day.strftime('%Y%m%d'))
-
 
 
             try:
