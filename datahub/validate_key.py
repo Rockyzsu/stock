@@ -5,3 +5,4 @@
 
 username=''
 password=''
+sign='' # 找群主要

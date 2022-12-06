@@ -135,7 +135,7 @@ class Jisilu(BaseService):
                               # 'issue_dt': '发行时间',
                               # 'redeem_tc': '强制赎回条款',
                               # 'adjust_tc': '下修条件',
-                              # 'adjust_condition': '下修条件',
+                                 # 'adjust_condition': '下修条件',
                               'turnover_rt': '换手率',
                               'convert_price_tips': '下修提示',
                               # 'put_tc': '回售',
@@ -155,7 +155,7 @@ class Jisilu(BaseService):
                               'adj_scnt': '下修成功次数',
                               'convert_cd_tip': '转股日期提示',
                               'ref_yield_info': '参考YTM',
-
+                                # 'year_left':'剩余年限',
                               # 'guarantor': '担保',
                               }
 
