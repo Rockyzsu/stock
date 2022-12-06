@@ -5,6 +5,7 @@
 
 # 宁稳网
 import json
+import os
 import random
 import time
 from parsel import Selector
@@ -21,23 +22,14 @@ warnings.filterwarnings("ignore")
 logger = loguru.logger
 
 
-class BaseCls():
-    def __init__(self):
-        self.session = requests.Session()
-
-    def load_pickle(self):
-        with open('ninwen_model.h', 'rb') as fp:
-            self.model = pickle.load(fp)
-
-
-class NinwenSpider(BaseCls):
+class NinwenSpider():
 
     def __init__(self):
         super(NinwenSpider, self).__init__()
         self.session = requests.Session()
         self.today = datetime.datetime.now().strftime('%Y-%m-%d')
         logger.info(f'{self.today} start to crawl....')
-        self.load_pickle()
+
 
     @property
     def headers(self):
@@ -146,7 +138,7 @@ class NinwenSpider(BaseCls):
                          ("涨跌", ".//td[10]/spand/text()"),
                          ("日内套利", ".//td[11]/spand/text()"),
                          ("股价", ".//td[12]/text()"),
-                         ("涨跌", ".//td[13]/spand/text()"),
+                         ("正股涨跌", ".//td[13]/spand/text()"),
                          ("剩余本息", ".//td[14]/text()"),
                          ("转股价格", ".//td[15]/text()"),
                          ("转股溢价率", ".//td[16]/text()"),
@@ -181,8 +173,7 @@ class NinwenSpider(BaseCls):
                          ("老式排名", ".//td[38]/text()"),
                          ("新式双低", ".//td[39]/text()"),
                          ("新式排名", ".//td[40]/text()"),
-                         ("MA20乖离", ".//td[41]/text()"),
-                         ("热门度", ".//td[42]/text()"),
+                         ("热门度", ".//td[41]/text()"),
                          ]
         return columns_name_
 
@@ -216,12 +207,14 @@ class NinwenSpider(BaseCls):
 
     def image_recognize(self, img):
         files = {'file': img}
-        data = {'key': self.model.get('key').strip(), 'source': self.model.get('source').strip()}
+        data={'sign':validate_key.sign}
 
-        url=self.model.get('image_host')
-        r = requests.post(url=url, files=files, data=data)
+        url='验证码识别服务器地址'
+
+        r = requests.post(url=url, files=files, data=data,timeout=20)
         try:
             code = r.json().get('code')
+            print(r.json())
         except Exception as e:
             logger.error(e)
             raise e
@@ -258,6 +251,7 @@ class NinwenSpider(BaseCls):
             bond_info_list = self.parse(content)
             self.dump_excel(bond_info_list)
             logger.info('获取结束')
+            os.remove('code.png')
             break
 
 
