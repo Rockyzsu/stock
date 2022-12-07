@@ -53,11 +53,14 @@ class DBSelector(object):
             return None
         return engine
 
-    def get_mysql_conn(self, db, type_='qq'):
+    def get_mysql_conn(self, db, type_='qq',use_dict=False):
         import pymysql
         user, password, host, port = self.config(db_type='mysql', local=type_)
         try:
-            conn = pymysql.connect(host=host, port=port, user=user, password=password, db=db, charset='utf8')
+            if use_dict:
+                conn = pymysql.connect(host=host, port=port, user=user, password=password, db=db, charset='utf8',read_timeout=10,cursorclass= pymysql.cursors.DictCursor)
+            else:
+                conn = pymysql.connect(host=host, port=port, user=user, password=password, db=db, charset='utf8',read_timeout=10)
         except Exception as e:
             print(e)
             return None
