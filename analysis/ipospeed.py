@@ -6,11 +6,11 @@ Contact: weigesysu@qq.com
 '''
 # 查看ipo速度 和指数的关系
 import tushare as ts
-from datetime import datetime
 import pandas as pd
 import numpy as np
 from pandas import Series
-import matplotlib.pyplot as plt
+import pyecharts.options as opts
+from pyecharts.charts import Line
 
 pd.set_option('display.max_rows', None)
 
@@ -20,75 +20,81 @@ class IPOSpeed():
     def __init__(self):
 
         self.ipo = ts.new_stocks()
-
         # 日期转化
         self.ipo['ipo_date'] = self.ipo['ipo_date'].astype('datetime64')
         self.start = self.ipo['ipo_date'].iloc[-1]
         self.end = self.ipo['ipo_date'].values[0]
         # 转化类型
-        # ipo['ipo_date']=ipo['ipo_date'].astype('datetime64')
-        # self.start_d=datetime.datetime.strptime(self.start,'%Y-%m-%d')
-        # self.end_d=datetime.datetime.strptime(self.end,'%Y-%m-%d')
-        # print(type(self.start_d))
-        # period=self.start_d+datetime.timedelta(days=30)
-        # print(period.strftime('%Y-%m-%d'))
-        # print(ipo[ipo['ipo_date']<np.datetime64(period)])
 
     def comparation(self):
-        # print(self.start)
-        # print(self.end)
         delta = 30
         count_list = []
         profit_list = []
+        date_list =[]
+
         self.period = self.end + np.timedelta64(delta, 'D')
-        # print(self.period)
-        # print(self.ipo[self.ipo['ipo_date']<self.period])
-        # print(type(self.end.tolist()))
-        l = self.end.tolist()
-        ns = 1e-9
-        b = datetime.utcfromtimestamp(l * ns)
-        # print(datetime.fromtimestamp(self.end.tolist()))
-        c = b.strftime('%Y-%m-%d')
-        # print(type(c))
-        start_data = self.start
-        while start_data < self.end:
-            # print(start_data)
-            first_date = start_data
-            start_data = start_data + np.timedelta64(delta, 'D')
-            result = self.ipo[(self.ipo['ipo_date'] >= first_date) & (self.ipo['ipo_date'] < start_data)]
-            # print(result)
+        start_date = self.start
+
+        while start_date < self.end:
+            first_date = start_date
+            start_date = start_date + np.timedelta64(delta, 'D')
+            result = self.ipo[(self.ipo['ipo_date'] >= first_date) & (self.ipo['ipo_date'] < start_date)]
             count = len(result)
 
-            temp_end_data = start_data + np.timedelta64(-1, 'D')
-            t = pd.to_datetime(str(temp_end_data))
-            d = t.strftime('%Y-%m-%d')
-            t1 = pd.to_datetime(str(first_date))
-            d1 = t1.strftime('%Y-%m-%d')
-            sz_index_data = ts.get_k_data('399001', index=True, start=d1, end=d)
-            # print(index_data)
+            start_date_str = pd.to_datetime(str(first_date)).strftime('%Y-%m-%d')
+            end_date_str = pd.to_datetime(str(start_date)).strftime('%Y-%m-%d')
+
+            # sz_index_data = ts.get_k_data('399001', index=True, start=start_date_str, end=end_date_str)
+            hs300_index_data = ts.get_k_data('399300', index=True, start=start_date_str, end=end_date_str)
             # 大盘（深圳，考虑到国家队在上证的操作） 在30天内的收益
-            before = sz_index_data['close'].values[0]
-            after = sz_index_data['close'].values[-1]
-            # profit_index=(index_data['close'][-1]-index_data['close'][0])/index_data['close'][0]*100
-            p = round((after - before) / before * 100, 2)
+            index_data = hs300_index_data
+            start_v = index_data['close'].values[0]
+            end_v = index_data['close'].values[-1]
+            p = round((end_v - start_v) / start_v * 100, 2)
             count_list.append(count)
             profit_list.append(p)
+            date_list.append(end_date_str)
 
-        return count_list, profit_list
+        return count_list, profit_list,date_list
 
     def draw(self):
-        count, profit = self.comparation()
-        s1 = Series(count, index=range(len(count)))
-        s2 = Series(profit, index=range(len(profit)))
+        count_list, profit_list,date_list = self.comparation()
+        title1='IPO数量'
+        title2='指数走势'
+        title='相关性走势'
 
-        ax=s1.plot()
-        ax2=s2.plot()
-        fig=ax.get_figure()
-        fig.savefig('count.png')
-        fig2=ax2.get_figure()
-        fig2.savefig('profit.png')
+        c = (
+            Line()
+            .add_xaxis(date_list)
+            .add_yaxis(title1, count_list, is_smooth=True,
+                       label_opts=opts.LabelOpts(is_show=False),
+                       linestyle_opts=opts.LineStyleOpts(width=2, color='rgb(255, 0, 0)'),
+                       ).add_yaxis(title2, profit_list, is_smooth=True,
+                                   linestyle_opts=opts.LineStyleOpts(width=2, color='rgb(0, 0, 255)'),
+                                   label_opts=opts.LabelOpts(is_show=False),
+                                   ).set_global_opts(
+                title_opts=opts.TitleOpts(title=title),
+                xaxis_opts=opts.AxisOpts(
+                    name='日期',
+                    min_interval=1,
+                    splitline_opts=opts.SplitLineOpts(is_show=True),
+                    axislabel_opts=opts.LabelOpts(rotate=55),
+                ),
+                yaxis_opts=opts.AxisOpts(name='收益率%',
+                                         interval=3,
+                                         # min_=_ymin - 2,
+                                         # max_=_ymax + 2,
+                                         splitline_opts=opts.SplitLineOpts(is_show=True),
+                                         )
+            )
+            .set_colors(['red', 'blue'])  # 点的颜色
+            .render(f"../data/IPO与指数走势相关性.html")
+        )
+        count_s1 = Series(count_list, index=date_list)
+        profit_s1 = Series(profit_list, index=date_list)
 
-        # r = s1.corr(s2)
+        relation_ratio = count_s1.corr(profit_s1) # 相关系数
+        print('IPO发行数据与沪深300的相关系数 ',relation_ratio)
 
 
 def main():
