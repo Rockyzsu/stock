@@ -10,7 +10,6 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 from pandas import Series
-
 import matplotlib.pyplot as plt
 
 pd.set_option('display.max_rows', None)
@@ -81,20 +80,20 @@ class IPOSpeed():
         count, profit = self.comparation()
         s1 = Series(count, index=range(len(count)))
         s2 = Series(profit, index=range(len(profit)))
-        '''
+
         ax=s1.plot()
         ax2=s2.plot()
         fig=ax.get_figure()
         fig.savefig('count.png')
         fig2=ax2.get_figure()
         fig2.savefig('profit.png')
-        '''
-        r = s1.corr(s2)
+
+        # r = s1.corr(s2)
 
 
 def main():
     obj = IPOSpeed()
     obj.draw()
 
-
-main()
+if __name__=='__main__':
+    main()
