@@ -44,10 +44,10 @@ class IPOSpeed():
             start_date_str = pd.to_datetime(str(first_date)).strftime('%Y-%m-%d')
             end_date_str = pd.to_datetime(str(start_date)).strftime('%Y-%m-%d')
 
-            # sz_index_data = ts.get_k_data('399001', index=True, start=start_date_str, end=end_date_str)
-            hs300_index_data = ts.get_k_data('399300', index=True, start=start_date_str, end=end_date_str)
+            #index_data = ts.get_k_data('399001', index=True, start=start_date_str, end=end_date_str)
+            index_data = ts.get_k_data('000001', index=True, start=start_date_str, end=end_date_str)
             # 大盘（深圳，考虑到国家队在上证的操作） 在30天内的收益
-            index_data = hs300_index_data
+            index_data = index_data
             start_v = index_data['close'].values[0]
             end_v = index_data['close'].values[-1]
             p = round((end_v - start_v) / start_v * 100, 2)
