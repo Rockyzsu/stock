@@ -90,9 +90,10 @@ configure/setting.py
 
 ### analysis 目录 数据分析部分
 
-* get_zt_info 分析次新板块中的涨停强度
-* diagnose_stock 股票诊断，是否有黑历史和东北股
-* ipospeed IPO发行速度 与指数的相关性
+* analysis/get_zt_info 分析次新板块中的涨停强度
+* analysis/diagnose_stock 股票诊断，是否有黑历史和东北股
+* analysis/ipospeed IPO发行速度 与指数的相关性
+* analysis/fd_money A股某段日期内涨停板的封单金额 
 * 
 ### fund（基金）
 
@@ -164,8 +165,8 @@ configure/setting.py
 
 ### 费率
 
-交易费率极低：<br>
-股票万一； 可转债沪百万分之二，深十万分之五；基金ETF,LOF万0.5
+交易费率低：<br>
+股票万一； 可转债万0.4；基金ETF,LOF万0.5
 
 
 ----
@@ -173,9 +174,10 @@ configure/setting.py
 开通量化接口后是不收取额外费用，可永久使用。
 
 开通条件：
-
-* 券商一：开户后入金30W保持一天时间即可。后续即可取出。
-* 券商二：开户后入金10W即可开通
+不同券商门槛不同
+* 券商一：开户后入金1W可开通
+* 券商二：开户后入金2W即可开通
+* 
 
 ----
 
