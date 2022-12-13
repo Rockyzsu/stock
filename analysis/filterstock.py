@@ -12,7 +12,8 @@ import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
 
-
+import sys
+sys.path.append('..')
 from configure.settings import DBSelector
 
 matplotlib.use("Pdf")
@@ -244,8 +245,8 @@ class FilterStock():
 class Filter_CB(object):
 
     def __init__(self):
-        self.engine = DBSelector().get_engine('db_stock', 'qq')
-        self.bonds = pd.read_sql('tb_bond_jisilu', con=self.engine)
+        self.engine = DBSelector().get_engine('db_stock', 'tencent-1c')
+        # self.bonds = pd.read_sql('tb_bond_jisilu', con=self.engine)
 
     # 获取新股的可转债，一般比较猛
     def get_new_stock_bond(self, start='2017', end='2019'):
