@@ -1,11 +1,13 @@
 # -*-coding=utf-8-*-
-import datetime
-import time
 
 __author__ = 'Rocky'
 '''
 http://30daydo.com
 Contact: weigesysu@qq.com
+'''
+
+__doc__='''
+复盘数据与流程
 '''
 
 from configure.settings import DBSelector
@@ -16,33 +18,41 @@ pd.set_option('expand_frame_repr', False)
 client = pymongo.MongoClient('raspberrypi')
 db = client['stock']
 doc = db['industry']
+
 today = '2018-05-08'
 # TODAY = datetime.datetime.now().strftime('%Y-%m-%d')
-daily_engine = DBSelector().get_engine('db_daily','qq')
+# daily_engine = DBSelector().get_engine('db_daily','qq')
 daily_df = pd.read_sql(today, daily_engine, index_col='index')
 
+class IndustryFupan:
+    '''
+    每天板块分析
+    '''
+
+    def __init__(self):
+        self.engine = DBSelector()
 
 # 保存到mongo
-def save_industry():
-    try:
-        doc.drop()
-    except Exception as e:
-        print(e)
-
-    engine = get_engine('db_stock')
-    basic_df = pd.read_sql('tb_basic_info', engine, index_col='index')
-    # print(basic_df)
-    for name, group in basic_df.groupby('industry'):
-        # print(name, group)
-        d = dict()
-        d['板块名称'] = name
-        d['代码'] = group['code'].values.tolist()
-        d['更新日期'] = today
+    def save_industry(self):
         try:
-            # pass
-            doc.insert(d)
+            doc.drop()
         except Exception as e:
             print(e)
+
+        engine = get_engine('db_stock')
+        basic_df = pd.read_sql('tb_basic_info', engine, index_col='index')
+        # print(basic_df)
+        for name, group in basic_df.groupby('industry'):
+            # print(name, group)
+            d = dict()
+            d['板块名称'] = name
+            d['代码'] = group['code'].values.tolist()
+            d['更新日期'] = today
+            try:
+                # pass
+                doc.insert(d)
+            except Exception as e:
+                print(e)
 
 
 def hot_industry():
@@ -147,6 +157,7 @@ def industry_detail(kind):
         except:
             name = ''
         select_detail[name] = float(percent)
+
     print('\n\n{} detail\n'.format(kind))
     select_detail = sorted(select_detail.items(), key=lambda x: x[1], reverse=True)
     for n, p in select_detail:
