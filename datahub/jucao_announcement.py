@@ -115,7 +115,6 @@ class JuCaoAnnouncement(BaseService):
 
     def single_page_analysis(self,i):
 
-
         post_data = self.params.copy()
         post_data['pageNum']=str(i)
 
