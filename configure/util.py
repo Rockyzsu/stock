@@ -216,6 +216,26 @@ def get_jsl_code(table):
     df = pd.read_sql(table,engine)
     return df
 
+def fmt_date(x,src='%Y%m%d',trgt='%Y-%m-%d'):
+    return datetime.datetime.strptime(x, src).strftime(trgt)
+
+
+def calendar(start_date,end_date):
+    from .settings import get_tushare_pro
+
+    src='%Y-%m-%d'
+    trgt='%Y%m%d'
+    start_date = fmt_date(start_date,src,trgt)
+    end_date = fmt_date(end_date,src,trgt)
+
+    pro = get_tushare_pro()
+    df = pro.trade_cal(exchange='SSE', start_date=start_date, end_date=end_date, is_open='1')
+
+    cal = df['trade_date'].tolist()
+    cal = list(map(fmt_date, cal))
+
+    return cal
+
 if __name__ == '__main__':
     print(get_jsl_code('tb_bond_jisilu'))
 

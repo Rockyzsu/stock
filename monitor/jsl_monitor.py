@@ -14,7 +14,11 @@ from common.BaseService import BaseService, HistorySet
 from datahub.jsl_login import login
 
 ACCESS_INTERVAL = config['jsl_monitor']['ACCESS_INTERVAL']
-MONITOR_PERCENT = config['jsl_monitor']['MONITOR_PERCENT']
+
+ZZ_PERCENT = config['jsl_monitor']['ZZ_PERCENT']
+ZG_PERCENT = config['jsl_monitor']['ZG_PERCENT']
+REMAIN_SIZE = config['jsl_monitor']['REMAIN_SIZE']
+
 EXPIRE_TIME = config['jsl_monitor']['EXPIRE_TIME']
 HOLDING_FILENAME = config['holding_file']
 JSL_USER = config['jsl_monitor']['JSL_USER']
@@ -25,6 +29,7 @@ REDIS_KEY = config['jsl_monitor']['REDIS_KEY']
 REDIS_HOST=config['redis']['uc']['host']
 REDIS_PORT=config['redis']['uc']['port']
 REDIS_PASSWORD =config['redis']['uc']['password']
+
 class ReachTargetJSL(BaseService):
     def __init__(self):
         super(ReachTargetJSL, self).__init__(f'../log/{self.__class__.__name__}.log')
@@ -163,6 +168,7 @@ class ReachTargetJSL(BaseService):
                 ret = self.get()
 
                 if not ret:
+                    self.logger.error('数据为空，网络问题')
                     time.sleep(5)
                     continue
 
@@ -190,17 +196,17 @@ class ReachTargetJSL(BaseService):
                         #过滤强赎
                         continue
 
-                    if curr_iss_amt>=15:
+                    if curr_iss_amt>=REMAIN_SIZE:
                         # 过滤规模大于15亿
                         continue
 
-                    if abs(increase_rt) > 9 and self.history.is_expire(bond_id):
+                    if abs(increase_rt) > ZZ_PERCENT and self.history.is_expire(bond_id):
                         text = f'{bond_nm} {increase_rt},价格：{full_price}; 正股{sincrease_rt}; 规模：{curr_iss_amt}; 溢价率：{premium_rt}'
                         t = threading.Thread(target=self.notify, args=(text,))
                         t.start()
                         self.history.add(bond_id)
 
-                    if abs(sincrease_rt) >= MONITOR_PERCENT and self.history.is_expire(bond_id):
+                    if abs(sincrease_rt) >= ZG_PERCENT and self.history.is_expire(bond_id):
                         text = f'{bond_nm} {increase_rt},价格：{full_price}; 正股{sincrease_rt}; 规模：{curr_iss_amt}; 溢价率：{premium_rt}'
                         t = threading.Thread(target=self.notify, args=(text,))
                         t.start()
@@ -216,5 +222,5 @@ class ReachTargetJSL(BaseService):
 
 if __name__ == "__main__":
     app = ReachTargetJSL()
-    # app.monitor()
-    app.once()
+    app.monitor()
+    # app.once()
