@@ -58,9 +58,9 @@ class DBSelector(object):
         user, password, host, port = self.config(db_type='mysql', local=type_)
         try:
             if use_dict:
-                conn = pymysql.connect(host=host, port=port, user=user, password=password, db=db, charset='utf8',read_timeout=10,cursorclass= pymysql.cursors.DictCursor)
+                conn = pymysql.connect(host=host, port=port, user=user, password=password, db=db, charset='utf8mb4',read_timeout=10,cursorclass= pymysql.cursors.DictCursor)
             else:
-                conn = pymysql.connect(host=host, port=port, user=user, password=password, db=db, charset='utf8',read_timeout=10)
+                conn = pymysql.connect(host=host, port=port, user=user, password=password, db=db, charset='utf8mb4',read_timeout=10)
         except Exception as e:
             print(e)
             return None
