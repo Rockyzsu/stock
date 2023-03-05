@@ -31,3 +31,4 @@ release/
 /datahub/image_server_dump_model.py
 datahub/model.h
 ninwen_model.h
+validate_key.py

@@ -153,9 +153,9 @@ class NinwenSpider():
                          ("成交额(百万)", ".//td[22]/text()"),
                          ("转债换手率", ".//td[23]/text()"),
 
-                         ("市值，余额", ".//td[21]/@title"),
+                         ("余额/市值", ".//td[24]/@title"),
 
-                         ("余额/市值", ".//td[23]/text()"),
+                         ("余额/股本", ".//td[25]/text()"),
                          ("股票市值(亿)", ".//td[26]/text()"),
 
                          ("P/B", ".//td[27]/text()"),
@@ -209,7 +209,7 @@ class NinwenSpider():
         files = {'file': img}
         data={'sign':validate_key.sign}
 
-        url='验证码识别服务器地址'
+        url=validate_key.url
 
         r = requests.post(url=url, files=files, data=data,timeout=20)
         try:
@@ -237,6 +237,7 @@ class NinwenSpider():
         while 1:
             img = self.get_image()
             code = self.image_recognize(img)
+            print(code)
             self.check_name(csrf)
             self.check_cookies(csrf, code)
             time.sleep(0.5)

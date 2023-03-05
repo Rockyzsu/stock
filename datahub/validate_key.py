@@ -5,4 +5,5 @@
 
 username=''
 password=''
-sign='' # 找群主要
+sign='' # 找群主要 公众号： 可转债量化分析
+url='' # 找群主要
