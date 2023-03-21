@@ -247,7 +247,7 @@ class HistorySet(object):
             self.data.update({value: expire})
 
     def is_expire(self, value):
-        # 没有过期 返回 False
+        # 没有过期 返回 True
         if value not in self.data or self.data[value] < datetime.datetime.now():
             return True
         else:
