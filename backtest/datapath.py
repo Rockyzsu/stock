@@ -1,0 +1,1 @@
+ROOT = '/home/xda/othergit/backtrader/datas/'
