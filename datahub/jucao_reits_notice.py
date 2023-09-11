@@ -100,9 +100,11 @@ class SHTradingAnnounce:
                 else:
                     date= item['updated'].strftime('%Y-%m-%d')
 
-                save_filename = '{}-{}-{}.pdf'.format(date,secName,announcementTitle)
+                save_filename = '{}-{}-{}'.format(date,secName,announcementTitle)
                 if len(save_filename)>=50:
-                    save_filename = '{}-{}-{}.pdf'.format(date,secName,announcementTitle[:50])
+                    save_filename = save_filename[:50]
+                    save_filename+='.pdf'
+
 
                 r = requests.get(url,headers={'User-Agent':'chrome firefox'})
 
