@@ -131,6 +131,8 @@ class FundPurchaseEm:
             ]
         ]
         temp_df['类别']=types
+        temp_df['更新时间']=datetime.datetime.now()
+
         return temp_df
 
     def run(self):

@@ -128,7 +128,7 @@ class Jisilu(BaseService):
                               'convert_value': '转股价值',
                               'dblow': '双低',
                               'put_convert_price': '回售触发价', 'convert_dt': '转股起始日',
-                              'short_maturity_dt': '到期时间', 'volume': '成交额(万元)',
+                              'maturity_dt': '到期时间', 'volume': '成交额(万元)',
                               'force_redeem_price': '强赎价格', 'year_left': '剩余时间',
                               # 'next_put_dt': '回售起始日',
                               'rating_cd': '评级',
