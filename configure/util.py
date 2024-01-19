@@ -236,6 +236,24 @@ def calendar(start_date,end_date):
 
     return cal
 
+import datetime
+import calendar
+
+def is_weekday_today():
+    # 获取当前日期
+    today = datetime.date.today()
+
+    # 获取星期几（0代表星期一，6代表星期日）
+    weekday = today.weekday()
+
+    # 判断是否为工作日（星期一到星期五）
+    if weekday < 5:
+        return True
+    else:
+        return False
+
+
+
 if __name__ == '__main__':
     print(get_jsl_code('tb_bond_jisilu'))
 
