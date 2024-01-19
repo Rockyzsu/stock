@@ -4,11 +4,11 @@
 # @File : ttjj.py
 
 import sys
-import execjs
+# import execjs
 import fire
 import pymongo
 from parsel import Selector
-
+import demjson
 sys.path.append('..')
 import requests
 import datetime
@@ -33,14 +33,16 @@ class TTFund(BaseService):
         self.ft_dict = {'混合': 'hh',  # 类型 gp： 股票 hh： 混合
                         '股票': 'gp',
                         'qdii': 'qdii',
-                        'lof': 'lof',
+                        'lof': 'lof', # not working now
                         'fof': 'fof',
                         '指数': 'zs',
-                        '债券': 'zq'
+                        '债券': 'zq',
+                        'etf': 'etf',
+
                         }
         self.key = key
         self.date_format = datetime.datetime.now().strftime('%Y_%m_%d')
-        self.date_format = '2021_12_15'
+        # self.date_format = '2021_12_15'
         self.doc = self.mongo()['db_stock']['ttjj_rank_{}'.format(self.date_format)]
 
     @property
@@ -91,10 +93,13 @@ class TTFund(BaseService):
         except Exception as e:
             print(e)
 
-    def parse(self, content):
-        js_content = execjs.compile(content)
-        rank = js_content.eval("rankData")
-        return rank.get('datas', [])
+    def parse(self, rp):
+        # print(content)
+        # js_content = execjs.compile(content)
+        # rank = js_content.eval("rankData")
+        rank_txt = rp[rp.find('=') + 2:rp.rfind(';')]
+        rank_rawdata = demjson.decode(rank_txt)
+        return rank_rawdata['datas']
 
     def key_remap(self, rank_data, type_):
         '''
@@ -241,7 +246,7 @@ class TTFund(BaseService):
 
         url='http://fund.eastmoney.com/Data/Fund_JJJZ_Data.aspx?t=1&lx=1&letter=&gsid=&text=&sort=zdf,desc&page={},200&dt=1640059130666&atfc=&onlySale=0'
         content = self.get(url.format(page),_json=False)
-
+        print(content)
         js_content = execjs.compile(content)
         db = js_content.eval("db")
         fund_list = db.get('datas', [])
@@ -258,7 +263,7 @@ class TTFund(BaseService):
             time.sleep(1)
 
 def main(kind, option):
-    _dict = {1: '指数', 2: '股票', 3: '混合', 4: 'qdii', 5: 'lof', 6: 'fof', 7: '债券'}
+    _dict = {1: '指数', 2: '股票', 3: '混合', 4: 'qdii', 5: 'lof', 6: 'fof', 7: '债券',8:'etf'}
 
     app = TTFund(key=_dict.get(kind, '股票'))  # key 基金类型，股票，混合，
 
@@ -279,6 +284,7 @@ def main(kind, option):
 
 
 if __name__ == '__main__':
-    # fire.Fire(main)
-    app=TTFund()
-    app.convert_data_type()
+    fire.Fire(main)
+    # app=TTFund()
+    # app.convert_data_type()
+    # main(kind=1,option='basic')
