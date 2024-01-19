@@ -72,6 +72,7 @@ class PrivateFund(BaseService):
         self.db = DBSelector().mongo('qq')['db_stock']
 
     def parse(self, content):
+        print(content)
         data = content['data'] or []
         for item in data:
             item['crawltime'] = datetime.datetime.now()
@@ -314,8 +315,8 @@ class PrivateFund(BaseService):
 
 def main():
     app = PrivateFund()
-    # app.run()
-    app.update_with_missing_data()
+    app.run()
+    # app.update_with_missing_data()
     # app.debug()
     # app.get_details()
     # app.brute_force()
