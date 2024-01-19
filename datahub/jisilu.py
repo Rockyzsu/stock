@@ -102,7 +102,14 @@ class Jisilu(BaseService):
         ret = js.json()
         bond_list = ret.get('rows', {})
         df = self.data_parse(bond_list, adjust_no_use)
+        print(df)
         self.store_mysql(df)
+
+    def identify_margin(self,x):
+        if len(x) == 0:
+            return '否'
+        else:
+            return '是'
 
     def data_parse(self, bond_list, adjust_no_use):
 
@@ -117,7 +124,8 @@ class Jisilu(BaseService):
             df['convert_price'] = df['convert_price'].astype('float64')
             df['premium_rt'] = df['premium_rt'].astype('float64')
             df['force_redeem_price'] = df['force_redeem_price'].astype('float64')
-
+            df['margin_flg'] = df['icons'].map(self.identify_margin)
+            df['icons'] = df['icons'].map(str)
             rename_columns = {'bond_id': '可转债代码', 'bond_nm': '可转债名称',
                               'price': '可转债价格', 'stock_nm': '正股名称',
                               'stock_id': '正股代码',
@@ -128,7 +136,9 @@ class Jisilu(BaseService):
                               'convert_value': '转股价值',
                               'dblow': '双低',
                               'put_convert_price': '回售触发价', 'convert_dt': '转股起始日',
-                              'short_maturity_dt': '到期时间', 'volume': '成交额(万元)',
+                              'maturity_dt': '到期时间',
+                              # 'short_maturity_dt': '到期时间',
+                              'volume': '成交额(万元)',
                               'force_redeem_price': '强赎价格', 'year_left': '剩余时间',
                               # 'next_put_dt': '回售起始日',
                               'rating_cd': '评级',
@@ -146,12 +156,14 @@ class Jisilu(BaseService):
                               'curr_iss_amt': '剩余规模', 'orig_iss_amt': '发行规模',
                               # 'ration_rt': '股东配售率',
                               'option_tip': '期权价值',
-                              'bond_nm_tip': '强赎提示',
+                              # 'bond_nm_tip': '强赎提示',
                               'redeem_dt': '强赎日期',
                               'list_dt': '上市日期',
                               'ytm_rt': '到期收益率',
-                              'redeem_icon': '强赎标志',
+                              # 'redeem_icon': '强赎标志',
+                              'icons':'标记',
                               'margin_flg': '是否两融标的',
+
                               'adj_scnt': '下修成功次数',
                               'convert_cd_tip': '转股日期提示',
                               'ref_yield_info': '参考YTM',
@@ -160,7 +172,7 @@ class Jisilu(BaseService):
                               }
 
             df = df.rename(columns=rename_columns)
-            df = df[list(rename_columns.values())]
+            # df = df[list(rename_columns.values())]
             df['更新日期'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
 
         df = df.set_index('可转债代码', drop=True)
