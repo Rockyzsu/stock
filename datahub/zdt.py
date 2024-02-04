@@ -167,16 +167,17 @@ class GetZDT(BaseService):
                   '<p>涨幅最小股 <font color="red">{}</font></p>'.format(current, avg, median, min_v, min_percent_name)
 
         return title,content
-    def start(self):
+
+    def run(self):
         zdt_content = self.download(self.zdt_url, headers=self.header_zdt)
         zdt_js = self.convert_json(zdt_content)
-        self.convert_dataframe(zdt_js, self.zdt_indexx, 1, 'zdt')
+        # self.convert_dataframe(zdt_js, self.zdt_indexx, 1, 'zdt')
         # 昨日涨停数据会如果不是当天获取会失效
         zrzt_content = self.download(self.zrzt_url, headers=self.header_zrzt)
         zrzt_js = self.convert_json(zrzt_content)
-        self.convert_dataframe(zrzt_js, self.zrzt_indexx, 2, 'zrzt')
+        # self.convert_dataframe(zrzt_js, self.zrzt_indexx, 2, 'zrzt')
 
 
 if __name__ == '__main__':
     obj = GetZDT()
-    obj.start()
+    obj.run()
