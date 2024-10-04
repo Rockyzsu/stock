@@ -5,22 +5,38 @@ import demjson
 import requests
 import  sys
 sys.path.append('..')
-from configure.settings import config_dict,DBSelector
+from configure.settings import DBSelector
 
 class LOF_arbitrage:
     def __init__(self):
         self.db = DBSelector().mongo()
         self.client = self.db['FUND_LOF']
 
+    def update_premiun(self):
+        date = datetime.datetime.now().strftime('%Y-%m-%d')
+        doc =self.client[date]
+        for fund in doc.find():
+            price = float(fund['trade'])
+            try:
+                netvalue = float(fund['单位净值'])
+                discount = (price-netvalue) / netvalue * 100
+                doc.update_one({'symbol':fund['symbol']},{'$set':{"溢价率":discount}})
+            except Exception as e:
+                print(e)
+                print(fund['symbol'],'error')
     def get_realtime_time(self):
         for p in range(1, 11):
             fund_list = self.get_page(p)
             for fund in fund_list:
                 symbol = fund['symbol'][2:]
+
                 detail_dict = self.fund_detail(symbol)
-                saved_dict = fund.copy()
-                saved_dict.update(detail_dict)
-                self.dump_mongodb(saved_dict)
+                fund.update(detail_dict)
+                price=float(fund['trade'])
+                netvalue = float(['单位净值'])
+                discount = (price-netvalue) / netvalue * 100
+                fund['溢价率'] = discount
+                self.dump_mongodb(fund)
 
     def dump_mongodb(self,data):
         doc = datetime.datetime.now().strftime('%Y-%m-%d')
@@ -47,7 +63,7 @@ class LOF_arbitrage:
         response = requests.request("GET", url, headers=headers, data=payload)
         response.encoding='utf-8'
         result = self.parse(response.text)
-        print(result)
+        return result
 
     def parse(self,content):
         from parsel import Selector
@@ -71,7 +87,6 @@ class LOF_arbitrage:
         headers = {}
         response = requests.request("GET", url, headers=headers, data=payload)
 
-        # print(response.text)
         data = response.text
         start = data.index('[{')
         end = data.rindex(']')
@@ -81,8 +96,8 @@ class LOF_arbitrage:
 
     def run(self):
         self.get_realtime_time()
-        # self.fund_detail('501001')
-
+        # self.update_premiun()
+        # print(self.fund_detail('160637'))
 
 if __name__ == '__main__':
     app = LOF_arbitrage()
