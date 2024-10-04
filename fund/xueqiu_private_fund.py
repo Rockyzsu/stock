@@ -125,6 +125,14 @@ class PrivateFund(BaseService):
 
         return create_date, publish_date
 
+    def this_year_vshs300(self,code):
+        url='https://xueqiu.com/private_fund/product/interval_index.json?symbol={}&benchmark_index=SH000300'
+        resp = requests.get(url.format(code),headers=self.headers)
+        js_data = resp.json()
+        normal_item = js_data['data'][0]['part_index_list'][0]
+        return normal_item
+
+
     def isCrawl(self, symbol):
         if self.db['xueqiu_private_process_{}'.format(self.today_str)].find_one({'symbol': symbol}):
             return True
@@ -310,12 +318,31 @@ class PrivateFund(BaseService):
 
             print('update ',s_fund['manager_nick_name'])
             self.db['xueqiu_private_2021-12-28_brute_force'].update_one({"_id":item['_id']},{"$set":{'manager_nick_name':s_fund['manager_nick_name']}})
+    
+    def update_normal(self,code,normal_item):
+        try:
+            self.doc.update_one({'symbol':code},{"$set":{'normal_Item':normal_item}})
+        except Exception as e:
+            print(e)
+            print("{} error".format(code))
 
-            
+    def this_year_return(self):
+        # 今年收益率
+        import time
+        codes = self.get_all_code()
+        # print(codes)
+        # code = 'P001040'
+        for code in codes:
+            print('processing code {}'.format(code)) 
+            normal_item = self.this_year_vshs300(code)
+            print(normal_item)
+            self.update_normal(code,normal_item)
+            time.sleep(1)
+
 
 def main():
     app = PrivateFund()
-    app.run()
+    # app.run()
     # app.update_with_missing_data()
     # app.debug()
     # app.get_details()
@@ -323,6 +350,7 @@ def main():
     # app.fund('P000946')
     # app.seq_run()
     # app.update_nick_name()
+    app.this_year_return() # 今年收益率
 
 if __name__ == '__main__':
     main()
