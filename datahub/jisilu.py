@@ -126,6 +126,7 @@ class Jisilu(BaseService):
             df['force_redeem_price'] = df['force_redeem_price'].astype('float64')
             df['margin_flg'] = df['icons'].map(self.identify_margin)
             df['icons'] = df['icons'].map(str)
+            del df['t_flag']
             rename_columns = {'bond_id': '可转债代码', 'bond_nm': '可转债名称',
                               'price': '可转债价格', 'stock_nm': '正股名称',
                               'stock_id': '正股代码',
