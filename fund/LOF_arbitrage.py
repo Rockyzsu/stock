@@ -2,15 +2,22 @@
 import datetime
 
 import demjson
+import fire
+import pandas as pd
 import requests
 import  sys
 sys.path.append('..')
 from configure.settings import DBSelector
+from configure.util import send_message_via_wechat
+import akshare as ak
+from parsel import Selector
+
 
 class LOF_arbitrage:
-    def __init__(self):
+    def __init__(self,save):
         self.db = DBSelector().mongo()
         self.client = self.db['FUND_LOF']
+        self.save = save
 
     def update_premiun(self):
         date = datetime.datetime.now().strftime('%Y-%m-%d')
@@ -25,24 +32,42 @@ class LOF_arbitrage:
                 print(e)
                 print(fund['symbol'],'error')
     def get_realtime_time(self):
+        result =[]
         for p in range(1, 11):
             fund_list = self.get_page(p)
             for fund in fund_list:
                 symbol = fund['symbol'][2:]
 
                 detail_dict = self.fund_detail(symbol)
+                # if detail_dict is None:
+
                 fund.update(detail_dict)
-                price=float(fund['trade'])
-                netvalue = float(['单位净值'])
-                discount = (price-netvalue) / netvalue * 100
-                fund['溢价率'] = discount
-                self.dump_mongodb(fund)
+                fund['update_time'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                try:
+                    price=float(fund['trade'])
+                    netvalue = float(fund['单位净值'])
+                    discount = (price-netvalue) / netvalue * 100
+                    fund['溢价率'] = discount
+                    # if self.save:
+                    #     self.dump_mongodb(fund)
+                    result.append(fund)
+                except Exception as e:
+                    print(e)
+                    print(fund['symbol'],'error')
+
+        return result
 
     def dump_mongodb(self,data):
         doc = datetime.datetime.now().strftime('%Y-%m-%d')
-        self.client[doc].insert_one(data)
+        self.client[doc].insert_many(data)
 
-
+        # for d in data:
+        #     # print(d)
+        #     try:
+        #         self.client[doc].insert_one(d)
+        #     except Exception as e:
+        #         print(e)
+        #         print(d)
     def fund_detail(self,code):
 
         url = "https://finance.sina.com.cn/fund/quotes/{}/bc.shtml".format(code)
@@ -61,15 +86,19 @@ class LOF_arbitrage:
         }
 
         response = requests.request("GET", url, headers=headers, data=payload)
-        response.encoding='utf-8'
+        if '<meta charset="utf-8"/>' in response.text:
+            response.encoding='utf-8'
+        else:
+            response.encoding='gb2312'
+
         result = self.parse(response.text)
         return result
 
     def parse(self,content):
-        from parsel import Selector
         xpath_data =Selector(text=content)
-        nodes=xpath_data.xpath('//div[@class="fund_data_item"]')
+
         result = {}
+        nodes = xpath_data.xpath('//div[@class="fund_data_item"]')
         for node in nodes:
             name = node.xpath('./span[@class="fund_data_tag"]/text()').extract_first()
             value = node.xpath('./span[@class="fund_data"]/text()').extract_first()
@@ -78,6 +107,23 @@ class LOF_arbitrage:
 
             value = value.replace('%','').replace('/','')
             result[name] = value
+
+        if len(result)==0:
+            # 额外解析
+            th_node = xpath_data.xpath('//div[@id="fund-hq"]//table//th')
+            for node in th_node:
+                name = node.xpath('./text()').extract_first()
+                value = node.xpath('./span/text()').extract_first()
+                name = name.replace('：','').replace(':','')
+                # if len(td_node)>0:
+                #     value = td_node[0].xpath('./text()').extract_first()
+                #     result[name] = value
+                value = value.replace('%', '')
+                # print(name,value)
+                if name == '基金简称' or name =='申购状态':
+                    continue
+                result[name] = value
+
         return result
 
     def get_page(self,p):
@@ -95,10 +141,40 @@ class LOF_arbitrage:
         return py_object
 
     def run(self):
-        self.get_realtime_time()
-        # self.update_premiun()
-        # print(self.fund_detail('160637'))
+        result = self.get_realtime_time()
+        df = pd.DataFrame(result)
+        fund_purchase_em_df = ak.fund_purchase_em()
+        merge_df = pd.merge(df,fund_purchase_em_df,left_on='code',right_on='基金代码',how='left')
+        if self.save:
+            merge_df['下一开放日'] = merge_df['下一开放日'].map(lambda x: str(x))
+            # merge_df['下一开放日'] = merge_df['下一开放日'].fillna('')
+            merge_df['最新净值/万份收益-报告时间']=merge_df['最新净值/万份收益-报告时间'].map(lambda x:str(x))
+            json_data = merge_df.to_dict(orient='records')
+            try:
+                self.dump_mongodb(json_data)
+            except Exception as e:
+                send_message_via_wechat('LOF溢价率数据存储失败')
+
+        target_df = merge_df[merge_df['溢价率']>=5]
+
+        for index,row in target_df.iterrows():
+            code = row['code']
+            name = row['基金简称']
+            premium = round(float(row['溢价率']),2)
+            status = row['申购状态']
+            limit_amount = row['日累计限定金额']
+            msg = '{} {} 溢价率 {},{},{}'.format(code,name,premium,status,limit_amount)
+            send_message_via_wechat(msg)
+
+def main(save=False):
+    today = datetime.datetime.now()
+    weekday = today.weekday()
+
+    if weekday == 5 or weekday == 6:
+        return
+
+    app = LOF_arbitrage(save)
+    app.run()
 
 if __name__ == '__main__':
-    app = LOF_arbitrage()
-    app.run()
+    fire.Fire(main)
