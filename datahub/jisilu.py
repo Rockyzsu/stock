@@ -12,7 +12,7 @@ import time
 import datetime
 import pandas as pd
 from configure.settings import DBSelector, config
-from configure.util import send_from_aliyun
+from configure.util import send_message_via_wechat
 from sqlalchemy import VARCHAR
 from common.BaseService import BaseService
 from datahub.jsl_login import login
@@ -179,6 +179,38 @@ class Jisilu(BaseService):
         df = df.set_index('可转债代码', drop=True)
         return df
 
+    def update_daily_report(self,df):
+        '''
+        更新每日报告
+        '''
+        conn = self.DB.get_mysql_conn('db_stock', self.remote)
+        # cursor = conn.cursor()
+        cmd = 'select 1 from bond_market_daily_report where trade_date=%s'
+        data = self.date
+        ret = self.execute(cmd, data, conn)
+
+        df['成交额(亿元)'] = df['成交额(万元)']/10000
+        df = df.sort_values(by='成交额(亿元)', ascending=False,inplace=False)
+        bond_trade_amount_total = df['成交额(亿元)'].sum()
+        bond_trade_amount_exclude_top10 = df['成交额(亿元)'].iloc[10:].sum()
+        bond_trade_amount_median = df['成交额(万元)'].median()
+        bond_count = len(df)
+        bond_price_median = df['可转债价格'].median()
+        bond_scale_median = df['剩余规模'].median()
+        bond_daily_percent_median = df['可转债涨幅'].median()
+
+        if len(ret)==0 :
+            cmd = '''insert into bond_market_daily_report 
+            (trade_date,bond_trade_amount_total,bond_trade_amount_exclude_top10,bond_trade_amount_median, bond_count, bond_price_median, bond_scale_median, bond_daily_percent_median, updated_time) 
+            values(%s,%s，%s，%s，%s，%s,%s,%s，now())'''
+            data = (self.date,bond_trade_amount_total, bond_trade_amount_exclude_top10, bond_trade_amount_median, bond_count, bond_price_median, bond_scale_median, bond_daily_percent_median)
+            self.execute(cmd, data, conn)
+        else:
+            cmd = '''update bond_market_daily_report set update_time=now(),bond_trade_amount_total=%s,bond_trade_amount_exclude_top10=%s,bond_trade_amount_median=%s, bond_count=%s, bond_price_median=%s, bond_scale_median=%s, bond_daily_percent_median=%s where trade_date=%s'''
+            data = ( bond_trade_amount_total, bond_trade_amount_exclude_top10, bond_trade_amount_median, bond_count,bond_price_median, bond_scale_median, bond_daily_percent_median,self.date)
+            self.execute(cmd, data, conn)
+
+
     def to_excel(self, df):
         try:
             df.to_excel(f'jisilu_{self.date}.xlsx', encoding='utf8')
@@ -198,7 +230,11 @@ class Jisilu(BaseService):
 
         except Exception as e:
             self.logger.info(e)
-            send_from_aliyun(title='jisilu可转债', content='写入数据库出错')
+            # send_from_aliyun_ssl(title='jisilu可转债', content='写入数据库出错')
+            send_message_via_wechat('jisilu可转债写入数据库出错')
+        else:
+            # daily report
+            self.update_daily_report(df)
 
     def init_release_table(self, conn):
 

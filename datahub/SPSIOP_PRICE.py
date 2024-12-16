@@ -9,7 +9,7 @@ sys.path.append('..')
 import datetime
 import requests
 from common.BaseService import BaseService
-from configure.util import send_from_aliyun
+from configure.util import send_from_aliyun_ssl
 from configure.settings import DBSelector
 
 
@@ -59,7 +59,7 @@ class SPSIOP(BaseService):
             d = {'日期': today, '估值': predict_v}
             client['db_stock']['huabaoyouqi_predict'].insert_one(d)
             title = f'华宝估值{predict_v} 净值日期{est_val_dt[5:]}'
-            send_from_aliyun(title, '')
+            send_from_aliyun_ssl(title, '')
 
         else:
             self.notify(title='华宝油气获取估值失败')

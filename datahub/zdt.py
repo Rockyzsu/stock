@@ -14,7 +14,7 @@ import os
 from configure.settings import config_dict
 import pandas as pd
 from configure.settings import DBSelector
-from configure.util import send_from_aliyun
+from configure.util import send_from_aliyun_ssl
 import requests
 import datetime
 from common.BaseService import BaseService
@@ -148,7 +148,7 @@ class GetZDT(BaseService):
 
         title,content = self.generate_html(df)
         try:
-            send_from_aliyun(title, content, types='html')
+            send_from_aliyun_ssl(title, content, types='html')
         except Exception as e:
             self.logger.error(e)
 

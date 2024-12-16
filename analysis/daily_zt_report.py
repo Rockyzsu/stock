@@ -14,7 +14,7 @@ import sys
 
 sys.path.append('..')
 from configure.settings import DBSelector
-from configure.util import send_from_aliyun
+from configure.util import send_from_aliyun_ssl
 from filterstock import FilterStock
 
 
@@ -58,7 +58,7 @@ def send_zt_report(today=None):
 
     obj = FilterStock()
     info = get_zt_info(obj, now)
-    send_from_aliyun(str(today) + '次新涨停', info)
+    send_from_aliyun_ssl(str(today) + '次新涨停', info)
 
 
 if __name__ == '__main__':

@@ -12,11 +12,16 @@ from email.mime.text import MIMEText
 from email.header import Header
 from email.utils import parseaddr, formataddr
 import json
+from email.mime.text import MIMEText
+from email.header import Header
+from email.utils import parseaddr, formataddr
+import email
+from email.mime.multipart import MIMEMultipart
 import pandas as pd
 import re
 import requests
 from .settings import config, get_config_data,DBSelector
-
+import datetime
 
 def notify(title='', desp=''):
     warnings.warn("该接口需要收费了，请使用企业微信")
@@ -236,8 +241,67 @@ def calendar(start_date,end_date):
 
     return cal
 
-import datetime
-import calendar
+def send_from_aliyun_ssl(title,content,TO_MAIL_=config['mail']['qq']['user'],types='plain'):
+
+
+    '''~~~smtp认证使用的邮箱账号密码~~~'''
+    username = config['aliyun']['EMAIL_USER_ALI']  # 阿里云
+    password = config['aliyun']['LOGIN_EMAIL_ALYI_PASSWORD']  # 阿里云
+
+    '''~~~定义发件地址~~~'''
+    From = formataddr([username,username])  #昵称(邮箱没有设置外发指定自定义昵称时有效)+发信地址(或代发)
+    replyto = username  #回信地址
+
+    '''定义收件对象'''
+    to = ','.join([TO_MAIL_, TO_MAIL_])  #收件人
+    rcptto = [to]  #完整的收件对象
+
+    '''定义主题'''
+    Subject = title
+
+    '''~~~开始构建message~~~'''
+    msg = MIMEMultipart('alternative')
+    '''1.1 收发件地址、回信地址、Message-id、发信时间、邮件主题'''
+    msg['From'] = From
+    msg['Reply-to'] = replyto
+    msg['TO'] = to
+    # msg['Cc'] = cc
+    # msg['Bcc'] = bcc  #建议密送地址在邮件头中隐藏
+    msg['Message-id'] = email.utils.make_msgid()
+    msg['Date'] = email.utils.formatdate()
+    msg['Subject'] = Subject
+    ''''1.2 正文text/plain部分'''
+    textplain = MIMEText(content, _subtype=types, _charset='UTF-8')
+    msg.attach(textplain)
+    '''1.3 封装附件'''
+    # file = r'C:\Users\yourname\Desktop\某文件夹\123.pdf'   #指定本地文件，请换成自己实际需要的文件全路径。
+    # att = MIMEText(open(file, 'rb').read(), 'base64', 'utf-8')
+    # att["Content-Type"] = 'application/octet-stream'
+    # att.add_header("Content-Disposition", "attachment", filename='123.pdf')
+    # msg.attach(att)
+
+    '''~~~开始连接验证服务~~~'''
+    try:
+        client = smtplib.SMTP_SSL('smtp.qiye.aliyun.com', 465)
+        print('smtp_ssl----连接服务器成功，现在开始检查账号密码')
+    except Exception as e1:
+        client = smtplib.SMTP('smtp.qiye.aliyun.com', 25, timeout=5) 
+        print('smtp----连接服务器成功，现在开始检查账号密码')
+    except Exception as e2:
+        print('抱歉，连接服务超时')
+        return
+
+    try:
+        client.login(username, password)
+        print('账密验证成功')
+    except:
+        print('抱歉，账密验证失败')
+        return
+
+    '''~~~发送邮件并结束任务~~~'''
+    client.sendmail(username, (','.join(rcptto)).split(','), msg.as_string())
+    client.quit()
+
 
 def is_weekday_today():
     # 获取当前日期

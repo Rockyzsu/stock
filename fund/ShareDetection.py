@@ -11,7 +11,7 @@ from sqlalchemy.orm import sessionmaker
 from common.TushareUtil import TushareBaseUtil
 from sqlalchemy import or_
 import pandas as pd
-from configure.util import send_from_aliyun
+from configure.util import send_from_aliyun_ssl
 from common.BaseService import BaseService
 from configure.settings import DBSelector
 from LOF_Model import FundBaseInfoModel, ShareModel, Base
@@ -51,7 +51,7 @@ class FundDetection(BaseService):
             title = f'{self.today} LOF 申购波动数据'
             print(title)
             print(query_result_str)
-            send_from_aliyun(title=title, content=query_result_str)
+            send_from_aliyun_ssl(title=title, content=query_result_str)
         else:
             self.logger.info(f'今天{self.today}没有数据')
 
@@ -63,7 +63,7 @@ class FundDetection(BaseService):
             title = f'{self.today} ETF 申购波动数据'
             # print(title)
             # print(query_result_str)
-            send_from_aliyun(title, content=query_result_str)
+            send_from_aliyun_ssl(title, content=query_result_str)
         else:
             self.logger.info(f'今天{self.today}没有数据')
 

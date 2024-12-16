@@ -9,7 +9,7 @@ import sys
 sys.path.append('..')
 from configure.settings import DBSelector
 from common.BaseService import BaseService
-from configure.util import send_from_aliyun
+from configure.util import send_from_aliyun_ssl
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -377,7 +377,7 @@ class TencentFundSpider(BaseService):
             html = self.combine_html(html, TODAY)
 
             try:
-                send_from_aliyun(title, html, types='html')
+                send_from_aliyun_ssl(title, html, types='html')
             except Exception as e:
                 self.logger.error(e)
                 self.logger.info('发送失败')
