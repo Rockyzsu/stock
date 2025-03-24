@@ -163,6 +163,9 @@ class LOF_arbitrage:
             premium = round(float(row['溢价率']),2)
             status = row['申购状态']
             limit_amount = row['日累计限定金额']
+            if status=='暂停申购':
+                continue
+
             msg = '{} {} 溢价率 {},{},{}'.format(code,name,premium,status,limit_amount)
             send_message_via_wechat(msg)
 
