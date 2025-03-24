@@ -3,18 +3,14 @@
 # @File : util.py
 # @Author : Rocky C@www.30daydo.com
 
-import datetime
 import random
 import smtplib
 import time
 import warnings
-from email.mime.text import MIMEText
-from email.header import Header
 from email.utils import parseaddr, formataddr
 import json
 from email.mime.text import MIMEText
 from email.header import Header
-from email.utils import parseaddr, formataddr
 import email
 from email.mime.multipart import MIMEMultipart
 import pandas as pd
