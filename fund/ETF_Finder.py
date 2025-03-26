@@ -120,7 +120,7 @@ class ETFFinder(SQLHelper):
         close_list = []
         if len(ret_data) < BUILT_DAY:
             # 成立时间不够
-            logger.info('{} data lenght not meet {}, {}'.format(code, BUILT_DAY, len(ret_data)))
+            logger.info('{} data length not meet {}, {}'.format(code, BUILT_DAY, len(ret_data)))
             return False
         for close, date, volume in ret_data:
             close_list.append(close)
