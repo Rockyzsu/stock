@@ -8,7 +8,9 @@ import requests
 import re
 from configure.util import send_message_via_wechat
 from configure.settings import DBSelector
+import akshare as ak
 
+ak.stock_zt_pool_em()
 headers = {
     'Accept': '*/*',
     'Accept-Language': 'zh,en;q=0.9,en-US;q=0.8,zh-CN;q=0.7,zh-TW;q=0.6',
@@ -301,21 +303,203 @@ def stock_zt_pool_zbgc_em(date: str = "20241011") -> pd.DataFrame:
     return temp_df
 
 
+def stock_zt_pool_dtgc_em(date: str = "20241011") -> pd.DataFrame:
+    """
+    东方财富网-行情中心-涨停板行情-跌停股池
+    https://quote.eastmoney.com/ztb/detail#type=dtgc
+    :param date: 交易日
+    :type date: str
+    :return: 跌停股池
+    :rtype: pandas.DataFrame
+    """
+    thirty_days_ago = datetime.datetime.now() - datetime.timedelta(days=30)
+    thirty_days_ago_str = thirty_days_ago.strftime("%Y%m%d")
+    if int(date) < int(thirty_days_ago_str):
+        raise ValueError("跌停股池只能获取最近 30 个交易日的数据")
+
+    url = "https://push2ex.eastmoney.com/getTopicDTPool"
+    params = {
+        "ut": ut,
+        "dpt": "wz.ztzt",
+        "Pageindex": "0",
+        "pagesize": "10000",
+        "sort": "fund:asc",
+        "date": date,
+    }
+    r = requests.get(url, params=params)
+    data_json = r.json()
+    if len(data_json["data"]["pool"]) == 0:
+        return pd.DataFrame()
+    temp_df = pd.DataFrame(data_json["data"]["pool"])
+    temp_df.reset_index(inplace=True)
+    temp_df["index"] = range(1, len(temp_df) + 1)
+    temp_df.columns = [
+        "序号",
+        "代码",
+        "_",
+        "名称",
+        "最新价",
+        "涨跌幅",
+        "成交额",
+        "流通市值",
+        "总市值",
+        "动态市盈率",
+        "换手率",
+        "封单资金",
+        "最后封板时间",
+        "板上成交额",
+        "连续跌停",
+        "开板次数",
+        "所属行业",
+    ]
+    temp_df = temp_df[
+        [
+            "序号",
+            "代码",
+            "名称",
+            "涨跌幅",
+            "最新价",
+            "成交额",
+            "流通市值",
+            "总市值",
+            "动态市盈率",
+            "换手率",
+            "封单资金",
+            "最后封板时间",
+            "板上成交额",
+            "连续跌停",
+            "开板次数",
+            "所属行业",
+        ]
+    ]
+    temp_df["最新价"] = temp_df["最新价"] / 1000
+    temp_df["最后封板时间"] = temp_df["最后封板时间"].astype(str).str.zfill(6)
+    temp_df["涨跌幅"] = pd.to_numeric(temp_df["涨跌幅"], errors="coerce")
+    temp_df["最新价"] = pd.to_numeric(temp_df["最新价"], errors="coerce")
+    temp_df["成交额"] = pd.to_numeric(temp_df["成交额"], errors="coerce")
+    temp_df["流通市值"] = pd.to_numeric(temp_df["流通市值"], errors="coerce")
+    temp_df["总市值"] = pd.to_numeric(temp_df["总市值"], errors="coerce")
+    temp_df["动态市盈率"] = pd.to_numeric(temp_df["动态市盈率"], errors="coerce")
+    temp_df["换手率"] = pd.to_numeric(temp_df["换手率"], errors="coerce")
+    temp_df["封单资金"] = pd.to_numeric(temp_df["封单资金"], errors="coerce")
+    temp_df["板上成交额"] = pd.to_numeric(temp_df["板上成交额"], errors="coerce")
+    temp_df["连续跌停"] = pd.to_numeric(temp_df["连续跌停"], errors="coerce")
+    temp_df["开板次数"] = pd.to_numeric(temp_df["开板次数"], errors="coerce")
+    temp_df["开板次数"] = pd.to_numeric(temp_df["开板次数"], errors="coerce")
+    return temp_df
+
+
+def stock_zt_pool_previous_em(date: str = "20240415") -> pd.DataFrame:
+    """
+    东方财富网-行情中心-涨停板行情-昨日涨停股池
+    https://quote.eastmoney.com/ztb/detail#type=zrzt
+    :param date: 交易日
+    :type date: str
+    :return: 昨日涨停股池
+    :rtype: pandas.DataFrame
+    """
+    url = "https://push2ex.eastmoney.com/getYesterdayZTPool"
+    params = {
+        "ut": ut,
+        "dpt": "wz.ztzt",
+        "Pageindex": "0",
+        "pagesize": "5000",
+        "sort": "zs:desc",
+        "date": date,
+    }
+    r = requests.get(url, params=params)
+    data_json = r.json()
+    if data_json["data"] is None:
+        return pd.DataFrame()
+    if len(data_json["data"]["pool"]) == 0:
+        return pd.DataFrame()
+    temp_df = pd.DataFrame(data_json["data"]["pool"])
+    temp_df.reset_index(inplace=True)
+    temp_df["index"] = range(1, len(temp_df) + 1)
+    temp_df.columns = [
+        "序号",
+        "代码",
+        "_",
+        "名称",
+        "最新价",
+        "涨停价",
+        "涨跌幅",
+        "成交额",
+        "流通市值",
+        "总市值",
+        "换手率",
+        "振幅",
+        "涨速",
+        "昨日封板时间",
+        "昨日连板数",
+        "所属行业",
+        "涨停统计",
+    ]
+    temp_df["涨停统计"] = (
+            temp_df["涨停统计"].apply(lambda x: dict(x)["days"]).astype(str)
+            + "/"
+            + temp_df["涨停统计"].apply(lambda x: dict(x)["ct"]).astype(str)
+    )
+    temp_df = temp_df[
+        [
+            "序号",
+            "代码",
+            "名称",
+            "涨跌幅",
+            "最新价",
+            "涨停价",
+            "成交额",
+            "流通市值",
+            "总市值",
+            "换手率",
+            "涨速",
+            "振幅",
+            "昨日封板时间",
+            "昨日连板数",
+            "涨停统计",
+            "所属行业",
+        ]
+    ]
+    temp_df["最新价"] = temp_df["最新价"] / 1000
+    temp_df["涨停价"] = temp_df["涨停价"] / 1000
+    temp_df["昨日封板时间"] = temp_df["昨日封板时间"].astype(str).str.zfill(6)
+    return temp_df
+
+
 def data_dump(df, table_name):
     engine = DBSelector().get_engine('db_zdt', 'qq')
-    df.to_sql(table_name, con=engine, if_exists='replace', index=False)
+    print(df)
+    if len(df)==0:
+        return
 
+    try:
+        df.to_sql(table_name, con=engine, if_exists='replace', index=False)
+    except Exception as e:
+        print(e)
 
 def main():
     date = datetime.datetime.now().strftime('%Y%m%d')
     zt_df = stock_zt_pool_em(date)
-    data_dump(zt_df, 'zt_' + date)
+    data_dump(zt_df, date + '_zt')
 
     strong_df = stock_zt_pool_strong_em(date)
-    data_dump(strong_df, 'strong_' + date)
+    data_dump(strong_df, date + '_strong')
 
     break_df = stock_zt_pool_zbgc_em(date)
-    data_dump(break_df, 'break_' + date)
+    data_dump(break_df, date + '_break')
+
+    dt_df = stock_zt_pool_dtgc_em(date)
+    data_dump(dt_df, date + '_dt')
+
+    zrzt_df = stock_zt_pool_previous_em(date)
+    data_dump(zrzt_df, date + '_zrzt')
+
 
 if __name__ == '__main__':
-    main()
+    weekday = datetime.datetime.now().weekday()
+    if weekday == 5 or weekday == 6:
+        print('周末不执行')
+        exit(0)
+    else:
+        print('工作日执行')
+        main()
