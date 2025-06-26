@@ -11,9 +11,10 @@ import time
 import os
 import sys
 sys.path.append('..')
-# from configure.util import notify
 from common.BaseService import BaseService
 from configure.settings import DBSelector,config_dict
+
+FIX_TABLE_NAME = 'astock_market'
 
 class FetchDaily(BaseService):
     def __init__(self):
@@ -25,6 +26,13 @@ class FetchDaily(BaseService):
         self.TIMEOUT = 10
         self.DB = DBSelector()
         self.engine = self.DB.get_engine('db_daily', 'qq')
+
+    def transfer_db(self,df):
+        self.engine_tf = self.DB.get_engine('ptrade', 'qq')
+        try:
+            df.to_sql(FIX_TABLE_NAME, self.engine_tf, if_exists='fail', index=False)
+        except Exception as e:
+            self.notify(f'{__file__}报错')
 
     def get_today_market(self, re_try=10):
 
@@ -67,9 +75,12 @@ class FetchDaily(BaseService):
 
             try:
                 self.df_today_all.to_sql(self.today, self.engine, if_exists='fail')
+                self.transfer_db(self.df_today_all)
+
             except Exception as e:
-                self.notify(title=f'{self.__class__}mysql出错')
+                self.notify(title=f'{__file__} mysql出错')
                 self.logger.error(e)
+
 
 
 def main():

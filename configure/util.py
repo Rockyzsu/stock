@@ -245,11 +245,11 @@ def send_from_aliyun_ssl(title,content,TO_MAIL_=config['mail']['qq']['user'],typ
     password = config['aliyun']['LOGIN_EMAIL_ALYI_PASSWORD']  # 阿里云
 
     '''~~~定义发件地址~~~'''
-    From = formataddr([username,username])  #昵称(邮箱没有设置外发指定自定义昵称时有效)+发信地址(或代发)
+    From = formataddr((username,username))  #昵称(邮箱没有设置外发指定自定义昵称时有效)+发信地址(或代发)
     replyto = username  #回信地址
 
     '''定义收件对象'''
-    to = ','.join([TO_MAIL_, TO_MAIL_])  #收件人
+    to = ','.join([TO_MAIL_])  #收件人
     rcptto = [to]  #完整的收件对象
 
     '''定义主题'''
