@@ -9,6 +9,8 @@ import tushare as ts
 import pandas as pd
 import time
 import os
+from sqlalchemy import VARCHAR
+
 import sys
 sys.path.append('..')
 from common.BaseService import BaseService
@@ -30,8 +32,9 @@ class FetchDaily(BaseService):
     def transfer_db(self,df):
         self.engine_tf = self.DB.get_engine('ptrade', 'qq')
         try:
-            df.to_sql(FIX_TABLE_NAME, self.engine_tf, if_exists='fail', index=False)
+            df.to_sql(FIX_TABLE_NAME, self.engine_tf, if_exists='replace', index=True, dtype={'code': VARCHAR(6)})
         except Exception as e:
+            self.logger.info(e)
             self.notify(f'{__file__}报错')
 
     def get_today_market(self, re_try=10):
@@ -74,7 +77,9 @@ class FetchDaily(BaseService):
 
 
             try:
-                self.df_today_all.to_sql(self.today, self.engine, if_exists='fail')
+                self.df_today_all['code'] = self.df_today_all['code'].astype(str)
+                self.df_today_all.drop_duplicates(subset='code', keep='first', inplace=True)
+                self.df_today_all.to_sql(self.today, self.engine, if_exists='replace',dtype={'code': VARCHAR(6)})
                 self.transfer_db(self.df_today_all)
 
             except Exception as e:
