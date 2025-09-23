@@ -193,21 +193,21 @@ class Jisilu(BaseService):
         df = df.sort_values(by='成交额(亿元)', ascending=False,inplace=False)
         bond_trade_amount_total = df['成交额(亿元)'].sum()
         bond_trade_amount_exclude_top10 = df['成交额(亿元)'].iloc[10:].sum()
-        bond_trade_amount_median = df['成交额(万元)'].median()
+        bond_trade_amount_median = round(df['成交额(万元)'].median(),0)
         bond_count = len(df)
         bond_price_median = df['可转债价格'].median()
         bond_scale_median = df['剩余规模'].median()
         bond_daily_percent_median = df['可转债涨幅'].median()
-
+        now = datetime.datetime.now()
         if len(ret)==0 :
             cmd = '''insert into bond_market_daily_report 
             (trade_date,bond_trade_amount_total,bond_trade_amount_exclude_top10,bond_trade_amount_median, bond_count, bond_price_median, bond_scale_median, bond_daily_percent_median, updated_time) 
-            values(%s,%s，%s，%s，%s，%s,%s,%s，now())'''
-            data = (self.date,bond_trade_amount_total, bond_trade_amount_exclude_top10, bond_trade_amount_median, bond_count, bond_price_median, bond_scale_median, bond_daily_percent_median)
+            values(%s,%s,%s,%s,%s,%s,%s,%s,%s)'''
+            data = (self.date,bond_trade_amount_total, bond_trade_amount_exclude_top10, bond_trade_amount_median, bond_count, bond_price_median, bond_scale_median, bond_daily_percent_median,now)
             self.execute(cmd, data, conn)
         else:
-            cmd = '''update bond_market_daily_report set update_time=now(),bond_trade_amount_total=%s,bond_trade_amount_exclude_top10=%s,bond_trade_amount_median=%s, bond_count=%s, bond_price_median=%s, bond_scale_median=%s, bond_daily_percent_median=%s where trade_date=%s'''
-            data = ( bond_trade_amount_total, bond_trade_amount_exclude_top10, bond_trade_amount_median, bond_count,bond_price_median, bond_scale_median, bond_daily_percent_median,self.date)
+            cmd = '''update bond_market_daily_report set updated_time=%s,bond_trade_amount_total=%s,bond_trade_amount_exclude_top10=%s,bond_trade_amount_median=%s, bond_count=%s, bond_price_median=%s, bond_scale_median=%s, bond_daily_percent_median=%s where trade_date=%s'''
+            data = ( now,bond_trade_amount_total, bond_trade_amount_exclude_top10, bond_trade_amount_median, bond_count,bond_price_median, bond_scale_median, bond_daily_percent_median,self.date)
             self.execute(cmd, data, conn)
 
 
@@ -218,7 +218,7 @@ class Jisilu(BaseService):
             print(e)
 
     def store_mysql(self, df):
-        # 根据不同配置写入到不同数据库，
+        # 根据不同配置写入到不同数据库
         TABLE_DICT = {'qq': {'fix_db': 'db_stock', 'daily_db': 'db_jisilu'},
                       'ptrade': {'fix_db': 'ptrade', 'daily_db': 'db_jisilu_end'}}
 

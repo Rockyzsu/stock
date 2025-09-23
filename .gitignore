@@ -10,6 +10,7 @@ data.cfg
 *.pkl
 stock_list.txt
 bases.csv
+yanbao/
 *.csv
 *.xls
 *.xlsx

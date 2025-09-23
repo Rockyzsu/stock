@@ -132,7 +132,7 @@ class LOF_arbitrage:
         return result
 
     def postfix(self, code):
-        if code.starts('5'):
+        if code.startswith('5'):
             return 'SH' + code
         else:
             return 'SZ' + code

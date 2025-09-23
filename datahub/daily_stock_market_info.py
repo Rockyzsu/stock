@@ -32,7 +32,7 @@ class FetchDaily(BaseService):
     def transfer_db(self,df):
         self.engine_tf = self.DB.get_engine('ptrade', 'qq')
         try:
-            df.to_sql(FIX_TABLE_NAME, self.engine_tf, if_exists='replace', index=True, dtype={'code': VARCHAR(6)})
+            df.to_sql(FIX_TABLE_NAME, self.engine_tf, if_exists='replace', dtype={'code': VARCHAR(6)})
         except Exception as e:
             self.logger.info(e)
             self.notify(f'{__file__}报错')
