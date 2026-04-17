@@ -82,16 +82,16 @@ def parse_data(js_data):
             except:
                 continue
             print(f'{term} {total}')
-            dump_mongodb(item)
+            # dump_mongodb(item)
 
 def main(history=False):
 
     if history:
         get_history_data()
     else:
-        last_month = datetime.datetime.now() - datetime.timedelta(days=30)
+        last_month = datetime.datetime.now() - datetime.timedelta(days=15)
         last_month = last_month.strftime('%Y%m')
-        print(f'current year: {last_month}')
+        print(f'current month: {last_month}')
 
 
         url = "https://query.sse.com.cn//commonQuery.do?jsonCallBack=jsonpCallback45859518&sqlId=COMMON_SSE_TZZ_M_ALL_ACCT_C&isPagination=false&MDATE={}".format(last_month)
